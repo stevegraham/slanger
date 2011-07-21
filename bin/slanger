@@ -1,0 +1,52 @@
+#!/usr/bin/env ruby -Ku
+
+require 'optparse'
+require 'eventmachine'
+
+options = { 
+  api_host: '0.0.0.0', api_port: '4567', websocket_host: '0.0.0.0',
+  websocket_port: '8080', debug: false, redis_address: 'redis://0.0.0.0:6379/0'
+  }
+
+optparse = OptionParser.new do |opts|
+  opts.on '-h', '--help', 'Display this screen' do
+    puts opts
+    exit
+  end
+
+  opts.on '-k', '--key APP_KEY', "Pusher application key" do |k|
+    options[:app_key] = k
+  end
+
+  opts.on '-r', '--redis_address URL', "Address to bind to (Default: redis://127.0.0.1:6379/0)" do |h|
+    options[:redis_address] = h
+  end
+
+  opts.on '-a', '--api_host HOST', "API service address (Default: 0.0.0.0:4567)" do |p|
+    options[:api_host], options[:api_port] = p.split(':')
+  end
+
+  opts.on '-w', '--websocket_host HOST', "WebSocket service address (Default: 0.0.0.0:8080)" do |p|
+    options[:websocket_host], options[:websocket_port] = p.split(':')
+  end
+
+  opts.on "-v", "--[no-]verbose", "Run verbosely" do |v|
+    options[:debug] = v
+  end
+end.parse!
+
+puts options
+raise RuntimeError.new '--key APP_KEY is a required argument. Use your Pusher key.' unless options[:app_key]
+
+EM.run do
+  File.tap { |f| require f.expand_path(f.join(f.dirname(__FILE__),'..', 'slanger.rb')) }
+
+  Slanger::Service.run options
+
+  puts "\n"
+  puts '*' * 72
+  puts "* Slanger API server listening on port #{options[:api_port]}".ljust(71) + "*"
+  puts "* Slanger WebSocket server listening on port #{options[:websocket_port]}".ljust(71) + "*"
+  puts '*' * 72
+  puts "\n"
+end
