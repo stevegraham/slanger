@@ -34,7 +34,11 @@ module Slanger
     def pusher_subscribe(msg)
       @channel_id = msg['data']['channel']
       channel = Slanger::Channel.find_or_create_by_channel_id(@channel_id).first
-      @subscription_id = channel.subscribe { |msg| @socket.send msg }
+      @subscription_id = channel.subscribe do |msg|
+        msg       = JSON.parse(msg)
+        socket_id = msg.delete 'socket_id'
+        @socket.send msg.to_json unless socket_id == @socket_id
+      end
     end
 
     def payload(event_name, payload = {})

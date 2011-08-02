@@ -14,7 +14,7 @@
       var pusher = new Pusher('765ec374ae0a69f4ce44');
       pusher.bind('pusher:error', function(data) { alert(data['message']) })
       var myChannel = pusher.subscribe('MY_CHANNEL');
-      myChannel.bind('an_event', function(data) { alert(data) })
+      myChannel.bind('an_event', function(data) { alert('WOWEEWOWEEWOWEEE!') })
     </script>
   </body>
 </html>
