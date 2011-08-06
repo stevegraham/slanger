@@ -1,3 +1,12 @@
+GIT
+  remote: https://github.com/stevegraham/glamazon.git
+  revision: 57aa6ad0550118104608432545ba3be1cec0ee98
+  specs:
+    glamazon (0.2.0)
+      activesupport (>= 3.0.9)
+      i18n (~> 0.5.0)
+      yajl-ruby (>= 0.7.7)
+
 GEM
   remote: http://rubygems.org/
   specs:
@@ -17,10 +26,6 @@ GEM
       eventmachine (>= 0.12.9)
     escape_utils (0.2.3)
     eventmachine (0.12.10)
-    glamazon (0.2.0)
-      activesupport (>= 3.0.9)
-      i18n (~> 0.5.0)
-      yajl-ruby (>= 0.7.7)
     hiredis (0.3.2)
     i18n (0.5.0)
     multi_json (1.0.3)
@@ -61,7 +66,7 @@ DEPENDENCIES
   em-http-request
   em-websocket
   eventmachine (= 0.12.10)
-  glamazon
+  glamazon!
   pusher (= 0.8.2)
   rack
   rack-fiber_pool
