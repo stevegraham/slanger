@@ -1,8 +1,11 @@
+require 'bundler/setup'
+
 require 'active_support/json'
 require 'active_support/core_ext/hash'
 require 'eventmachine'
 require 'em-http-request'
 require 'pusher'
+require 'thin'
 
 describe 'Integration' do
   Thread.abort_on_exception = false

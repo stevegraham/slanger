@@ -11,7 +11,7 @@ module Slanger
 
       opts = defaults.merge opts
 
-      Rack::Handler::Thin.run Slanger::APIServer, Host: opts[:api_host], Port: opts[:api_port]
+      Rack::Handler::Thin.run Slanger::ApiServer, Host: opts[:api_host], Port: opts[:api_port]
       Slanger::WebSocketServer.run host: opts[:websocket_host], port: opts[:websocket_port],
         debug: opts[:debug], app_key: opts[:app_key]
     end

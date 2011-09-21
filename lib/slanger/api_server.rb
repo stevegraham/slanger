@@ -9,7 +9,7 @@ require 'fiber'
 require 'rack/fiber_pool'
 
 module Slanger
-  class APIServer < Sinatra::Base
+  class ApiServer < Sinatra::Base
     use Rack::FiberPool
     set :raise_errors, lambda { false }
     set :show_exceptions, false
@@ -24,7 +24,7 @@ module Slanger
         authenticate { |key| Signature::Token.new key, lookup_secret[key] }
 
       f = Fiber.current
-      redis.publish(params[:channel_id], payload).tap do |r|
+      Slanger::Redis.publish(params[:channel_id], payload).tap do |r|
         r.callback { f.resume [202, {}, "202 ACCEPTED\n"] }
         r.errback  { f.resume [500, {}, "500 INTERNAL SERVER ERROR\n"] }
       end
@@ -36,10 +36,6 @@ module Slanger
         event: params['name'], data: request.body.read, channel: params[:channel_id], socket_id: params[:socket_id]
       }
       Hash[payload.reject { |k,v| v.nil? }].to_json
-    end
-
-    def redis
-      @redis ||= EM::Hiredis.connect
     end
 
     def lookup_secret

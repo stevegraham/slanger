@@ -16,7 +16,7 @@ module Slanger
 
     def onclose
       channel = Slanger::Channel.find_by_channel_id(@channel_id)
-      channel && channel.unsubcribe(@subscription_id)
+      channel.unsubcribe(@subscription_id)
     end
 
     private
