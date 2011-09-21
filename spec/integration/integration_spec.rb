@@ -1,9 +1,11 @@
-require 'bundler'
 require 'active_support/json'
 require 'active_support/core_ext/hash'
-Bundler.require :test
+require 'eventmachine'
+require 'em-http-request'
+require 'pusher'
 
 describe 'Integration' do
+  Thread.abort_on_exception = false
   before(:each) do
     # Fork service. Our integration tests MUST block the main thread because we want to wait for i/o to finish.
     @server_pid = EM.fork_reactor do
@@ -12,7 +14,7 @@ describe 'Integration' do
       Slanger::Service.run host: '0.0.0.0', api_port: '4567', websocket_port: '8080', app_key: '765ec374ae0a69f4ce44'
     end
     # Give Slanger a chance to start
-    sleep 0.3
+    sleep 2
   end
 
   after(:each) do
@@ -39,10 +41,6 @@ describe 'Integration' do
         websocket = EM::HttpRequest.new("ws://0.0.0.0:8080/app/#{Pusher.key}?client=js&version=1.8.5").
           get :timeout => 0
 
-        websocket.callback do
-          websocket.send({ event: 'pusher:subscribe', data: { channel: 'MY_CHANNEL'} }.to_json)
-        end
-
         websocket.stream do |message|
           messages << message
           if messages.length < 2
@@ -51,6 +49,11 @@ describe 'Integration' do
             EM.stop
           end
         end
+
+        websocket.callback do
+          websocket.send({ event: 'pusher:subscribe', data: { channel: 'MY_CHANNEL'} }.to_json)
+        end
+
       end
     end.join
 

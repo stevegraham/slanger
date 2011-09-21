@@ -15,8 +15,8 @@ module Slanger
     end
 
     def onclose
-      channel = Slanger::Channel.find_by_channel_id(@channel_id).first
-      channel.unsubcribe @subscription_id
+      channel = Slanger::Channel.find_by_channel_id(@channel_id)
+      channel && channel.unsubcribe(@subscription_id)
     end
 
     private
@@ -33,7 +33,7 @@ module Slanger
 
     def pusher_subscribe(msg)
       @channel_id = msg['data']['channel']
-      channel = Slanger::Channel.find_or_create_by_channel_id(@channel_id).first
+      channel = Slanger::Channel.find_or_create_by_channel_id(@channel_id)
       @subscription_id = channel.subscribe do |msg|
         msg       = JSON.parse(msg)
         socket_id = msg.delete 'socket_id'

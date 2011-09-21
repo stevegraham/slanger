@@ -9,7 +9,7 @@ module Slanger
 
     def_delegators :channel, :subscribe, :unsubscribe, :push
 
-    Slanger::Redis.on(:message) { |channel, message| find_or_create_by_channel_id(channel).first.push message }
+    Slanger::Redis.on(:message) { |channel, message| find_or_create_by_channel_id(channel).push message }
 
     def initialize(attrs)
       super
@@ -18,6 +18,6 @@ module Slanger
 
     def channel
       @channel ||= EM::Channel.new
-    end    
+    end
   end
 end

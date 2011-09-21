@@ -1,5 +1,6 @@
-Dir["#{File.dirname(__FILE__)}/../**/*.rb"].each { |f| require f }
 require 'mocha'
+require 'pusher'
+require 'eventmachine'
 
 RSpec.configure do |config|
   config.mock_with :mocha

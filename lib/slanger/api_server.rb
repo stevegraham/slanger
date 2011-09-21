@@ -32,7 +32,7 @@ module Slanger
     end
 
     def payload
-      payload = { 
+      payload = {
         event: params['name'], data: request.body.read, channel: params[:channel_id], socket_id: params[:socket_id]
       }
       Hash[payload.reject { |k,v| v.nil? }].to_json
