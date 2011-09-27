@@ -1,8 +1,7 @@
 #!/usr/bin/env ruby -Ku
 
 require 'optparse'
-require 'bundler'
-Bundler.require
+require 'bundler/setup'
 require 'eventmachine'
 
 options = {
@@ -10,13 +9,17 @@ options = {
   websocket_port: '8080', debug: false, redis_address: 'redis://0.0.0.0:6379/0'
   }
 
-optparse = OptionParser.new do |opts|
+OptionParser.new do |opts|
   opts.on '-h', '--help', 'Display this screen' do
     exit
   end
 
-  opts.on '-k', '--key APP_KEY', "Pusher application key" do |k|
+  opts.on '-k', '--app_key APP_KEY', "Pusher application key" do |k|
     options[:app_key] = k
+  end
+
+  opts.on '-s', '--secret SECRET', "Pusher application secret" do |k|
+    options[:secret] = k
   end
 
   opts.on '-r', '--redis_address URL', "Address to bind to (Default: redis://127.0.0.1:6379/0)" do |h|
@@ -36,17 +39,30 @@ optparse = OptionParser.new do |opts|
   end
 end.parse!
 
-raise RuntimeError.new '--key APP_KEY is a required argument. Use your Pusher key.' unless options[:app_key]
+%w<app_key secret>.each do |parameter|
+  raise RuntimeError.new "--#{parameter} STRING is a required argument. Use your Pusher #{parameter}." unless options[parameter.to_sym]
+end
 
 EM.run do
   File.tap { |f| require f.expand_path(f.join(f.dirname(__FILE__),'..', 'slanger.rb')) }
+  Slanger::Config.load options
+  Slanger::Service.run
 
-  Slanger::Service.run options
+  puts "\x1b[2J\x1b[H"
+  puts "\n"
+  puts "    .d8888b.  888                                               "
+  puts "   d88P  Y88b 888                                               "
+  puts "   Y88b.      888                                               "
+  puts '    "Y888b.   888  8888b.  88888b.   .d88b.   .d88b.  888d888   '
+  puts '       "Y88b. 888     "88b 888 "88b d88P"88b d8P  Y8b 888P"     '
+  puts '         "888 888 .d888888 888  888 888  888 88888888 888       '
+  puts "   Y88b  d88P 888 888  888 888  888 Y88b 888 Y8b.     888       "
+  puts '    "Y8888P"  888 "Y888888 888  888  "Y88888  "Y8888  888       '
+  puts "                                         888                    "
+  puts "                                    Y8b d88P                    "
+  puts '                                    "Y88P"                      '
+  puts "\n" * 2
 
-  puts "\n"
-  puts '*' * 72
-  puts "* Slanger API server listening on port #{options[:api_port]}".ljust(71) + "*"
-  puts "* Slanger WebSocket server listening on port #{options[:websocket_port]}".ljust(71) + "*"
-  puts '*' * 72
-  puts "\n"
+  puts "Slanger API server listening on port #{options[:api_port]}"
+  puts "Slanger WebSocket server listening on port #{options[:websocket_port]}"
 end

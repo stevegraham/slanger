@@ -1,0 +1,16 @@
+!!!
+%html
+  %head
+    %title Websocket Test
+  %body
+    %script{src: "http://js.pusherapp.com/1.8/pusher.min.js"}
+    :javascript
+      //Pusher.host    = "0.0.0.0"
+      //Pusher.ws_port = "8080"
+      Pusher.log = function(data) {
+        console.log('\t\t', data);
+      };
+      var pusher = new Pusher('5ad8640c9b11e84cc60a');
+      pusher.bind('pusher:error', function(data) { alert(data['message']) })
+      var myChannel = pusher.subscribe('#{@channel}');
+      myChannel.bind('an_event', function(data) { alert('WOWEEWOWEEWOWEEE!') })

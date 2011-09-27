@@ -1,0 +1,15 @@
+!!!
+%html
+  %head
+    %title Chat Lobby
+  %body
+    %h1 Slanger Chat
+    %p
+      Share those special slanger moments that always bring a smile to your face.
+
+    %form{ action: '/identify', method: 'POST'}
+      %label{ for: 'handle' }
+        Handle
+      %input{ type: 'text', id: 'handle', name: 'handle' }
+      %input{ type: 'submit' }
+

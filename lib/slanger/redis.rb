@@ -15,6 +15,7 @@ module Slanger
     def subscriber
       @subscriber ||= EM::Hiredis.connect
     end
+
     extend self
   end
 end

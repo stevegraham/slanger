@@ -21,7 +21,7 @@ module Slanger
       # authenticate request. exclude 'channel_id' and 'app_id', these are added the the params
       # by the pusher client lib after computing HMAC
       Signature::Request.new('POST', env['PATH_INFO'], params.except('channel_id', 'app_id')).
-        authenticate { |key| Signature::Token.new key, lookup_secret[key] }
+        authenticate { |key| Signature::Token.new key, Slanger::Config.secret }
 
       f = Fiber.current
       Slanger::Redis.publish(params[:channel_id], payload).tap do |r|
@@ -36,10 +36,6 @@ module Slanger
         event: params['name'], data: request.body.read, channel: params[:channel_id], socket_id: params[:socket_id]
       }
       Hash[payload.reject { |k,v| v.nil? }].to_json
-    end
-
-    def lookup_secret
-      Hash.new "your-pusher-secret"
     end
   end
 end

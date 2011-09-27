@@ -1,0 +1,62 @@
+/* @override http://127.0.0.1:3000/screen.css */
+
+* {
+	margin: 0;
+	padding: 0;
+}
+
+body, html {
+	height: 100%;
+	font: 90% "Helvetica Neue", Arial, Helvetica, Geneva, sans-serif;
+	overflow: hidden;
+}
+
+#presence {
+	width: 300px;
+	position: absolute;
+	top: 0;
+	right: 0;
+	border-left: 1px solid #ddd;
+	z-index: -1;
+}
+
+#presence li {
+	margin: 5px 10px;
+}
+
+#main {
+	height: 100%;
+}
+
+#message {
+	width: 600px;
+}
+
+input {
+
+}
+
+#main form {
+	vertical-align: bottom;
+	position: absolute;
+	bottom: 0;
+	padding: 10px;
+	background-color: #333;
+	width: 100%;
+}
+
+#messages li {
+	margin: 5px 7px;
+	overflow: scroll;
+}
+
+#messages li.info {
+	color: #999;
+}
+
+ol {
+	list-style-type: none;
+	height: 100%;
+}
+
+

@@ -3,6 +3,7 @@ require 'bundler/setup'
 require 'eventmachine'
 require 'em-hiredis'
 require 'rack'
+require 'active_support/core_ext/string'
 
 module Slanger; end
 

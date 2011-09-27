@@ -1,0 +1,51 @@
+!!!
+%html
+  %head
+    %title Chat Room
+    %meta{ 'http-equiv' => 'Content-Type', content: 'text/html', charset: 'utf-8' }
+    %link{ rel: 'stylesheet', href: 'screen.css', type: 'text/css' }
+
+  %body
+    %div{ id: 'main'}
+      %ol{ id: 'messages' }
+      %form{ action: '/chat', method: 'POST' }
+        %input{ type: 'text', id: 'message', name: 'message' }
+        %input{ type: 'submit', value: 'Send' }
+    %div{ id: 'sidebar' }
+      %ol{ id: 'presence' }
+    %script{src: "http://js.pusherapp.com/1.8/pusher.min.js"}
+    %script{src: "http://ajax.googleapis.com/ajax/libs/jquery/1.6.4/jquery.min.js"}
+    :javascript
+      Pusher.host    = "#{@use_pusher ? 'ws.pusherapp.com' : '0.0.0.0' }"
+      Pusher.ws_port = "#{@use_pusher ? 80 : 8080}"
+      Pusher.log = function(data) {
+        console.log('\t\t', data);
+      };
+      var pusher = new Pusher('#{Pusher.key}');
+      var myChannel = pusher.subscribe('presence-channel');
+      myChannel.bind('chat_message', function(msg) {
+        $('#messages').append("<li><strong>" + msg['sender'] + "</strong>: " + msg['body'] + "</li>")
+      })
+
+      myChannel.bind('pusher:subscription_succeeded', function(members) {
+        members.each(function(member) {
+          $('#presence').append($('<li>' + member.info.name + '</li>').attr('id', member.id))
+        })
+      })
+
+      myChannel.bind('pusher:member_added', function(member) {
+        $('#messages').append($('<li class="info">**** ' + member.info.name + ' entered the chat ****</li>'))
+        $('#presence').append($('<li>' + member.info.name + '</li>').attr('id', member.id))
+      })
+
+      myChannel.bind('pusher:member_removed', function(member) {
+        $('#messages').append($('<li class="info">**** ' + member.info.name + ' left the chat ****</li>'))
+        $('#' + member.id).remove()
+      })
+
+
+      $('#main form').submit(function(ev) {
+        $.post('/chat', { message: $('#message').val() })
+        $('#message').val(null)
+        return false
+      })
