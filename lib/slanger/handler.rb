@@ -5,25 +5,30 @@ require 'signature'
 
 module Slanger
   class Handler
-    def initialize(socket, app_key)
-      @socket, @app_key = socket, app_key
+    def initialize(socket)
+      @socket = socket
       authenticate
     end
 
+    # Dispatches message handling to method with same name as the event name
     def onmessage(msg)
       msg = JSON.parse msg
       send msg['event'].gsub('pusher:', 'pusher_'), msg
     end
 
+    # Unsubscibe this connection from the channel
     def onclose
-      channel = Slanger::Channel.find_by_channel_id(@channel_id) || Slanger::PresenceChannel.find_by_channel_id(@channel_id)
+      const   = @channel_id =~ /^presence-/ ? 'PresenceChannel' : 'Channel'
+      channel = Slanger.const_get(const).find_by_channel_id(@channel_id)
       channel.try :unsubscribe, @subscription_id
     end
 
     private
+
+    # Verify app key. Send connection_established message to connection if it checks out. Send error message and disconnect if invalid.
     def authenticate
       app_key = @socket.request['path'].split(/\W/)[2]
-      if app_key == @app_key
+      if app_key == Slanger::Config.app_key
         @socket_id = SecureRandom.uuid
         @socket.send(payload 'pusher:connection_established', { socket_id: @socket_id })
       else
@@ -32,6 +37,7 @@ module Slanger
       end
     end
 
+    # Dispatch to handler method if channel requires authentication, otherwise subscribe.
     def pusher_subscribe(msg)
       @channel_id = msg['data']['channel']
       if match = @channel_id.match(/^((private)|(presence))-/)
@@ -41,6 +47,7 @@ module Slanger
       end
     end
 
+    # Add connection to channel subscribers
     def subscribe_channel
       channel = Slanger::Channel.find_or_create_by_channel_id(@channel_id)
       @subscription_id = channel.subscribe do |msg|
@@ -50,6 +57,7 @@ module Slanger
       end
     end
 
+    # Validate authentication token for private channel and add connection to channel subscribers if it checks out
     def handle_private_subscription(msg)
       unless token == msg['data']['auth'].split(':')[1]
         @socket.send(payload 'pusher:error', {
@@ -60,6 +68,7 @@ module Slanger
       end
     end
 
+    # Validate authentication token and check channel_data. Add connection to channel subscribers if it checks out
     def handle_presence_subscription(msg)
       if token(msg['data']['channel_data']) != msg['data']['auth'].split(':')[1]
         @socket.send(payload 'pusher:error', {
@@ -86,10 +95,12 @@ module Slanger
       end
     end
 
+    # Message helper method. Converts a hash into the Pusher JSON protocol
     def payload(event_name, payload = {})
       { channel: @channel_id, event: event_name, data: payload }.to_json
     end
 
+    # HMAC token validation
     def token(params=nil)
       string_to_sign = [@socket_id, @channel_id, params].compact.join ':'
       HMAC::SHA256.hexdigest(Slanger::Config.secret, string_to_sign)

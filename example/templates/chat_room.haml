@@ -10,11 +10,10 @@
       %ol{ id: 'messages' }
       %form{ action: '/chat', method: 'POST' }
         %input{ type: 'text', id: 'message', name: 'message' }
-        %input{ type: 'submit', value: 'Send' }
     %div{ id: 'sidebar' }
       %ol{ id: 'presence' }
-    %script{src: "http://js.pusherapp.com/1.8/pusher.min.js"}
-    %script{src: "http://ajax.googleapis.com/ajax/libs/jquery/1.6.4/jquery.min.js"}
+    %script{src: "/pusher.min.js"}
+    %script{src: "/jquery.js"}
     :javascript
       Pusher.host    = "#{@use_pusher ? 'ws.pusherapp.com' : '0.0.0.0' }"
       Pusher.ws_port = "#{@use_pusher ? 80 : 8080}"
@@ -49,3 +48,5 @@
         $('#message').val(null)
         return false
       })
+
+      $('#message').focus()
