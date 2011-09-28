@@ -6,12 +6,6 @@ module Slanger
   class PresenceChannel < Channel
     def_delegators :channel, :push
 
-    Slanger::Redis.on(:message) do |channel, message|
-      message = JSON.parse message
-      const = message['channel'] =~ /^presence-/ ? 'PresenceChannel' : 'Channel'
-      Slanger.const_get(const).find_or_create_by_channel_id(message['channel']).dispatch message, channel
-    end
-
     def dispatch(message, channel)
       if channel =~ /^slanger:/
         update_subscribers message
@@ -25,14 +19,20 @@ module Slanger
       Slanger::Redis.subscribe 'slanger:connection_notification'
     end
 
-    def subscribe(msg, &blk)
+    def subscribe(msg, callback, &blk)
       channel_data = JSON.parse msg['data']['channel_data']
       public_subscription_id = SecureRandom.uuid
 
-      internal_subscription_table[public_subscription_id] = channel.subscribe &blk
-
-      publish_connection_notification subscription_id: public_subscription_id, online: true,
+      publisher = publish_connection_notification subscription_id: public_subscription_id, online: true,
         channel_data: channel_data, channel: channel_id
+
+      # fuuuuuuuuuccccccck!
+      publisher.callback do
+        EM.next_tick do
+          callback.call
+          internal_subscription_table[public_subscription_id] = channel.subscribe &blk
+        end
+      end
 
       public_subscription_id
     end
@@ -56,7 +56,7 @@ module Slanger
 
     def publish_connection_notification(payload, retry_count=0)
       Slanger::Redis.publish('slanger:connection_notification', payload.to_json).
-        errback { publish_connection_notification payload, retry_count.succ } unless retry_count == 5
+        tap { |r| r.errback { publish_connection_notification payload, retry_count.succ unless retry_count == 5 } }
     end
 
     # This is the state of the presence channel across the system. kept in sync

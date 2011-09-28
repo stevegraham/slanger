@@ -80,18 +80,21 @@ module Slanger
         })
       else
         channel = Slanger::PresenceChannel.find_or_create_by_channel_id(@channel_id)
-        @subscription_id = channel.subscribe(msg) do |msg|
+        callback = Proc.new {
+          @socket.send(payload 'pusher_internal:subscription_succeeded', {
+            presence: {
+              count: channel.subscribers.size,
+              ids:   channel.ids,
+              hash:  channel.subscribers
+            }
+          })
+        }
+        @subscription_id = channel.subscribe(msg, callback) do |msg|
           msg       = JSON.parse(msg)
           socket_id = msg.delete 'socket_id'
           @socket.send msg.to_json unless socket_id == @socket_id
         end
-        @socket.send(payload 'pusher_internal:subscription_succeeded', {
-          presence: {
-            count: channel.subscribers.size,
-            ids:   channel.ids,
-            hash:  channel.subscribers
-          }
-        })
+
       end
     end
 

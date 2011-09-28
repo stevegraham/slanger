@@ -9,11 +9,6 @@ module Slanger
 
     def_delegators :channel, :subscribe, :unsubscribe, :push
 
-    Slanger::Redis.on(:message) do |channel, message|
-      message = JSON.parse message
-      find_or_create_by_channel_id(message['channel']).dispatch message, channel
-    end
-
     def initialize(attrs)
       super
       Slanger::Redis.subscribe channel_id
@@ -24,7 +19,7 @@ module Slanger
     end
 
     def dispatch(message, channel)
-      push message.to_json
+      push(message.to_json) unless channel =~ /^slanger:/
     end
   end
 end
