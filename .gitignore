@@ -3,3 +3,5 @@
 *.swn
 *.swo
 *.swp
+*.swm
+.rbx/
