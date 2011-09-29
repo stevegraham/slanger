@@ -1,7 +1,7 @@
+require 'bundler/setup'
 require 'sinatra'
 require 'haml'
 require 'pusher'
-require 'json'
 require 'digest/md5'
 require 'thin'
 
@@ -15,6 +15,12 @@ Pusher.port   = 4567
 Pusher.app_id = 'your-pusher-app-id'
 Pusher.secret = 'your-pusher-secret'
 Pusher.key    = '765ec374ae0a69f4ce44'
+
+Thread.new do
+  loop do
+    Pusher['MY_CHANNEL'].trigger 'an_event', color: "##{rand(16777216).to_s 16}"
+  end
+end
 
 get '/' do
   @channel = "MY_CHANNEL"

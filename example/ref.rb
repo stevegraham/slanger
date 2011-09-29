@@ -1,7 +1,6 @@
 require 'sinatra'
 require 'haml'
 require 'pusher'
-require 'json'
 require 'digest/md5'
 require 'thin'
 
@@ -14,9 +13,15 @@ Pusher.app_id  = '8792'
 Pusher.key     = '5ad8640c9b11e84cc60a'
 Pusher.secret  = '11a872de453861e042a9'
 
+Thread.new do
+  loop do
+    Pusher['MY_CHANNEL'].trigger 'an_event', color: "##{rand(16777216).to_s 16}"
+  end
+end
+
 get '/' do
   @channel = "MY_CHANNEL"
-  haml :index
+  haml :index_pusher
 end
 
 get '/chat' do
