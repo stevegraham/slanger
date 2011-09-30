@@ -1,12 +1,35 @@
 !!!
 %html
   %head
-    %title Websocket Test
+    :css
+      * {
+        margin: 0;
+        padding: 0;
+      }
+      html, body {
+        height: 100%
+      }
+      body {
+        font-family: "Arial";
+      }
+      #container {
+        margin: auto;
+        width: 800px;
+        text-align: center
+      }
+      h1, h2 {
+        font-size: 400%;
+        color: #333;
+        text-stroke: 1px solid #000
+      }
+    %title WebSocket Disco
   %body
-    %h1
-      %span#count
-        0
-      Messages/Sec
+    %div#container
+      %h1 Slanger is processing
+      %h2
+        %span#count
+          0
+        Messages/Second!!!1
     %script{src: "/pusher.min.js"}
     :javascript
       var count = 0
@@ -19,6 +42,7 @@
       pusher.bind('pusher:error', function(data) { alert(data['message']) })
       var myChannel = pusher.subscribe('#{@channel}');
       myChannel.bind('an_event', function(data) {
+        document.body.setAttribute('style', 'background-color: ' + data['color'] + ';' )
         count++
       })
       window.setInterval(function() {
