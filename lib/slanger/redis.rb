@@ -17,11 +17,11 @@ module Slanger
 
     private
     def publisher
-      @publisher ||= EM::Hiredis.connect
+      @publisher ||= EM::Hiredis.connect Slanger::Config.redis_address
     end
 
     def subscriber
-      @subscriber ||= EM::Hiredis.connect
+      @subscriber ||= EM::Hiredis.connect Slanger::Config.redis_address
     end
 
     extend self
