@@ -2,6 +2,7 @@ require 'active_support/json'
 require 'active_support/core_ext/hash'
 require 'securerandom'
 require 'signature'
+require 'fiber'
 
 module Slanger
   class Handler

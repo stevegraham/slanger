@@ -14,8 +14,14 @@ module Slanger
 
     def_delegator  :publisher, :publish
     def_delegators :subscriber, :on, :subscribe
+    def_delegators :regular_connection, :hgetall, :hdel, :hset
 
     private
+
+    def regular_connection
+      @regular_connection ||= EM::Hiredis.connect Slanger::Config.redis_address
+    end
+
     def publisher
       @publisher ||= EM::Hiredis.connect Slanger::Config.redis_address
     end

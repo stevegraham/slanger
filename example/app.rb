@@ -4,6 +4,7 @@ require 'haml'
 require 'pusher'
 require 'digest/md5'
 require 'thin'
+require 'json'
 
 set :views, File.dirname(__FILE__) + '/templates'
 set :port,  3000

@@ -1,6 +1,7 @@
 require 'glamazon'
 require 'eventmachine'
 require 'forwardable'
+require 'fiber'
 
 module Slanger
   class PresenceChannel < Channel
@@ -26,6 +27,8 @@ module Slanger
       publisher = publish_connection_notification subscription_id: public_subscription_id, online: true,
         channel_data: channel_data, channel: channel_id
 
+      roster_add public_subscription_id, channel_data
+
       # fuuuuuuuuuccccccck!
       publisher.callback do
         EM.next_tick do
@@ -48,11 +51,29 @@ module Slanger
     def unsubscribe(public_subscription_id)
       # Unsubcribe from EM::Channel
       channel.unsubscribe(internal_subscription_table.delete(public_subscription_id)) # if internal_subscription_table[public_subscription_id]
+      roster_remove public_subscription_id
       # Notify all instances
       publish_connection_notification subscription_id: public_subscription_id, online: false, channel: channel_id
     end
 
     private
+
+    def get_roster
+      Fiber.new do
+        f = Fiber.current
+        Slanger::Redis.hgetall(channel_id).
+          callback { |res| f.resume res }
+        Fiber.yield
+      end.resume
+    end
+
+    def roster_add(key, value)
+      Slanger::Redis.hset(channel_id, key, value)
+    end
+
+    def roster_remove(key)
+      Slanger::Redis.hdel(channel_id, key)
+    end
 
     def publish_connection_notification(payload, retry_count=0)
       Slanger::Redis.publish('slanger:connection_notification', payload.to_json).
@@ -62,7 +83,7 @@ module Slanger
     # This is the state of the presence channel across the system. kept in sync
     # with redis pubsub
     def subscriptions
-      @subscriptions ||= {}
+      @subscriptions = @subscriptions || get_roster || Hash.new
     end
 
     # This is used map public subscription ids to em channel subscription ids.
