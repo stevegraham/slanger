@@ -4,4 +4,6 @@
 *.swo
 *.swp
 *.swm
+*.swl
 .rbx/
+*.rdb
