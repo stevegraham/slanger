@@ -19,15 +19,19 @@ module Slanger
     private
 
     def regular_connection
-      @regular_connection ||= EM::Hiredis.connect Slanger::Config.redis_address
+      @regular_connection ||= new_connection
     end
 
     def publisher
-      @publisher ||= EM::Hiredis.connect Slanger::Config.redis_address
+      @publisher ||= new_connection
     end
 
     def subscriber
-      @subscriber ||= EM::Hiredis.connect Slanger::Config.redis_address
+      @subscriber ||= new_connection
+    end
+
+    def new_connection
+      EM::Hiredis.connect Slanger::Config.redis_address
     end
 
     extend self
