@@ -32,6 +32,11 @@
         })
       })
 
+      pusher.bind('pusher:connection_disconnected', function(ev) {
+        $('#presence').empty()
+         $('#messages').append($('<li class="info">**** Unexpectedly lost connection to server ****</li>'))
+      })
+
       myChannel.bind('pusher:member_added', function(member) {
         $('#messages').append($('<li class="info">**** ' + member.info.name + ' entered the chat ****</li>'))
         $('#presence').append($('<li>' + member.info.name + '</li>').attr('id', member.id))
@@ -41,7 +46,6 @@
         $('#messages').append($('<li class="info">**** ' + member.info.name + ' left the chat ****</li>'))
         $('#' + member.id).remove()
       })
-
 
       $('#main form').submit(function(ev) {
         $.post('/chat', { message: $('#message').val() })
