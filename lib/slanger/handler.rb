@@ -17,7 +17,7 @@ module Slanger
       send msg['event'].gsub('pusher:', 'pusher_'), msg
     end
 
-    # Unsubscibe this connection from the channel
+    # Unsubscribe this connection from the channel
     def onclose
       const   = @channel_id =~ /^presence-/ ? 'PresenceChannel' : 'Channel'
       channel = Slanger.const_get(const).find_by_channel_id(@channel_id)
@@ -60,7 +60,7 @@ module Slanger
 
     # Validate authentication token for private channel and add connection to channel subscribers if it checks out
     def handle_private_subscription(msg)
-      unless token == msg['data']['auth'].split(':')[1]
+      if msg['data']['auth'] && token(msg['data']['channel_data']) != msg['data']['auth'].split(':')[1]
         @socket.send(payload 'pusher:error', {
           message: "Invalid signature: Expected HMAC SHA256 hex digest of #{@socket_id}:#{msg['data']['channel']}, but got #{msg['data']['auth']}"
         })
