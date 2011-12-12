@@ -8,7 +8,7 @@ require 'pusher'
 require 'thin'
 
 describe 'Integration' do
-  let(:errback) { Proc.new { fail 'cannot connect to slanger. your box might be too slow. try increasing sleep value on l22' } }
+  let(:errback) { Proc.new { fail 'cannot connect to slanger. your box might be too slow. try increasing sleep value in the before block' } }
 
   def new_websocket
     EM::HttpRequest.new("ws://0.0.0.0:8080/app/#{Pusher.key}?client=js&version=1.8.5").
@@ -347,6 +347,66 @@ describe 'Integration' do
             messages.length.should == 3
             messages[1].should == {"channel"=>"presence-channel", "event"=>"pusher_internal:subscription_succeeded", "data"=>{"presence"=>{"count"=>1, "ids"=>["0f177369a3b71275d25ab1b44db9f95f"], "hash"=>{"0f177369a3b71275d25ab1b44db9f95f"=>{"name"=>"SG"}}}}}
             messages.last.should == {"channel"=>"presence-channel", "event"=>"pusher_internal:member_added", "data"=>{"user_id"=>"37960509766262569d504f02a0ee986d", "user_info"=>{"name"=>"CHROME"}}}
+
+          end
+
+          it 'does not send multiple member added and member removed messages if one subscriber opens multiple connections, i.e. multiple browser tabs.' do
+            messages  = []
+
+            Thread.new do
+              EM.run do
+                user1 = new_websocket
+                user1.errback &errback
+
+                # setup our reference user
+                user1.stream do |message|
+                  messages << JSON.parse(message)
+                  if messages.length == 1
+                    auth = Pusher['presence-channel'].authenticate(messages.first['data']['socket_id'], {
+                      user_id: '0f177369a3b71275d25ab1b44db9f95f',
+                      user_info: {
+                         name: 'SG'
+                      }
+                    })
+                    user1.send({
+                      event: 'pusher:subscribe', data: {
+                        channel: 'presence-channel'
+                      }.merge(auth)
+                   }.to_json)
+                  elsif messages.length == 2
+                    4.times do
+                      user = new_websocket
+                      user.stream do |message|
+                        # remove stream callback
+                        user.stream do |message|
+                          # close the connection in the next tick as soon as subscription is acknowledged
+                          EM.next_tick { user.close_connection }
+                        end
+                        message = JSON.parse(message)
+                        auth2 = Pusher['presence-channel'].authenticate(message['data']['socket_id'], {
+                          user_id: '37960509766262569d504f02a0ee986d',
+                          user_info: {
+                            name: 'CHROME'
+                          }
+                        })
+                        user.send({
+                          event: 'pusher:subscribe', data: {
+                            channel: 'presence-channel'
+                          }.merge(auth2)
+                        }.to_json)
+                      end
+                    end
+                  elsif messages.length == 4
+                    EM.next_tick { EM.stop }
+                  end
+                end
+
+              end
+            end.join
+
+            # There should only be one set of presence messages sent to the refernce user for the second user.
+            messages.one? { |message| message['event'] == 'pusher_internal:member_added'   && message['data']['user_id'] == '37960509766262569d504f02a0ee986d' }.should be_true
+            messages.one? { |message| message['event'] == 'pusher_internal:member_removed' && message['data']['user_id'] == '37960509766262569d504f02a0ee986d' }.should be_true
 
           end
         end
