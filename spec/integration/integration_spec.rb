@@ -374,7 +374,7 @@ describe 'Integration' do
                       }.merge(auth)
                    }.to_json)
                   elsif messages.length == 2
-                    4.times do
+                    10.times do
                       user = new_websocket
                       user.stream do |message|
                         # remove stream callback
