@@ -1,7 +1,7 @@
 Gem::Specification.new do |s|
   s.platform                    = Gem::Platform::RUBY
   s.name                        = 'slanger'
-  s.version                     = '0.1.0'
+  s.version                     = '0.1.1'
   s.summary                     = 'A websocket service compatible with Pusher libraries'
   s.description                 = 'A websocket service compatible with Pusher libraries'
 
@@ -13,7 +13,7 @@ Gem::Specification.new do |s|
 
   s.add_dependency                'eventmachine',     '~> 0.12.10'
   s.add_dependency                'em-hiredis',       '~> 0.1.0'
-  s.add_dependency                'em-websocket',     '~> 0.3.0'
+  s.add_dependency                'em-websocket',     '~> 0.3.5'
   s.add_dependency                'rack',             '~> 1.3.3'
   s.add_dependency                'rack-fiber_pool',  '0.9.1'
   s.add_dependency                'signature',        '~> 0.1.2'
