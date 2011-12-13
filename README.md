@@ -4,7 +4,7 @@ Slanger is an open source server implementation of the Pusher protocol written i
 
 Presence channel state is shared using Redis. Channels are lazily instantiated internally within a given Slanger node when the first subscriber connects. When a presence channel is instantiated within a Slanger node, it queries Redis for the global state across all nodes within the system for that channel, and then copies that state internally. Afterwards, when subscribers connect or disconnect the node publishes a presence message to all interested nodes, i.e. all nodes with at least one subscriber interested in the given channel.
 
-Slanger is smart enough to know if a new channel subscription belongs to the same user. It will not send presence messages to subscribers in this case. This happens when the user has multiple browser tabs open for example. Using a chat room backed by presence channels as a real example, one would not want "Micheil" to show up N times in the presence roster because Micheil is a retard and has the chat room open in N browser tabs.
+Slanger is smart enough to know if a new channel subscription belongs to the same user. It will not send presence messages to subscribers in this case. This happens when the user has multiple browser tabs open for example. Using a chat room backed by presence channels as a real example, one would not want "Barrington" to show up N times in the presence roster because Barrington is a retard and has the chat room open in N browser tabs.
 
 Slanger was designed to be highly available and partition tolerant with eventual consistency, which in practise is instantaneous.
 
