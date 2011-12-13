@@ -10,6 +10,11 @@ Slanger was designed to be highly available and partition tolerant with eventual
 
 # How to use it
 
+## Requirements
+
+- Ruby 1.9
+- Redis
+
 ## Starting the service
 
 Slanger is packaged as a Rubygem. Installing the gem makes the 'slanger' executable available. The `slanger` executable takes arguments, of which two are mandatory: `--app_key` and `--secret`. These can but do not have to be the same as the credentials you use for Pusher. They are required because Slanger performs the same HMAC signing of API requests that Pusher does.
