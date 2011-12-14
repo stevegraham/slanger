@@ -89,5 +89,11 @@ There a few reasons you might want to use Slanger instead of Pusher, e.g.
 - You might be travelling on an airplane without internet connectivity as I am right now. Airplane rides are very good times to get a lot done, unfortunately external services are also usually unreachable. Remove internet connectivity as a dependency of your development envirionment by running a local Slanger instance in development and Pusher in production.
 - You want to extend the Pusher protocol or have some special requirement. If this applies to you, chances are you are out of luck as Pusher is unlikely to implement something to suit your special use case, and rightly so. With Slanger you are free to modify and extend its behavior anyway that suits your purpose.
 
-Pusher is an awesome service, very reasonably priced, and run by an awesome crew. Give them a g
+# Why did you write Slanger
+
+I wanted to write a non-trivial evented app. I also want to write a book on evented programming in Ruby as I feel there is scant good information available on the topic.
+
+Pusher is an awesome service, very reasonably priced, and run by an awesome crew. Give them a spin on your next project.
+
+&copy; 2011 a Stevie Graham joint.
 
