@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
 
   s.author                      = 'Stevie Graham'
   s.email                       = 'sjtgraham@mac.com'
-  s.homepage                    = 'http://github.com/stevegraham/pusher'
+  s.homepage                    = 'http://github.com/stevegraham/slanger'
 
   s.add_dependency                'eventmachine',     '~> 0.12.10'
   s.add_dependency                'em-hiredis',       '~> 0.1.0'
