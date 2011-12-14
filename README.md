@@ -91,7 +91,7 @@ There a few reasons you might want to use Slanger instead of Pusher, e.g.
 
 # Why did you write Slanger
 
-I wanted to write a non-trivial evented app. I also want to write a book on evented programming in Ruby as I feel there is scant good information available on the topic.
+I wanted to write a non-trivial evented app. I also want to write a book on evented programming in Ruby as I feel there is scant good information available on the topic and this project is handy to show publishers.
 
 Pusher is an awesome service, very reasonably priced, and run by an awesome crew. Give them a spin on your next project.
 
