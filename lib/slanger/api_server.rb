@@ -18,8 +18,7 @@ module Slanger
     error(Signature::AuthenticationError) { |c| halt 401, "401 UNAUTHORIZED\n" }
 
     post '/apps/:app_id/channels/:channel_id/events' do
-      # authenticate request. exclude 'channel_id' and 'app_id', these are added the the params
-      # by the pusher client lib after computing HMAC
+      # authenticate request. exclude 'channel_id' and 'app_id' included by sinatra but not sent by Pusher
       Signature::Request.new('POST', env['PATH_INFO'], params.except('channel_id', 'app_id')).
         authenticate { |key| Signature::Token.new key, Slanger::Config.secret }
 
