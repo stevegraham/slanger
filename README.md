@@ -83,9 +83,11 @@ Of course you could proxy all requests to `ws.example.com` to port 8080 of your 
 
 # Why use Slanger instead of Pusher?
 
-There are many reasons you might want to use Slanger instead of Pusher, e.g.
+There a few reasons you might want to use Slanger instead of Pusher, e.g.
 
 - You operate in a heavily regulated industry and are worried about sending data to 3rd parties, and it is an organisational requirement that you own your own infrastructure.
 - You might be travelling on an airplane without internet connectivity as I am right now. Airplane rides are very good times to get a lot done, unfortunately external services are also usually unreachable. Remove internet connectivity as a dependency of your development envirionment by running a local Slanger instance in development and Pusher in production.
 - You want to extend the Pusher protocol or have some special requirement. If this applies to you, chances are you are out of luck as Pusher is unlikely to implement something to suit your special use case, and rightly so. With Slanger you are free to modify and extend its behavior anyway that suits your purpose.
+
+Pusher is an awesome service, very reasonably priced, and run by an awesome crew. Give them a g
 
