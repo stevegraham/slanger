@@ -12,7 +12,7 @@ Slanger was designed to be highly available and partition tolerant with eventual
 
 ## Requirements
 
-- Ruby 1.9
+- Ruby 1.9.2-p290 or greater
 - Redis
 
 ## Starting the service
