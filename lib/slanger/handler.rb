@@ -54,14 +54,6 @@ module Slanger
 
     def pusher_pong msg; end
 
-    def method_missing(sym, *args, &blk)
-      if sym.to_s =~ /^pusher_/
-        puts [sym, args].inspect
-      else
-        super
-      end
-    end
-
     # Add connection to channel subscribers
     def subscribe_channel
       channel = Slanger::Channel.find_or_create_by_channel_id(@channel_id)
