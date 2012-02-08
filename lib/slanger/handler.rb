@@ -62,6 +62,7 @@ module Slanger
         socket_id = msg.delete 'socket_id'
         @socket.send msg.to_json unless socket_id == @socket_id
       end
+      @socket.send(payload 'pusher_internal:subscription_succeeded')
     end
 
     # Validate authentication token for private channel and add connection to channel subscribers if it checks out
