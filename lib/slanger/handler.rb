@@ -13,8 +13,12 @@ module Slanger
 
     # Dispatches message handling to method with same name as the event name
     def onmessage(msg)
-      msg = JSON.parse msg
-      send msg['event'].gsub('pusher:', 'pusher_'), msg
+      msg   = JSON.parse msg
+      event = msg['event'].gsub('pusher:', 'pusher_')
+
+      if event =~ /^pusher_/
+        send(event, msg) if respond_to? event, true
+      end
     end
 
     # Unsubscribe this connection from the channel

@@ -55,7 +55,7 @@ describe 'Integration' do
 
           websocket.stream do |message|
             messages << message
-            if messages.length < 2
+            if messages.length < 3
               Pusher['MY_CHANNEL'].trigger_async 'an_event', { some: 'data' }
             else
               EM.stop
@@ -92,30 +92,32 @@ describe 'Integration' do
           client1.errback &errback
 
           client1.stream do |message|
-            client1_messages << message
+            # if this is the first message to client 1 set up another connection from the same client
+            if client1_messages.empty?
+              client2 = new_websocket
 
-            client2 = new_websocket
+              client2.callback do
+                client2.send({ event: 'pusher:subscribe', data: { channel: 'MY_CHANNEL'} }.to_json)
+              end
 
-            client2.callback do
-              client2.send({ event: 'pusher:subscribe', data: { channel: 'MY_CHANNEL'} }.to_json)
-            end
+              client2.errback &errback
 
-            client2.errback &errback
-
-            client2.stream do |message|
-              client2_messages << message
-              if client2_messages.length < 2
-                socket_id = JSON.parse(client1_messages.first)['data']['socket_id']
-                Pusher['MY_CHANNEL'].trigger_async 'an_event', { some: 'data' }, socket_id
-              else
-                EM.stop
+              client2.stream do |message|
+                client2_messages << message
+                if client2_messages.length < 3
+                  socket_id = JSON.parse(client1_messages.first)['data']['socket_id']
+                  Pusher['MY_CHANNEL'].trigger_async 'an_event', { some: 'data' }, socket_id
+                else
+                  EM.stop
+                end
               end
             end
+            client1_messages << message
           end
         end
       end.join
 
-      client1_messages.size.should == 1
+      client1_messages.size.should == 2
       JSON.parse(client2_messages.last)['event'].should == 'an_event'
       JSON.parse(client2_messages.last)['data'].should == { some: 'data' }.to_json
     end
@@ -134,9 +136,12 @@ describe 'Integration' do
 
             websocket.stream do |message|
               messages << JSON.parse(message)
-              auth = Pusher['private-channel'].authenticate(messages.first['data']['socket_id'])[:auth]
-              websocket.send({ event: 'pusher:subscribe', data: { channel: 'private-channel', auth: auth } }.to_json)
-              EM.add_timer(0.1) { EM.stop }
+              if messages.empty?
+                auth = Pusher['private-channel'].authenticate(messages.first['data']['socket_id'])[:auth]
+                websocket.send({ event: 'pusher:subscribe', data: { channel: 'private-channel', auth: auth } }.to_json)
+              else
+                EM.stop
+              end
             end
 
           end
