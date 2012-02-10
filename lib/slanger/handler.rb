@@ -18,17 +18,29 @@ module Slanger
 
       if event =~ /^pusher_/
         send(event, msg) if respond_to? event, true
+      elsif event =~ /^client-/
+        msg['socket_id'] = @socket_id
+        channel = find_channel msg['channel']
+        channel.try :send_client_message, msg
       end
+
     end
 
     # Unsubscribe this connection from the channel
     def onclose
-      const   = @channel_id =~ /^presence-/ ? 'PresenceChannel' : 'Channel'
-      channel = Slanger.const_get(const).find_by_channel_id(@channel_id)
+      channel = find_channel @channel_id
       channel.try :unsubscribe, @subscription_id
     end
 
     private
+
+    def find_channel(channel_id)
+      Slanger.const_get(channel_const channel_id).find_by_channel_id(channel_id)
+    end
+
+    def channel_const(channel_name)
+      channel_name =~ /^presence-/ ? 'PresenceChannel' : 'Channel'
+    end
 
     # Verify app key. Send connection_established message to connection if it checks out. Send error message and disconnect if invalid.
     def authenticate
@@ -58,6 +70,7 @@ module Slanger
 
     def pusher_pong msg; end
 
+    #TODO: think about moving all subscription stuff into channel classes
     # Add connection to channel subscribers
     def subscribe_channel
       channel = Slanger::Channel.find_or_create_by_channel_id(@channel_id)

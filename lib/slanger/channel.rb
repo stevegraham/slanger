@@ -18,8 +18,16 @@ module Slanger
       @channel ||= EM::Channel.new
     end
 
+    def send_client_message(message)
+      push message.to_json if authenticated?
+    end
+
     def dispatch(message, channel)
       push(message.to_json) unless channel =~ /^slanger:/
+    end
+
+    def authenticated?
+      channel_id =~ /^private-/ || channel_id =~ /^presence-/
     end
   end
 end

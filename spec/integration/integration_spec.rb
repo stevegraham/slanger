@@ -24,7 +24,7 @@ describe 'Integration' do
       Slanger::Service.run
     end
     # Give Slanger a chance to start
-    sleep 0.4
+    sleep 0.6
   end
 
   after(:each) do
@@ -184,6 +184,54 @@ describe 'Integration' do
         messages.last['event'].should == 'pusher:error'
         messages.last['data']['message'].=~(/^Invalid signature: Expected HMAC SHA256 hex digest of/).should be_true
         messages.length.should == 2
+      end
+    end
+
+    describe 'client events' do
+      it "sends event to other channel subscribers" do
+        client1_messages, client2_messages  = [], []
+
+        Thread.new do
+          EM.run do
+            client1, client2 = new_websocket, new_websocket
+            client2_messages, client1_messages = [], []
+
+            client1.callback do
+
+            end
+
+            client1.errback &errback
+
+            client1.stream do |message|
+              client1_messages << JSON.parse(message)
+              if client1_messages.length < 2
+                auth = Pusher['private-channel'].authenticate(client1_messages.first['data']['socket_id'])[:auth]
+                client1.send({ event: 'pusher:subscribe', data: { channel: 'private-channel', auth: auth } }.to_json)
+              elsif client1_messages.length == 3
+                EM.stop
+              end
+            end
+
+            client2.callback do
+
+            end
+
+            client2.errback &errback
+
+            client2.stream do |message|
+              client2_messages << JSON.parse(message)
+              if client2_messages.length < 2
+                auth = Pusher['private-channel'].authenticate(client2_messages.first['data']['socket_id'])[:auth]
+                client2.send({ event: 'pusher:subscribe', data: { channel: 'private-channel', auth: auth } }.to_json)
+              else
+                client2.send({ event: 'client-something', data: { some: 'stuff' }, channel: 'private-channel' }.to_json)
+              end
+            end
+          end
+        end.join
+
+        client1_messages.none? { |m| m['event'] == 'client-something' }
+        client2_messages.one?  { |m| m['event'] == 'client-something' }
       end
     end
   end
