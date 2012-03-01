@@ -1,3 +1,6 @@
+# Redis class.
+# Interface with Redis.
+
 require 'forwardable'
 
 module Slanger
@@ -5,6 +8,7 @@ module Slanger
     extend Forwardable
 
     def self.extended base
+      # Dispatch messages received from Redis to their destination channel.
       base.on(:message) do |channel, message|
         message = JSON.parse message
         const = message['channel'] =~ /^presence-/ ? 'PresenceChannel' : 'Channel'
