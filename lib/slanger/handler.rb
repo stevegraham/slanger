@@ -17,7 +17,11 @@ module Slanger
 
     # Dispatches message handling to method with same name as the event name
     def onmessage(msg)
-      msg   = JSON.parse msg
+      begin
+        msg   = JSON.parse msg
+      rescue JSON::ParserError
+        Logger.log "JSON Parse error on message: '" + msg + "'"
+      end
       event = msg['event'].gsub('pusher:', 'pusher_')
 
       if event =~ /^pusher_/
