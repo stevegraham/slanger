@@ -127,7 +127,7 @@ module Slanger
         # Don't tell the channel subscriptions the member has been removed if the subscriber data
         # still remains in the subscriptions hash, i.e. multiple browser windows open.
         subscriber = subscriptions.delete message['subscription_id']
-        unless subscriptions.has_value? subscriber
+        unless subscriber.nil? or subscriptions.has_value? subscriber
           push payload('pusher_internal:member_removed', {
             user_id: subscriber['user_id']
           })
