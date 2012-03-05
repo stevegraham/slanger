@@ -1,3 +1,6 @@
+# Handler class.
+# Handles a client connected via a websocket connection.
+
 require 'active_support/json'
 require 'active_support/core_ext/hash'
 require 'securerandom'
@@ -18,16 +21,17 @@ module Slanger
       event = msg['event'].gsub('pusher:', 'pusher_')
 
       if event =~ /^pusher_/
+        # Pusher event, call method if it exists.
         send(event, msg) if respond_to? event, true
       elsif event =~ /^client-/
+        # Client event. Send it to the destination channel.
         msg['socket_id'] = @socket_id
         channel = find_channel msg['channel']
         channel.try :send_client_message, msg
       end
-
     end
 
-    # Unsubscribe this connection from the channel
+    # Unsubscribe this connection from all the channels on close.
     def onclose
       @subscriptions.each do |channel_id, subscription_id|
         channel = find_channel channel_id
@@ -79,8 +83,11 @@ module Slanger
     def subscribe_channel(channel_id)
       channel = Slanger::Channel.find_or_create_by_channel_id(channel_id)
       @socket.send(payload channel_id, 'pusher_internal:subscription_succeeded')
+      # Subscribe to the channel and have the events received from it
+      # sent to the client's socket.
       subscription_id = channel.subscribe do |msg|
         msg       = JSON.parse(msg)
+        # Don't send the event if it was sent by the client
         socket_id = msg.delete 'socket_id'
         @socket.send msg.to_json unless socket_id == @socket_id
       end
@@ -120,7 +127,11 @@ module Slanger
             }
           })
         }
+        # Subscribe to channel, call callback when done to send a 
+        # subscription_succeeded event to the client.
         channel.subscribe(msg, callback) do |msg|
+          # Send channel messages to the client, unless it is the
+          # sender of the event.
           msg       = JSON.parse(msg)
           socket_id = msg.delete 'socket_id'
           @socket.send msg.to_json unless socket_id == @socket_id
