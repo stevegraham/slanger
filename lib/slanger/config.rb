@@ -1,3 +1,5 @@
+# Config singleton holding the configuration.
+
 module Slanger
   module Config
     def load(opts={})
