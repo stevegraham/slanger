@@ -46,22 +46,25 @@ module Slanger
     private
 
     def find_channel(channel_id)
-      Slanger.const_get(channel_const channel_id).find_by_channel_id(channel_id)
-    end
-
-    def channel_const(channel_name)
-      channel_name =~ /^presence-/ ? 'PresenceChannel' : 'Channel'
+      if channel_id =~ /^presence-/
+        @application.find_presence_channel(channel_id)
+      else
+        @application.find_channel(channel_id)
+      end
     end
 
     # Verify app key. Send connection_established message to connection if it checks out. Send error message and disconnect if invalid.
     def authenticate
       app_key = @socket.request['path'].split(/\W/)[2]
-      if app_key == Slanger::Config.app_key
-        @socket_id = SecureRandom.uuid
-        @socket.send(payload nil, 'pusher:connection_established', { socket_id: @socket_id })
-      else
+      # Retrieve application
+      @application = Applications.by_key(app_key)
+      if @application.nil?
+        # Application not found
         @socket.send(payload nil, 'pusher:error', { code: '4001', message: "Could not find app by key #{app_key}" })
         @socket.close_websocket
+      else
+        @socket_id = SecureRandom.uuid
+        @socket.send(payload nil, 'pusher:connection_established', { socket_id: @socket_id })
       end
     end
 
@@ -85,7 +88,7 @@ module Slanger
     #TODO: think about moving all subscription stuff into channel classes
     # Add connection to channel subscribers
     def subscribe_channel(channel_id)
-      channel = Slanger::Channel.find_or_create_by_channel_id(channel_id)
+      channel = @application.find_or_create_channel(channel_id)
       @socket.send(payload channel_id, 'pusher_internal:subscription_succeeded')
       # Subscribe to the channel and have the events received from it
       # sent to the client's socket.
@@ -121,7 +124,7 @@ module Slanger
           message: "presence-channel is a presence channel and subscription must include channel_data"
         })
       else
-        channel = Slanger::PresenceChannel.find_or_create_by_channel_id(channel_id)
+        channel = @application.find_or_create_presence_channel(channel_id)
         callback = Proc.new {
           @socket.send(payload channel_id, 'pusher_internal:subscription_succeeded', {
             presence: {
@@ -151,7 +154,7 @@ module Slanger
     # HMAC token validation
     def token(channel_id, params=nil)
       string_to_sign = [@socket_id, channel_id, params].compact.join ':'
-      HMAC::SHA256.hexdigest(Slanger::Config.secret, string_to_sign)
+      HMAC::SHA256.hexdigest(@application.secret, string_to_sign)
     end
   end
 end

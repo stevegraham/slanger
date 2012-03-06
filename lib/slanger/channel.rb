@@ -18,7 +18,9 @@ module Slanger
 
     def initialize(attrs)
       super
-      Slanger::Redis.subscribe channel_id
+      # Subscribe to the redis channel, prefixed by the app_id so that two
+      # applications don't get each other's messages.
+      Slanger::Redis.subscribe application.id + ":" + channel_id
     end
 
     def channel

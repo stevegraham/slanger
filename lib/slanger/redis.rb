@@ -11,8 +11,17 @@ module Slanger
       # Dispatch messages received from Redis to their destination channel.
       base.on(:message) do |channel, message|
         message = JSON.parse message
-        const = message['channel'] =~ /^presence-/ ? 'PresenceChannel' : 'Channel'
-        Slanger.const_get(const).find_or_create_by_channel_id(message['channel']).dispatch message, channel
+        app_id = message.delete('app_id')
+        # Retrieve application
+        application = Applications.by_id(app_id)
+        unless application.nil?
+          # Dispatch to application's destination channel
+          if message['channel'] =~ /^presence-/
+            application.find_or_create_presence_channel(message['channel']).dispatch message, channel
+          else
+            application.find_or_create_channel(message['channel']).dispatch message, channel
+          end
+        end
       end
     end
 
