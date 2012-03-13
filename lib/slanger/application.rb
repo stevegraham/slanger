@@ -1,0 +1,31 @@
+module Slanger
+  class Application
+    attr_accessor :id, :key, :secret, :channels
+
+    def initialize(id, key, secret)
+      @id = id
+      @key = key
+      @secret = secret
+      @channels = {}
+    end
+
+    def find_presence_channel(channel_id)
+      find_channel(channel_id)
+    end
+
+    def find_channel(channel_id, channel_class=Channel)
+      channels[channel_id] 
+    end
+
+    def find_or_create_presence_channel(channel_id)
+      find_or_create_channel(channel_id, PresenceChannel)
+    end
+
+    def find_or_create_channel(channel_id, channel_class=Channel)
+      if not channels.has_key?(channel_id)
+        channels[channel_id] = channel_class.new application: self, channel_id: channel_id
+      end      
+      find_channel(channel_id)
+    end   
+  end
+end
