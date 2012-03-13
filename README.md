@@ -92,6 +92,8 @@ Slanger supports several configuration options, which can be supplied as command
 
 -r or --redis_address An address where there is a Redis server running. This is an optional argument and defaults to redis://127.0.0.1:6379/0
 
+--redis_write_address An address where there is a Redis server running where writes will be done. This is an optional argument.
+
 -a or --api_host This is the address that Slanger will bind the HTTP REST API part of the service to. This is an optional argument and defaults to 0.0.0.0:4567
 
 -w or --websocket_host This is the address that Slanger will bind the WebSocket part of the service to. This is an optional argument and defaults to 0.0.0.0:8080

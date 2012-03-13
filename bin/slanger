@@ -26,6 +26,10 @@ OptionParser.new do |opts|
     options[:redis_address] = h
   end
 
+  opts.on '--redis_write_address URL', "Address to bind to for writes and publishes" do |h|
+    options[:redis_write_address] = h
+  end
+
   opts.on '-a', '--api_host HOST', "API service address (Default: 0.0.0.0:4567)" do |p|
     options[:api_host], options[:api_port] = p.split(':')
   end
