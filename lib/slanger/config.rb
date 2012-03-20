@@ -18,7 +18,7 @@ module Slanger
     end
 
     def method_missing(meth, *args, &blk)
-      @options[meth]
+      options[meth]
     end
 
     extend self

@@ -21,6 +21,7 @@ module Slanger
       # Subscribe to the redis channel, prefixed by the app_id so that two
       # applications don't get each other's messages.
       Slanger::Redis.subscribe application.id + ":" + channel_id
+      Logger.debug log_message("app_id: " + application.id + " Subscribed to Redis channel: " + channel_id)
     end
 
     def channel
@@ -32,16 +33,26 @@ module Slanger
     # are accepted. Public channels only get events from the API.
     def send_client_message(message)
       push message.to_json if authenticated?
+      Logger.debug log_message("Sent a client message: " + message.to_s)
+      Logger.audit log_message("Client message: " + message.to_s)
     end
 
     # Send an event received from Redis to the EventMachine channel
     # which will send it to subscribed clients.
     def dispatch(message, channel)
-      push(message.to_json) unless channel =~ /^slanger:/
+      unless channel =~ /^slanger:/
+        push(message.to_json)
+        Logger.debug log_message("Message: " + message.to_s)
+        Logger.audit log_message("Message: " + message.to_s)
+      end
     end
 
     def authenticated?
       channel_id =~ /^private-/ || channel_id =~ /^presence-/
+    end
+
+    def log_message(msg)
+      msg + " app_id: " + application.id + " channel_id: " + channel_id
     end
   end
 end

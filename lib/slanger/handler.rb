@@ -20,13 +20,17 @@ module Slanger
       begin
         msg   = JSON.parse msg
       rescue JSON::ParserError
-        Logger.log "JSON Parse error on message: '" + msg + "'"
+        Logger.error log_message("JSON Parse error on message: '" + msg + "'")
       end
       event = msg['event'].gsub('pusher:', 'pusher_')
 
       if event =~ /^pusher_/
         # Pusher event, call method if it exists.
-        send(event, msg) if respond_to? event, true
+        if respond_to? event, true
+          send(event, msg)
+        else
+          Logger.error "Unknown pusher event: " + event
+        end
       elsif event =~ /^client-/
         # Client event. Send it to the destination channel.
         msg['socket_id'] = @socket_id
@@ -41,6 +45,7 @@ module Slanger
         channel = find_channel channel_id
         channel.try :unsubscribe, subscription_id
       end
+      Logger.debug log_message("Closed connection.")
     end
 
     private
@@ -62,9 +67,11 @@ module Slanger
         # Application not found
         @socket.send(payload nil, 'pusher:error', { code: '4001', message: "Could not find app by key #{app_key}" })
         @socket.close_websocket
+        Logger.error log_message("Application not found: " + app_key)
       else
         @socket_id = SecureRandom.uuid
         @socket.send(payload nil, 'pusher:connection_established', { socket_id: @socket_id })
+        Logger.debug log_message("Connection established.")
       end
     end
 
@@ -77,13 +84,16 @@ module Slanger
         subscribe_channel channel_id
       end
       @subscriptions[channel_id] = subscription_id
-    end
+   end
 
     def pusher_ping(msg)
       @socket.send(payload nil, 'pusher:ping')
+      Logger.debug log_message("Ping sent.")
     end
 
-    def pusher_pong msg; end
+    def pusher_pong(msg)
+      Logger.debug log_message("Pong received: " + msg.to_s)
+    end
 
     #TODO: think about moving all subscription stuff into channel classes
     # Add connection to channel subscribers
@@ -98,6 +108,8 @@ module Slanger
         socket_id = msg.delete 'socket_id'
         @socket.send msg.to_json unless socket_id == @socket_id
       end
+      Logger.debug log_message("Subscribed to channel: " + channel_id + " subscriptions id: " + subscription_id)
+      Logger.audit log_message("Subscribed to channel: " + channel_id + " subscriptions id: " + subscription_id)
     end
 
     # Validate authentication token for private channel and add connection to channel subscribers if it checks out
@@ -107,6 +119,7 @@ module Slanger
         @socket.send(payload nil, 'pusher:error', {
           message: "Invalid signature: Expected HMAC SHA256 hex digest of #{@socket_id}:#{channel}, but got #{msg['data']['auth']}"
         })
+        Logger.error log_message("Invalid signature.")
       else
         subscribe_channel channel
       end
@@ -119,10 +132,12 @@ module Slanger
         @socket.send(payload nil, 'pusher:error', {
           message: "Invalid signature: Expected HMAC SHA256 hex digest of #{@socket_id}:#{msg['data']['channel']}, but got #{msg['data']['auth']}"
         })
+        Logger.error log_message("channel_id: " + channel_id + " Invalid signature.")
       elsif !msg['data']['channel_data']
         @socket.send(payload nil, 'pusher:error', {
           message: "presence-channel is a presence channel and subscription must include channel_data"
         })
+        Logger.error log_message("channel_id: " + channel_id + " Missing channel_data for subscription to the presence channel.")
       else
         channel = @application.find_or_create_presence_channel(channel_id)
         callback = Proc.new {
@@ -133,6 +148,7 @@ module Slanger
               hash:  channel.subscribers
             }
           })
+          Logger.debug log_message("channel_id: " + channel_id + " Sent presence information.")
         }
         # Subscribe to channel, call callback when done to send a 
         # subscription_succeeded event to the client.
@@ -155,6 +171,16 @@ module Slanger
     def token(channel_id, params=nil)
       string_to_sign = [@socket_id, channel_id, params].compact.join ':'
       HMAC::SHA256.hexdigest(@application.secret, string_to_sign)
+    end
+
+    def log_message(msg)
+      peername = @socket.get_peername
+      if peername.nil?
+        "socket_id: " + @socket_id + " " + msg
+      else
+        port, ip = Socket.unpack_sockaddr_in(peername) 
+        "Peer: " + ip + ":" + port.to_s + " socket_id: " + @socket_id + " " + msg 
+      end
     end
   end
 end

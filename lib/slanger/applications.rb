@@ -19,6 +19,8 @@ module Slanger
 
     def add(id, key, secret)
       apps[id] = Application.new(id, key, secret)
+      Logger.info("Created application " + id)
+      Logger.audit("Created application " + id)
     end
 
     extend self

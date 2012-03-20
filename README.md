@@ -100,6 +100,14 @@ Slanger supports several configuration options, which can be supplied as command
 
 -w or --websocket_host This is the address that Slanger will bind the WebSocket part of the service to. This is an optional argument and defaults to 0.0.0.0:8080
 
+-l or --log-level This is the log level. Optional. Accepted values: fatal, error, warn, info, debug. Default: warn.
+
+--log-file Log file. Optional. Default: STDOUT.
+
+--audit-log-file Audit log file. Optional. Default: STDOUT.
+
+--api-log-file API server log file. Optional. Default: STDOUT.
+
 -v or --[no-]verbose This makes Slanger run verbosely, meaning WebSocket frames will be echoed to STDOUT. Useful for debugging
 </pre>
 

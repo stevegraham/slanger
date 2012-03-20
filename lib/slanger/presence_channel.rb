@@ -21,7 +21,9 @@ module Slanger
         # subscriptions. Update our subscribers accordingly.
         update_subscribers message
       else
-        push message.to_json
+       push message.to_json
+       Logger.debug log_message("Message: " + message.to_s)
+       Logger.audit log_message("Message: " + message.to_s)
       end
     end
 
@@ -29,6 +31,7 @@ module Slanger
       super
       # Also subscribe the slanger daemon to a Redis channel used for events concerning subscriptions.
       Slanger::Redis.subscribe 'slanger:connection_notification'
+      Logger.debug log_message("Subscribed to Redis channel: slanger:connection_notification")
     end
 
     def subscribe(msg, callback, &blk)
@@ -46,6 +49,7 @@ module Slanger
       publisher.callback do
         EM.next_tick do
           # The Subscription event has been sent to Redis successfully.
+          Logger.debug log_message("New subscription, published info to Redis.")
           # Call the provided callback.
           callback.call
           # Add the subscription to our table.
@@ -71,6 +75,7 @@ module Slanger
       roster_remove public_subscription_id
       # Notify all instances
       publish_connection_notification app_id: application.id, subscription_id: public_subscription_id, online: false, channel: channel_id
+      Logger.debug log_message("Unsubscription, published info to Redis.")
     end
 
     private
@@ -121,6 +126,8 @@ module Slanger
         # is already present in the subscriptions hash, i.e. multiple browser windows open.
         unless subscriptions.has_value? message['channel_data']
           push payload('pusher_internal:member_added', message['channel_data'])
+          Logger.debug log_message("User joined channel, subscription id: " + message['subscription_id'] + " data: " + message['channel_data'].to_s)
+          Logger.audit log_message("User joined channel, subscription id: " + message['subscription_id'] + " data: " + message['channel_data'].to_s)
         end
         subscriptions[message['subscription_id']] = message['channel_data']
       else
@@ -131,12 +138,18 @@ module Slanger
           push payload('pusher_internal:member_removed', {
             user_id: subscriber['user_id']
           })
+          Logger.debug log_message("User left channel, subscription id: " + message['subscription_id'] + " data: " + message['channel_data'].to_s)
+          Logger.audit log_message("User left channel, subscription id: " + message['subscription_id'] + " data: " + message['channel_data'].to_s)
         end
       end
     end
 
     def payload(event_name, payload = {})
       { channel: channel_id, event: event_name, data: payload }.to_json
+    end
+
+    def log_message(msg)
+      "app_id: " + application.id + " channel_id: " + channel_id + " " + msg
     end
   end
 end

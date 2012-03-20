@@ -24,6 +24,8 @@ module Slanger
     def find_or_create_channel(channel_id, channel_class=Channel)
       if not channels.has_key?(channel_id)
         channels[channel_id] = channel_class.new application: self, channel_id: channel_id
+        Logger.debug("app_id: " + @id + ". Created channel: " + channel_id)
+        Logger.audit("Created channel " + channel_id + " in app " + @id)
       end      
       find_channel(channel_id)
     end   
