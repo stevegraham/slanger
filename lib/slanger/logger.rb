@@ -6,7 +6,6 @@ module Slanger
    
     def logger
       @logger ||= ::Logger.new(Config.log_file).tap do |log|
-         puts "log level: " + Config.log_level.to_s
          log.level = Config.log_level
       end
     end 

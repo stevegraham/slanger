@@ -13,7 +13,8 @@ end
 options = {
   api_host: '0.0.0.0', api_port: '4567', websocket_host: '0.0.0.0',
   websocket_port: '8080', debug: false, redis_address: 'redis://0.0.0.0:6379/0', 
-  log_level: ::Logger::WARN, log_file: $stdout, audit_log_file: $stdout, api_log_file: $stdout
+  log_level: ::Logger::WARN, log_file: $stdout, audit_log_file: $stdout, api_log_file: $stdout,
+  statistics: false, mongo_host: 'localhost', mongo_port: '27017', mongo_db: 'slanger'
   }
 
 opts_app_id = nil
@@ -84,6 +85,38 @@ OptionParser.new do |opts|
     options[:api_log_file] = tmpfile
   end
 
+  opts.on '--api-log-file FILE', "API log file" do |p|
+    tmpfile = File.new(p, "a")
+    tmpfile.sync = true
+    options[:api_log_file] = tmpfile
+  end
+
+  opts.on '--id IDENTIFIER', 'Unique identified' do |p|
+    options[:slanger_id] = p
+  end
+
+  opts.on '--statistics on/off', 'Statistics flag' do |p|
+    values =  {
+      on: true,
+      off: false
+    }
+    param_statistics = values[p.to_sym]
+    raise RuntimeError.new "Statistics flag unknown. Accepted values are: " + values.keys.join(', ') if param_statistics.nil?
+    options[:statistics] = param_statistics
+  end
+
+  opts.on '--mongo-host', 'Mongodb host' do |p|
+    options[:mongo_host] = p
+  end
+
+  opts.on '--mongo-port', 'Mongodb port' do |p|
+    options[:mongo_port] = Integer(p)
+  end
+
+  opts.on '--mongo-db', 'Mongodb database' do |p|
+    options[:mongo_db] = p
+  end
+
   opts.on "-v", "--[no-]verbose", "Run verbosely" do |v|
     options[:debug] = v
   end
@@ -97,6 +130,7 @@ Slanger::Config.load options
 
 EM.run do
   File.tap { |f| require f.expand_path(f.join(f.dirname(__FILE__),'..', 'slanger.rb')) }
+  Slanger::Statistics
   # Are all application parameters missing ?
   if [opts_app_id, opts_app_key, opts_secret].any?{|item| not item.nil?}
     # No, some were given, verify that all are present

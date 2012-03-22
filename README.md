@@ -109,6 +109,16 @@ Slanger supports several configuration options, which can be supplied as command
 --api-log-file API server log file. Optional. Default: STDOUT.
 
 -v or --[no-]verbose This makes Slanger run verbosely, meaning WebSocket frames will be echoed to STDOUT. Useful for debugging
+
+--id A unique identifier for this slanger daemon in a cluster. Optional.
+
+--statistics Statistics, on or off. Default: off. Number of concurrent connection and messages will be collected for each application.
+
+--mongo-host Mongodb host for the statistics. Default: localhost
+
+--mongo-port Mongodb TCP port for the statistics. Default: 27017
+
+--mongo-db Mongodb database name for the statistics. Defailt: slanger.
 </pre>
 
 

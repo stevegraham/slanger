@@ -9,6 +9,8 @@ require 'fiber'
 
 module Slanger
   class Handler
+
+
     def initialize(socket)
       @socket        = socket
       @subscriptions = {}
