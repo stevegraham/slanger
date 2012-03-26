@@ -114,6 +114,10 @@ Slanger supports several configuration options, which can be supplied as command
 
 --statistics Statistics, on or off. Default: off. Number of concurrent connection and messages will be collected for each application.
 
+--statistics-http-user HTTP user for accessing statistics.
+
+--statistics-http-password HTTP password for accessing statistics.
+
 --mongo-host Mongodb host for the statistics. Default: localhost
 
 --mongo-port Mongodb TCP port for the statistics. Default: 27017
@@ -121,6 +125,11 @@ Slanger supports several configuration options, which can be supplied as command
 --mongo-db Mongodb database name for the statistics. Defailt: slanger.
 </pre>
 
+# Statistics access
+
+Statistics can be accessed from these URL with GET requests:
+http://slanger.example.com/statistics/all_apps
+http://slanger.example.com/statistics/apps/myapp
 
 # Why use Slanger instead of Pusher?
 

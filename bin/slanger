@@ -105,6 +105,14 @@ OptionParser.new do |opts|
     options[:statistics] = param_statistics
   end
 
+  opts.on '--statistics-http-user USER', 'Statistics HTTP user for API calls' do |p|
+    options[:statistics_http_user] = p
+  end
+
+  opts.on '--statistics-http-password PASSWORD', 'Statistics HTTP password for API calls' do |p|
+    options[:statistics_http_password] = p
+  end
+
   opts.on '--mongo-host', 'Mongodb host' do |p|
     options[:mongo_host] = p
   end

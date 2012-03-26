@@ -10,6 +10,61 @@ if Slanger::Config.statistics
       attr_accessor :slanger_id
     end
   end
+
+  # Add new API calls
+  module Slanger
+    class ApiServer
+      get '/statistics/apps/:app_id' do
+        statistics_protected!
+        f = Fiber.current
+        # Retrieve the application statistics
+        resp = Statistics.get_metrics_for(params[:app_id])
+        resp.callback do |doc|
+          f.resume doc
+        end
+        resp.errback do |err|
+          raise *err
+        end
+        metrics = Fiber.yield
+
+        return [404, {}, "404 NOT FOUND\n"] if metrics.nil?
+
+        [200, {}, metrics['value'].to_json]
+      end
+
+      get '/statistics/all_apps' do
+        statistics_protected!
+        f = Fiber.current
+        # Retrieve all the application statistics
+        resp = Statistics.get_all_metrics()
+        resp.callback do |doc|
+          f.resume doc
+        end
+        resp.errback do |err|
+          raise *err
+        end
+        metrics = Fiber.yield
+
+        return [404, {}, "404 NOT FOUND\n"] if metrics.nil?
+
+        [200, {}, metrics.to_json]
+      end
+
+      # Authenticate requests
+      def statistics_protected!
+        unless statistics_authorized?
+          response['WWW-Authenticate'] = %(Basic realm="Restricted Area")
+          throw(:halt, [401, "Not authorized\n"])
+        end
+      end
+
+      # authorise HTTP users for the API calls
+      def statistics_authorized?
+        @auth ||=  Rack::Auth::Basic::Request.new(request.env)
+        @auth.provided? && @auth.basic? && @auth.credentials && @auth.credentials == [Config.statistics_http_user, Config.statistics_http_password]
+     end
+    end
+  end
 end
   
 module Slanger
@@ -17,17 +72,68 @@ module Slanger
     if Slanger::Config.statistics
       include Aquarium::DSL
   
+      # Return the metrics for one application
+      def get_metrics_for(app_id)
+        metrics.find_one(_id: app_id)
+      end
+ 
+      # Return the metrics for all applications
+      def get_all_metrics()
+        metrics.find().defer_as_a
+      end
+
       private
-   
+
+      @map_function = <<-MAPFUNCTION
+        function () {
+          if (!this.connections) {
+            return;
+          }
+          var timestamp = Math.round(Date.now() / 1000);
+          // Emit app_id, nb conn, max conn and nv messages. 
+          // max numberconnections is equal to current number, it will be compared to earlier data 
+          // in the reduce function and the maximum kept.
+          emit(
+            this.app_id,
+            {
+              timestamp: timestamp,
+              nb_connections: this.connections.length,
+              max_nb_connections: this.connections.length,
+              nb_messages: this.nb_messages
+            }
+          );
+        }
+      MAPFUNCTION
+
+      @reduce_function = <<-REDUCEFUNCTION
+        function (key, values) {
+          var result = {timestamp: 0, nb_connections:0, max_nb_connections:0, nb_messages:0};
+          values.forEach(
+            function (value) {
+              if (value.timestamp > result.timestamp) {
+                //Keep newest timestamp, number of connections and number of messages
+                result.timestamp = value.timestamp;
+                result.nb_connections = value.nb_connections;
+                result.nb_messages += value.nb_messages;
+              }
+              //Keep the highest max number of connections
+              result.max_nb_connections = Math.max(result.max_nb_connections, value.max_nb_connections);
+            }
+          );
+          return result;
+        }
+      REDUCEFUNCTION
+
       # Increment the number of message for an application each time a message is dispatched into one
       # of its channels
       after :calls_to => :dispatch, :on_types => [Slanger::Channel, Slanger::PresenceChannel] do |join_point, channel, *args|
         # Update record
-        statistics.update(
+        work_data.update(
           {app_id: channel.application.id},
-          {'$inc' => {nb_messages: 1}},
+          {'$inc' => {nb_messages: 1}, '$set' => {timestamp: Time.now.to_i}},
           {upsert: true}
         )
+        refresh_metrics
       end
   
       # Add new connections to an application to its list
@@ -43,9 +149,9 @@ module Slanger
           # Save them
           handler.slanger_id = slanger_id
           # Update record
-          statistics.update(
+          work_data.update(
             {app_id: application.id},
-            {'$addToSet' => {collections: slanger_id + "-" + peername}},
+            {'$addToSet' => {connections: slanger_id + "-" + peername}, '$set' => {timestamp: Time.now.to_i}},
             {upsert: true}
           )
         end
@@ -58,14 +164,50 @@ module Slanger
         slanger_id = handler.slanger_id
         unless application.nil? or peername.nil? or slanger_id.nil?
           # Update record
-          statistics.update(
+          work_data.update(
             {app_id: application.id},
-            {'$pull' => {collections: slanger_id + "-" + peername}},
+            {'$pull' => {connections: slanger_id + "-" + peername}, '$set' => {timestamp: Time.now.to_i}},
             {upsert: true}
           )
         end
       end
-  
+
+      # Run a MapReduce query to fill the slanger metrics collection from data
+      def refresh_metrics()
+        Fiber.new {
+          # Retrieve last timestamp
+          f = Fiber.current
+          resp = variables.find_one(_id: 'statistics.last_timestamp')
+          resp.callback do |doc|
+            f.resume doc
+          end
+          resp.errback do |err|
+            raise *err
+          end
+          last_timestamp_record = Fiber.yield 
+          last_timestamp = if last_timestamp_record.nil?
+            0
+          else
+            last_timestamp_record['timestamp']
+          end
+          new_timestamp = Time.now.to_i
+          work_data.map_reduce(
+            @map_function,
+            @reduce_function,
+            {
+              query: {timestamp: {'$gte' => last_timestamp}},
+              out: {reduce: 'slanger.statistics.metrics'}
+            }
+          )
+          # Save timestamp
+          variables.update(
+            {_id: 'statistics.last_timestamp'},
+            {'$set' => {timestamp: new_timestamp}},
+            {upsert: true}
+          )
+        }.resume
+      end
+
       def get_peer_ip_port(socket)
         peername = socket.get_peername
         if peername.nil?
@@ -86,9 +228,19 @@ module Slanger
         end
       end
    
-      # Statistics collection in Mongodb
-      def statistics
-        @statistics ||= Mongo.collection("slanger.applications.statistics")
+      # Work data collection in Mongodb
+      def work_data
+        @work_data ||= Mongo.collection("slanger.statistics.work_data")
+      end
+
+      # Variables collection in Mongodb
+      def variables
+        @variables ||= Mongo.collection("slanger.statistics.variables")
+      end
+ 
+      # Metrics collection in Mongodb
+      def metrics
+        @metrics ||= Mongo.collection("slanger.statistics.metrics")
       end
   
       extend self

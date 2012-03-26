@@ -25,6 +25,7 @@ Gem::Specification.new do |s|
   s.add_dependency                'aquarium',         '~> 0.5.0'
   s.add_dependency                'mongo',            '~> 1.6.1'
   s.add_dependency                'bson_ext',         '~> 1.6.1'
+  s.add_dependency                'em-mongo',         '~> 0.4.2'
 
   s.add_development_dependency    'rspec',            '~> 2.6.0'
   s.add_development_dependency    'pusher',           '~> 0.8.2'
