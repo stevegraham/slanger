@@ -1,7 +1,7 @@
 # Mongodb class.
 # Interface with Mongodb.
 
-require 'mongo'
+require 'em-mongo'
 require 'forwardable'
 
 module Slanger
@@ -17,7 +17,7 @@ module Slanger
     end
 
     def new_db
-      ::Mongo::Connection.new(Config.mongo_host, Config.mongo_port).db(Config.mongo_db)
+      EM::Mongo::Connection.new(Config.mongo_host, Config.mongo_port).db(Config.mongo_db)
     end
 
     extend self
