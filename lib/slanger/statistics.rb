@@ -1,4 +1,5 @@
 require 'aquarium'
+require 'singleton'
  
 if Slanger::Config.statistics
   # Add accessors to the Handler class
@@ -68,7 +69,8 @@ if Slanger::Config.statistics
 end
   
 module Slanger
-  module Statistics
+  class StatisticsSingleton
+    include Singleton
     if Slanger::Config.statistics
       include Aquarium::DSL
   
@@ -82,9 +84,62 @@ module Slanger
         metrics.find().defer_as_a
       end
 
-      private
+      def initialize()
+        # Starts up a periodic timer in eventmachine to calculate the metrics every minutes
+        EventMachine::PeriodicTimer.new(60) do
+          refresh_metrics
+        end
+      end     
 
-      @map_function = <<-MAPFUNCTION
+      # Increment the number of message for an application each time a message is dispatched into one
+      # of its channels
+      after :calls_to => :dispatch, :on_types => [Slanger::Channel, Slanger::PresenceChannel] do |join_point, channel, *args|
+        # Update record
+        Statistics.work_data.update(
+          {app_id: channel.application.id},
+          {'$inc' => {nb_messages: 1}, '$set' => {timestamp: Time.now.to_i}},
+          {upsert: true}
+        )
+      end
+  
+      # Add new connections to an application to its list
+      after :calls_to => :authenticate, :restricting_methods_to => :private, :on_type => Slanger::Handler do |join_point, handler, *args|
+        application = handler.application
+        unless application.nil?
+          # Get peer's IP and port
+          peername = Statistics.get_peer_ip_port(handler.socket)
+          # Save them so that we can remove them from mongo later
+          handler.peername = peername
+          # Get slanger_id if it exists or the listening IP and port
+          slanger_id = Config.slanger_id || get_socket_ip_port(handler.socket)
+          # Save them
+          handler.slanger_id = slanger_id
+          # Update record
+          Statistics.work_data.update(
+            {app_id: application.id},
+            {'$addToSet' => {connections: {slanger_id: slanger_id, peer: peername}}, '$set' => {timestamp: Time.now.to_i}},
+            {upsert: true}
+          )
+        end
+      end
+  
+      # Remove connexions when it is closed
+      before :calls_to => :onclose, :on_type => Slanger::Handler do |join_point, handler, *args|
+        application = handler.application
+        peername = handler.peername
+        slanger_id = handler.slanger_id
+        unless application.nil? or peername.nil? or slanger_id.nil?
+          # Update record
+          Statistics.work_data.update(
+            {app_id: application.id},
+            {'$pull' => {connections: {slanger_id: slanger_id, peer: peername}}, '$set' => {timestamp: Time.now.to_i}},
+            {upsert: true}
+          )
+        end
+      end
+
+      def map_function()
+        <<-MAPFUNCTION
         function () {
           if (!this.connections) {
             return;
@@ -103,9 +158,11 @@ module Slanger
             }
           );
         }
-      MAPFUNCTION
+        MAPFUNCTION
+      end
 
-      @reduce_function = <<-REDUCEFUNCTION
+      def reduce_function()
+        <<-REDUCEFUNCTION
         function (key, values) {
           var result = {timestamp: 0, nb_connections:0, max_nb_connections:0, nb_messages:0};
           values.forEach(
@@ -122,58 +179,15 @@ module Slanger
           );
           return result;
         }
-      REDUCEFUNCTION
-
-      # Increment the number of message for an application each time a message is dispatched into one
-      # of its channels
-      after :calls_to => :dispatch, :on_types => [Slanger::Channel, Slanger::PresenceChannel] do |join_point, channel, *args|
-        # Update record
-        work_data.update(
-          {app_id: channel.application.id},
-          {'$inc' => {nb_messages: 1}, '$set' => {timestamp: Time.now.to_i}},
-          {upsert: true}
-        )
-        refresh_metrics
-      end
-  
-      # Add new connections to an application to its list
-      after :calls_to => :authenticate, :restricting_methods_to => :private, :on_type => Slanger::Handler do |join_point, handler, *args|
-        application = handler.application
-        unless application.nil?
-          # Get peer's IP and port
-          peername = get_peer_ip_port(handler.socket)
-          # Save them so that we can remove them from mongo later
-          handler.peername = peername
-          # Get slanger_id if it exists or the listening IP and port
-          slanger_id = Config.slanger_id || get_socket_ip_port(handler.socket)
-          # Save them
-          handler.slanger_id = slanger_id
-          # Update record
-          work_data.update(
-            {app_id: application.id},
-            {'$addToSet' => {connections: slanger_id + "-" + peername}, '$set' => {timestamp: Time.now.to_i}},
-            {upsert: true}
-          )
-        end
-      end
-  
-      # Remove connexions when it is closed
-      before :calls_to => :onclose, :on_type => Slanger::Handler do |join_point, handler, *args|
-        application = handler.application
-        peername = handler.peername
-        slanger_id = handler.slanger_id
-        unless application.nil? or peername.nil? or slanger_id.nil?
-          # Update record
-          work_data.update(
-            {app_id: application.id},
-            {'$pull' => {connections: slanger_id + "-" + peername}, '$set' => {timestamp: Time.now.to_i}},
-            {upsert: true}
-          )
-        end
+        REDUCEFUNCTION
       end
 
       # Run a MapReduce query to fill the slanger metrics collection from data
       def refresh_metrics()
+        # Only run it on the master node, so that it isn't run several time
+        # if several slanger daemons are running
+        return unless Cluster.is_master?
+        Logger.debug log_message("Calculating metrics.")
         Fiber.new {
           # Retrieve last timestamp
           f = Fiber.current
@@ -192,8 +206,8 @@ module Slanger
           end
           new_timestamp = Time.now.to_i
           work_data.map_reduce(
-            @map_function,
-            @reduce_function,
+            map_function,
+            reduce_function,
             {
               query: {timestamp: {'$gte' => last_timestamp}},
               out: {reduce: 'slanger.statistics.metrics'}
@@ -242,8 +256,12 @@ module Slanger
       def metrics
         @metrics ||= Mongo.collection("slanger.statistics.metrics")
       end
-  
-      extend self
+
+      def log_message(message)
+        "Node " + Cluster.id + ": " + message
+      end
     end
   end
+
+  Statistics = StatisticsSingleton.instance
 end

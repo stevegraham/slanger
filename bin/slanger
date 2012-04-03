@@ -103,6 +103,10 @@ OptionParser.new do |opts|
     param_statistics = values[p.to_sym]
     raise RuntimeError.new "Statistics flag unknown. Accepted values are: " + values.keys.join(', ') if param_statistics.nil?
     options[:statistics] = param_statistics
+    if param_statistics 
+      # Statistics needs the cluster to know which slanger is master
+      options[:cluster] = true
+    end
   end
 
   opts.on '--statistics-http-user USER', 'Statistics HTTP user for API calls' do |p|
@@ -138,6 +142,7 @@ Slanger::Config.load options
 
 EM.run do
   File.tap { |f| require f.expand_path(f.join(f.dirname(__FILE__),'..', 'slanger.rb')) }
+  Slanger::Cluster
   Slanger::Statistics
   # Are all application parameters missing ?
   if [opts_app_id, opts_app_key, opts_secret].any?{|item| not item.nil?}
