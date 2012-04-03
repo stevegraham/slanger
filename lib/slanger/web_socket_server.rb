@@ -1,8 +1,10 @@
 require 'eventmachine'
 require 'em-websocket'
+require 'singleton'
 
 module Slanger
-  module WebSocketServer
+  class WebSocketServerSingleton
+    include Singleton
     def run
       EM.run do
         EM::WebSocket.start host:  Slanger::Config[:websocket_host], port:  Slanger::Config[:websocket_port], debug: Slanger::Config[:debug] do |ws|
@@ -15,6 +17,7 @@ module Slanger
         end
       end
     end
-    extend self
   end
+
+  WebSocketServer = WebSocketServerSingleton.instance
 end
