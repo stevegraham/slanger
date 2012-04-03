@@ -23,9 +23,15 @@ module Slanger
         msg   = JSON.parse msg
       rescue JSON::ParserError
         Logger.error log_message("JSON Parse error on message: '" + msg + "'")
+        return
       end
-      event = msg['event'].gsub('pusher:', 'pusher_')
 
+      if msg['event'].nil?
+        Logger.error "No event given."
+        return
+      end
+
+      event = msg['event'].gsub('pusher:', 'pusher_')
       if event =~ /^pusher_/
         # Pusher event, call method if it exists.
         if respond_to? event, true
@@ -62,18 +68,16 @@ module Slanger
 
     # Verify app key. Send connection_established message to connection if it checks out. Send error message and disconnect if invalid.
     def authenticate
-      app_key = @socket.request['path'].split(/\W/)[2]
       # Retrieve application
-      @application = Applications.by_key(app_key)
-      if @application.nil?
-        # Application not found
-        @socket.send(payload nil, 'pusher:error', { code: '4001', message: "Could not find app by key #{app_key}" })
-        @socket.close_websocket
-        Logger.error log_message("Application not found: " + app_key)
-      else
+      if app_key = @socket.request['path'].split(/\W/)[2] and @application = Applications.by_key(app_key)
         @socket_id = SecureRandom.uuid
         @socket.send(payload nil, 'pusher:connection_established', { socket_id: @socket_id })
         Logger.debug log_message("Connection established.")
+      else 
+        # Application not found
+        @socket.send(payload nil, 'pusher:error', { code: '4001', message: "Could not find app by key #{app_key}" })
+        @socket.close_websocket
+        Logger.error log_message("Application not found: " + (app_key || 'no app_key given'))
       end
     end
 
@@ -176,13 +180,12 @@ module Slanger
     end
 
     def log_message(msg)
-      peername = @socket.get_peername
-      if peername.nil?
-        "socket_id: " + @socket_id + " " + msg
-      else
+      result = ''
+      if peername = @socket.get_peername
         port, ip = Socket.unpack_sockaddr_in(peername) 
-        "Peer: " + ip + ":" + port.to_s + " socket_id: " + @socket_id + " " + msg 
-      end
+        result += "Peer: " + ip + ":" + port.to_s
+      end     
+      result += "socket_id: " + @socket_id + " " + msg unless @socket_id.nil?
     end
   end
 end
