@@ -1,6 +1,9 @@
+require 'singleton'
+
 module Slanger
-  module Logger
+  class LoggerSingleton
     extend Forwardable
+    include Singleton
 
     def_delegators :logger, :add, :debug, :debug?, :error, :error?, :fatal, :fatal?, :info, :info?, :log, :unknown, :warn, :warn?
    
@@ -19,6 +22,7 @@ module Slanger
     def audit(msg)
       audit_logger.info(msg)
     end
-    extend self
   end
+
+  Logger = LoggerSingleton.instance
 end

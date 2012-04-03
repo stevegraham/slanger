@@ -1,7 +1,9 @@
 # Config singleton holding the configuration.
+require 'singleton'
 
 module Slanger
-  module Config
+  class ConfigSingleton
+    include Singleton
     def load(opts={})
       options.update opts
     end
@@ -20,7 +22,7 @@ module Slanger
     def method_missing(meth, *args, &blk)
       options[meth]
     end
-
-    extend self
   end
+  
+  Config = ConfigSingleton.instance
 end

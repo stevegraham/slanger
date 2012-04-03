@@ -3,10 +3,12 @@
 
 require 'em-mongo'
 require 'forwardable'
+require 'singleton'
 
 module Slanger
-  module Mongo
+  class MongoSingleton
     extend Forwardable
+    include Singleton
 
     def_delegators :mongo_db, :collection_names, :collection
 
@@ -19,7 +21,7 @@ module Slanger
     def new_db
       EM::Mongo::Connection.new(Config.mongo_host, Config.mongo_port).db(Config.mongo_db)
     end
-
-    extend self
   end
+
+  Mongo = MongoSingleton.instance
 end

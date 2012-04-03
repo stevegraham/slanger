@@ -1,6 +1,9 @@
+require 'singleton'
+
 module Slanger
-  module Applications
+  class ApplicationsSingleton
     extend  Forwardable
+    include Singleton
    
     def_delegators :apps, :[], :[]=
 
@@ -22,7 +25,7 @@ module Slanger
       Logger.info("Created application " + id)
       Logger.audit("Created application " + id)
     end
-
-    extend self
   end
+
+  Applications = ApplicationsSingleton.instance
 end

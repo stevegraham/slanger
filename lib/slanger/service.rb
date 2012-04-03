@@ -1,8 +1,11 @@
 require 'thin'
 require 'rack'
+require 'singleton'
 
 module Slanger
-  module Service
+  class ServiceSingleton
+    include Singleton
+
     def run
       Logger.info "Starting."
       Thin::Logging.silent = true
@@ -15,10 +18,12 @@ module Slanger
       Logger.info "Stopping."
     end
 
-    extend self
     Signal.trap('HUP') {
       Logger.info "HUP signal received."
-      Slanger::Service.stop
+      stop
     }
   end
+
+  Service = ServiceSingleton.instance
 end
+
