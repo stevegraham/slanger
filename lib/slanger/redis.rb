@@ -11,8 +11,8 @@ module Slanger
       # Dispatch messages received from Redis to their destination channel.
       base.on(:message) do |channel, message|
         message = JSON.parse message
-        const = message['channel'] =~ /^presence-/ ? 'PresenceChannel' : 'Channel'
-        Slanger.const_get(const).find_or_create_by_channel_id(message['channel']).dispatch message, channel
+        klass = message['channel'][/^presence-/] ? PresenceChannel : Channel
+        klass.find_or_create_by_channel_id(message['channel']).dispatch message, channel
       end
     end
 
