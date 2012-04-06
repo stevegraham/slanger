@@ -18,6 +18,22 @@ describe 'Integration' do
     end
   end
 
+  def em_thread
+    Thread.new do
+      EM.run do
+        yield
+      end
+    end.join
+  end
+
+  def stream websocket, messages
+    websocket.stream do |message|
+      messages << JSON.parse(message)
+
+      yield
+    end
+  end
+
   before(:each) do
     # Fork service. Our integration tests MUST block the main thread because we want to wait for i/o to finish.
     @server_pid = EM.fork_reactor do
@@ -50,97 +66,88 @@ describe 'Integration' do
     it 'pushes messages to interested websocket connections' do
       messages  = []
 
-      Thread.new do
-        EM.run do
-          websocket = new_websocket
+      em_thread do
+        websocket = new_websocket
 
-          websocket.stream do |message|
-            messages << message
-            if messages.length < 3
-              Pusher['MY_CHANNEL'].trigger_async 'an_event', { some: 'data' }
-            else
-              EM.stop
-            end
+        stream(websocket, messages) do |message|
+          if messages.length < 3
+            Pusher['MY_CHANNEL'].trigger_async 'an_event', { some: 'data' }
+          else
+            EM.stop
           end
-
-          websocket.callback do
-            websocket.send({ event: 'pusher:subscribe', data: { channel: 'MY_CHANNEL'} }.to_json)
-          end
-
         end
-      end.join
+
+        websocket.callback do
+          websocket.send({ event: 'pusher:subscribe', data: { channel: 'MY_CHANNEL'} }.to_json)
+        end
+      end
 
       # Slanger should send an object denoting connection was succesfully established
-      JSON.parse(messages.first)['event'].should == 'pusher:connection_established'
+      messages.first['event'].should == 'pusher:connection_established'
       # Channel id should be in the payload
-      JSON.parse(messages.first)['data']['socket_id'].should_not be_nil
+      messages.first['data']['socket_id'].should_not be_nil
       # Slanger should send out the message
-      JSON.parse(messages.last)['event'].should == 'an_event'
-      JSON.parse(messages.last)['data'].should == { some: 'data' }.to_json
+      messages.last['event'].should == 'an_event'
+      messages.last['data'].should == { some: 'data' }.to_json
     end
 
     it 'avoids duplicate events' do
       client1_messages, client2_messages  = [], []
 
-      Thread.new do
-        EM.run do
-          client1 = new_websocket
+      em_thread do
+        client1 = new_websocket
 
-          client1.callback do
-            client1.send({ event: 'pusher:subscribe', data: { channel: 'MY_CHANNEL'} }.to_json)
-          end
+        client1.callback do
+          client1.send({ event: 'pusher:subscribe', data: { channel: 'MY_CHANNEL'} }.to_json)
+        end
 
-          client1.stream do |message|
-            # if this is the first message to client 1 set up another connection from the same client
-            if client1_messages.empty?
-              client2 = new_websocket
+        client1.stream do |message|
+          # if this is the first message to client 1 set up another connection from the same client
+          if client1_messages.empty?
+            client2 = new_websocket
 
-              client2.callback do
-                client2.send({ event: 'pusher:subscribe', data: { channel: 'MY_CHANNEL'} }.to_json)
-              end
+            client2.callback do
+              client2.send({ event: 'pusher:subscribe', data: { channel: 'MY_CHANNEL'} }.to_json)
+            end
 
-              client2.stream do |message|
-                client2_messages << message
-                if client2_messages.length < 3
-                  socket_id = JSON.parse(client1_messages.first)['data']['socket_id']
-                  Pusher['MY_CHANNEL'].trigger_async 'an_event', { some: 'data' }, socket_id
-                else
-                  EM.stop
-                end
+            stream(client2, client2_messages) do |message|
+              if client2_messages.length < 3
+                socket_id = client1_messages.first['data']['socket_id']
+                Pusher['MY_CHANNEL'].trigger_async 'an_event', { some: 'data' }, socket_id
+              else
+                EM.stop
               end
             end
-            client1_messages << message
           end
+          client1_messages << message
         end
-      end.join
+      end
 
       client1_messages.size.should == 2
-      JSON.parse(client2_messages.last)['event'].should == 'an_event'
-      JSON.parse(client2_messages.last)['data'].should == { some: 'data' }.to_json
+      client2_messages.last['event'].should == 'an_event'
+      client2_messages.last['data'].should == { some: 'data' }.to_json
     end
   end
+
+
 
   describe 'private channels' do
     context 'with valid authentication credentials:' do
       it 'accepts the subscription request' do
         messages  = []
 
-        Thread.new do
-          EM.run do
-            websocket = new_websocket
+        em_thread do
+          websocket = new_websocket
 
-            websocket.stream do |message|
-              messages << JSON.parse(message)
-              if messages.empty?
-                auth = Pusher['private-channel'].authenticate(messages.first['data']['socket_id'])[:auth]
-                websocket.send({ event: 'pusher:subscribe', data: { channel: 'private-channel', auth: auth } }.to_json)
-              else
-                EM.stop
-              end
+          stream(websocket, messages) do |message|
+            if messages.empty?
+              auth = Pusher['private-channel'].authenticate(messages.first['data']['socket_id'])[:auth]
+              websocket.send({ event: 'pusher:subscribe', data: { channel: 'private-channel', auth: auth } }.to_json)
+            else
+              EM.stop
             end
-
           end
-        end.join
+        end
 
         # Slanger should send an object denoting connection was succesfully established
         messages.first['event'].should == 'pusher:connection_established'
@@ -154,21 +161,19 @@ describe 'Integration' do
       it 'sends back an error message' do
         messages  = []
 
-        Thread.new do
-          EM.run do
-            websocket = new_websocket
 
-            websocket.stream do |message|
-              messages << JSON.parse(message)
-              if messages.length < 2
-                websocket.send({ event: 'pusher:subscribe', data: { channel: 'private-channel', auth: 'bogus' } }.to_json)
-              else
-                EM.stop
-              end
+        em_thread do
+          websocket = new_websocket
+
+          stream(websocket, messages) do |message|
+            if messages.length < 2
+              websocket.send({ event: 'pusher:subscribe', data: { channel: 'private-channel', auth: 'bogus' } }.to_json)
+            else
+              EM.stop
             end
-
           end
-        end.join
+
+        end
 
         # Slanger should send an object denoting connection was succesfully established
         messages.first['event'].should == 'pusher:connection_established'
@@ -180,44 +185,42 @@ describe 'Integration' do
       end
     end
 
+
+
     describe 'client events' do
       it "sends event to other channel subscribers" do
         client1_messages, client2_messages  = [], []
 
-        Thread.new do
-          EM.run do
-            client1, client2 = new_websocket, new_websocket
-            client2_messages, client1_messages = [], []
+        em_thread do
+          client1, client2 = new_websocket, new_websocket
+          client2_messages, client1_messages = [], []
 
-            client1.callback do
+          client1.callback do
 
-            end
+          end
 
-            client1.stream do |message|
-              client1_messages << JSON.parse(message)
-              if client1_messages.length < 2
-                auth = Pusher['private-channel'].authenticate(client1_messages.first['data']['socket_id'])[:auth]
-                client1.send({ event: 'pusher:subscribe', data: { channel: 'private-channel', auth: auth } }.to_json)
-              elsif client1_messages.length == 3
-                EM.stop
-              end
-            end
-
-            client2.callback do
-
-            end
-
-            client2.stream do |message|
-              client2_messages << JSON.parse(message)
-              if client2_messages.length < 2
-                auth = Pusher['private-channel'].authenticate(client2_messages.first['data']['socket_id'])[:auth]
-                client2.send({ event: 'pusher:subscribe', data: { channel: 'private-channel', auth: auth } }.to_json)
-              else
-                client2.send({ event: 'client-something', data: { some: 'stuff' }, channel: 'private-channel' }.to_json)
-              end
+          stream(client1, client1_messages) do |message|
+            if client1_messages.length < 2
+              auth = Pusher['private-channel'].authenticate(client1_messages.first['data']['socket_id'])[:auth]
+              client1.send({ event: 'pusher:subscribe', data: { channel: 'private-channel', auth: auth } }.to_json)
+            elsif client1_messages.length == 3
+              EM.stop
             end
           end
-        end.join
+
+          client2.callback do
+
+          end
+
+          stream(client2, client2_messages) do |message|
+            if client2_messages.length < 2
+              auth = Pusher['private-channel'].authenticate(client2_messages.first['data']['socket_id'])[:auth]
+              client2.send({ event: 'pusher:subscribe', data: { channel: 'private-channel', auth: auth } }.to_json)
+            else
+              client2.send({ event: 'client-something', data: { some: 'stuff' }, channel: 'private-channel' }.to_json)
+            end
+          end
+        end
 
         client1_messages.none? { |m| m['event'] == 'client-something' }
         client2_messages.one?  { |m| m['event'] == 'client-something' }
@@ -231,21 +234,18 @@ describe 'Integration' do
         it 'sends back an error message' do
           messages  = []
 
-          Thread.new do
-            EM.run do
-              websocket = new_websocket
+          em_thread do
+            websocket = new_websocket
 
-              websocket.stream do |message|
-                messages << JSON.parse(message)
-                if messages.length < 2
-                  websocket.send({ event: 'pusher:subscribe', data: { channel: 'presence-channel', auth: 'bogus' } }.to_json)
-                else
-                  EM.stop
-                end
+            stream(websocket, messages) do |message|
+              if messages.length < 2
+                websocket.send({ event: 'pusher:subscribe', data: { channel: 'presence-channel', auth: 'bogus' } }.to_json)
+              else
+                EM.stop
               end
-
             end
-          end.join
+          end
+
           # Slanger should send an object denoting connection was succesfully established
           messages.first['event'].should == 'pusher:connection_established'
           # Channel id should be in the payload
@@ -262,31 +262,27 @@ describe 'Integration' do
         it 'sends back an error message' do
           messages  = []
 
-          Thread.new do
-            EM.run do
-              websocket = new_websocket
+          em_thread do
+            websocket = new_websocket
 
-              websocket.stream do |message|
-                messages << JSON.parse(message)
-                if messages.length < 2
-                  websocket.send({
-                    event: 'pusher:subscribe', data: {
-                      channel: 'presence-channel', auth: 'bogus'
-                    },
-                    channel_data: {
-                      user_id: '0f177369a3b71275d25ab1b44db9f95f',
-                      user_info: {
-                        name: 'SG'
-                      }
-                    }
-                  }.to_json)
-                else
-                  EM.stop
-                end
+            stream(websocket, messages) do |message|
+              if messages.length < 2
+                websocket.send({
+                  event: 'pusher:subscribe', data: {
+                  channel: 'presence-channel', auth: 'bogus'
+                },
+                  channel_data: {
+                  user_id: '0f177369a3b71275d25ab1b44db9f95f',
+                  user_info: {
+                  name: 'SG'
+                }
+                }
+                }.to_json)
+              else
+                EM.stop
               end
-
             end
-          end.join
+          end
           # Slanger should send an object denoting connection was succesfully established
           messages.first['event'].should == 'pusher:connection_established'
           # Channel id should be in the payload
@@ -296,85 +292,88 @@ describe 'Integration' do
           messages.length.should == 2
         end
       end
+
       context 'with genuine authentication credentials'  do
         it 'sends back a success message' do
           messages  = []
 
-          Thread.new do
-            EM.run do
-              websocket = new_websocket
+          em_thread do
+            websocket = new_websocket
 
-              websocket.stream do |message|
-                messages << JSON.parse(message)
-                if messages.length < 2
+            stream(websocket, messages) do |message|
+              if messages.length < 2
+                auth = Pusher['presence-channel'].authenticate(messages.first['data']['socket_id'], {
+                  user_id: '0f177369a3b71275d25ab1b44db9f95f',
+                  user_info: {
+                  name: 'SG'
+                }
+                })
+                websocket.send({
+                  event: 'pusher:subscribe', data: {
+                  channel: 'presence-channel'
+                }.merge(auth)
+                }.to_json)
+              else
+                EM.stop
+              end
+            end
+
+          end
+          # Slanger should send an object denoting connection was succesfully established
+          messages.first['event'].should == 'pusher:connection_established'
+          # Channel id should be in the payload
+          messages.length.should == 2
+
+          messages.last.should == {"channel"=>"presence-channel",
+                                   "event"=>"pusher_internal:subscription_succeeded",
+                                   "data"=>{"presence"=>
+                                            {"count"=>1,
+                                             "ids"=>["0f177369a3b71275d25ab1b44db9f95f"],
+                                             "hash"=>
+                                            {"0f177369a3b71275d25ab1b44db9f95f"=>{"name"=>"SG"}}}}}
+        end
+
+        context 'with more than one subscriber subscribed to the channel' do
+          it 'sends a member added message to the existing subscribers' do
+            messages  = []
+
+            em_thread do
+              user1 = new_websocket
+
+              stream(user1, messages) do |message|
+                if messages.length == 1
                   auth = Pusher['presence-channel'].authenticate(messages.first['data']['socket_id'], {
                     user_id: '0f177369a3b71275d25ab1b44db9f95f',
                     user_info: {
-                       name: 'SG'
-                    }
+                    name: 'SG'
+                  }
                   })
-                  websocket.send({
+                  user1.send({
                     event: 'pusher:subscribe', data: {
+                    channel: 'presence-channel'
+                  }.merge(auth)
+                  }.to_json)
+                elsif messages.length == 2
+                  user2 = new_websocket
+                  user2.stream do |message|
+                    auth2 = Pusher['presence-channel'].authenticate(JSON.parse(message)['data']['socket_id'], {
+                      user_id: '37960509766262569d504f02a0ee986d',
+                      user_info: {
+                      name: 'CHROME'
+                    }
+                    })
+                    user2.send({
+                      event: 'pusher:subscribe', data: {
                       channel: 'presence-channel'
-                    }.merge(auth)
-                 }.to_json)
-                else
+                    }.merge(auth2)
+                    }.to_json)
+                  end
+                elsif messages.length == 3
                   EM.stop
                 end
               end
 
             end
-          end.join
-          # Slanger should send an object denoting connection was succesfully established
-          messages.first['event'].should == 'pusher:connection_established'
-          # Channel id should be in the payload
-          messages.length.should == 2
-          messages.last.should == {"channel"=>"presence-channel", "event"=>"pusher_internal:subscription_succeeded", "data"=>{"presence"=>{"count"=>1, "ids"=>["0f177369a3b71275d25ab1b44db9f95f"], "hash"=>{"0f177369a3b71275d25ab1b44db9f95f"=>{"name"=>"SG"}}}}}
-        end
-        context 'with more than one subscriber subscribed to the channel' do
-          it 'sends a member added message to the existing subscribers' do
-            messages  = []
-
-            Thread.new do
-              EM.run do
-                user1 = new_websocket
-
-                user1.stream do |message|
-                  messages << JSON.parse(message)
-                  if messages.length == 1
-                    auth = Pusher['presence-channel'].authenticate(messages.first['data']['socket_id'], {
-                      user_id: '0f177369a3b71275d25ab1b44db9f95f',
-                      user_info: {
-                         name: 'SG'
-                      }
-                    })
-                    user1.send({
-                      event: 'pusher:subscribe', data: {
-                        channel: 'presence-channel'
-                      }.merge(auth)
-                   }.to_json)
-                  elsif messages.length == 2
-                    user2 = new_websocket
-                    user2.stream do |message|
-                      auth2 = Pusher['presence-channel'].authenticate(JSON.parse(message)['data']['socket_id'], {
-                        user_id: '37960509766262569d504f02a0ee986d',
-                        user_info: {
-                          name: 'CHROME'
-                        }
-                      })
-                      user2.send({
-                        event: 'pusher:subscribe', data: {
-                          channel: 'presence-channel'
-                        }.merge(auth2)
-                      }.to_json)
-                    end
-                  elsif messages.length == 3
-                    EM.stop
-                  end
-                end
-
-              end
-            end.join
             #puts messages.inspect
             # Slanger should send an object denoting connection was succesfully established
             messages.first['event'].should == 'pusher:connection_established'
@@ -388,55 +387,52 @@ describe 'Integration' do
           it 'does not send multiple member added and member removed messages if one subscriber opens multiple connections, i.e. multiple browser tabs.' do
             messages  = []
 
-            Thread.new do
-              EM.run do
-                user1 = new_websocket
+            em_thread do
+              user1 = new_websocket
 
-                # setup our reference user
-                user1.stream do |message|
-                  messages << JSON.parse(message)
-                  if messages.length == 1
-                    auth = Pusher['presence-channel'].authenticate(messages.first['data']['socket_id'], {
-                      user_id: '0f177369a3b71275d25ab1b44db9f95f',
-                      user_info: {
-                         name: 'SG'
-                      }
-                    })
-                    user1.send({
-                      event: 'pusher:subscribe', data: {
-                        channel: 'presence-channel'
-                      }.merge(auth)
-                   }.to_json)
-                  elsif messages.length == 2
-                    10.times do
-                      user = new_websocket
+              # setup our reference user
+              stream(user1, messages) do |message|
+                if messages.length == 1
+                  auth = Pusher['presence-channel'].authenticate(messages.first['data']['socket_id'], {
+                    user_id: '0f177369a3b71275d25ab1b44db9f95f',
+                    user_info: {
+                    name: 'SG'
+                  }
+                  })
+                  user1.send({
+                    event: 'pusher:subscribe', data: {
+                    channel: 'presence-channel'
+                  }.merge(auth)
+                  }.to_json)
+                elsif messages.length == 2
+                  10.times do
+                    user = new_websocket
+                    user.stream do |message|
+                      # remove stream callback
                       user.stream do |message|
-                        # remove stream callback
-                        user.stream do |message|
-                          # close the connection in the next tick as soon as subscription is acknowledged
-                          EM.next_tick { user.close_connection }
-                        end
-                        message = JSON.parse(message)
-                        auth2 = Pusher['presence-channel'].authenticate(message['data']['socket_id'], {
-                          user_id: '37960509766262569d504f02a0ee986d',
-                          user_info: {
-                            name: 'CHROME'
-                          }
-                        })
-                        user.send({
-                          event: 'pusher:subscribe', data: {
-                            channel: 'presence-channel'
-                          }.merge(auth2)
-                        }.to_json)
+                        # close the connection in the next tick as soon as subscription is acknowledged
+                        EM.next_tick { user.close_connection }
                       end
+                      message = JSON.parse(message)
+                      auth2 = Pusher['presence-channel'].authenticate(message['data']['socket_id'], {
+                        user_id: '37960509766262569d504f02a0ee986d',
+                        user_info: {
+                        name: 'CHROME'
+                      }
+                      })
+                      user.send({
+                        event: 'pusher:subscribe', data: {
+                        channel: 'presence-channel'
+                      }.merge(auth2)
+                      }.to_json)
                     end
-                  elsif messages.length == 4
-                    EM.next_tick { EM.stop }
                   end
+                elsif messages.length == 4
+                  EM.next_tick { EM.stop }
                 end
-
               end
-            end.join
+
+            end
 
             # There should only be one set of presence messages sent to the refernce user for the second user.
             messages.one? { |message| message['event'] == 'pusher_internal:member_added'   && message['data']['user_id'] == '37960509766262569d504f02a0ee986d' }.should be_true
