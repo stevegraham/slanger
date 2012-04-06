@@ -62,6 +62,11 @@ describe 'Integration' do
     end
   end
 
+  def em_stream
+    messages = []
+    yield websocket, messages
+  end
+
   describe 'regular channels:' do
     it 'pushes messages to interested websocket connections' do
       messages  = []
@@ -101,9 +106,9 @@ describe 'Integration' do
           client1.send({ event: 'pusher:subscribe', data: { channel: 'MY_CHANNEL'} }.to_json)
         end
 
-        client1.stream do |message|
+        stream(client1, client1_messages) do |message|
           # if this is the first message to client 1 set up another connection from the same client
-          if client1_messages.empty?
+          if client1_messages.one?
             client2 = new_websocket
 
             client2.callback do
@@ -119,7 +124,6 @@ describe 'Integration' do
               end
             end
           end
-          client1_messages << message
         end
       end
 
