@@ -118,6 +118,8 @@ Slanger supports several configuration options, which can be supplied as command
 
 --statistics-http-password HTTP password for accessing statistics.
 
+--mongo Use mongo DB, on or off. Needed for statistics and multiple applications. Default: off
+
 --mongo-host Mongodb host for the statistics. Default: localhost
 
 --mongo-port Mongodb TCP port for the statistics. Default: 27017

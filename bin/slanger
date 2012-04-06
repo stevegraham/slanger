@@ -14,7 +14,7 @@ options = {
   api_host: '0.0.0.0', api_port: '4567', websocket_host: '0.0.0.0',
   websocket_port: '8080', debug: false, redis_address: 'redis://0.0.0.0:6379/0', 
   log_level: ::Logger::WARN, log_file: $stdout, audit_log_file: $stdout, api_log_file: $stdout,
-  statistics: false, mongo_host: 'localhost', mongo_port: '27017', mongo_db: 'slanger'
+  statistics: false, mongo:false, mongo_host: 'localhost', mongo_port: '27017', mongo_db: 'slanger'
   }
 
 opts_app_id = nil
@@ -106,6 +106,8 @@ OptionParser.new do |opts|
     if param_statistics 
       # Statistics needs the cluster to know which slanger is master
       options[:cluster] = true
+      # Statistics needs mongodb
+      options[:mongo] = true
     end
   end
 
@@ -115,6 +117,16 @@ OptionParser.new do |opts|
 
   opts.on '--statistics-http-password PASSWORD', 'Statistics HTTP password for API calls' do |p|
     options[:statistics_http_password] = p
+  end
+
+  opts.on '--mongo on/off', 'Use mongodb' do |p|
+    values =  {
+      on: true,
+      off: false
+    }
+    param_mongo = values[p.to_sym]
+    raise RuntimeError.new "Mongo flag unknown. Accepted values are: " + values.keys.join(', ') if param_mongo.nil?
+    options[:mongo] = param_mongo
   end
 
   opts.on '--mongo-host', 'Mongodb host' do |p|
@@ -133,7 +145,7 @@ OptionParser.new do |opts|
     options[:debug] = v
   end
 end.parse!
- 
+
 # Set up configuration
 File.tap do |f|
   require f.expand_path(f.join(f.dirname(__FILE__),'..', 'lib', 'slanger', 'config.rb'))
