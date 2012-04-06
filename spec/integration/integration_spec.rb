@@ -11,8 +11,11 @@ describe 'Integration' do
   let(:errback) { Proc.new { fail 'cannot connect to slanger. your box might be too slow. try increasing sleep value in the before block' } }
 
   def new_websocket
-    EM::HttpRequest.new("ws://0.0.0.0:8080/app/#{Pusher.key}?client=js&version=1.8.5").
-      get :timeout => 0
+    uri = "ws://0.0.0.0:8080/app/#{Pusher.key}?client=js&version=1.8.5"
+
+    EM::HttpRequest.new(uri).get(:timeout => 0).tap do |ws|
+      ws.errback &errback
+    end
   end
 
   before(:each) do
@@ -51,8 +54,6 @@ describe 'Integration' do
         EM.run do
           websocket = new_websocket
 
-          websocket.errback &errback
-
           websocket.stream do |message|
             messages << message
             if messages.length < 3
@@ -89,8 +90,6 @@ describe 'Integration' do
             client1.send({ event: 'pusher:subscribe', data: { channel: 'MY_CHANNEL'} }.to_json)
           end
 
-          client1.errback &errback
-
           client1.stream do |message|
             # if this is the first message to client 1 set up another connection from the same client
             if client1_messages.empty?
@@ -99,8 +98,6 @@ describe 'Integration' do
               client2.callback do
                 client2.send({ event: 'pusher:subscribe', data: { channel: 'MY_CHANNEL'} }.to_json)
               end
-
-              client2.errback &errback
 
               client2.stream do |message|
                 client2_messages << message
@@ -132,8 +129,6 @@ describe 'Integration' do
           EM.run do
             websocket = new_websocket
 
-            websocket.errback &errback
-
             websocket.stream do |message|
               messages << JSON.parse(message)
               if messages.empty?
@@ -162,8 +157,6 @@ describe 'Integration' do
         Thread.new do
           EM.run do
             websocket = new_websocket
-
-            websocket.errback &errback
 
             websocket.stream do |message|
               messages << JSON.parse(message)
@@ -200,8 +193,6 @@ describe 'Integration' do
 
             end
 
-            client1.errback &errback
-
             client1.stream do |message|
               client1_messages << JSON.parse(message)
               if client1_messages.length < 2
@@ -215,8 +206,6 @@ describe 'Integration' do
             client2.callback do
 
             end
-
-            client2.errback &errback
 
             client2.stream do |message|
               client2_messages << JSON.parse(message)
@@ -245,8 +234,6 @@ describe 'Integration' do
           Thread.new do
             EM.run do
               websocket = new_websocket
-
-              websocket.errback &errback
 
               websocket.stream do |message|
                 messages << JSON.parse(message)
@@ -278,8 +265,6 @@ describe 'Integration' do
           Thread.new do
             EM.run do
               websocket = new_websocket
-
-              websocket.errback &errback
 
               websocket.stream do |message|
                 messages << JSON.parse(message)
@@ -319,8 +304,6 @@ describe 'Integration' do
             EM.run do
               websocket = new_websocket
 
-              websocket.errback &errback
-
               websocket.stream do |message|
                 messages << JSON.parse(message)
                 if messages.length < 2
@@ -355,7 +338,6 @@ describe 'Integration' do
             Thread.new do
               EM.run do
                 user1 = new_websocket
-                user1.errback &errback
 
                 user1.stream do |message|
                   messages << JSON.parse(message)
@@ -409,7 +391,6 @@ describe 'Integration' do
             Thread.new do
               EM.run do
                 user1 = new_websocket
-                user1.errback &errback
 
                 # setup our reference user
                 user1.stream do |message|
