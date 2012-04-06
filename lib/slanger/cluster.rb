@@ -4,9 +4,9 @@ require 'socket'
 
 module Slanger
   class ClusterSingleton
+    include Singleton
     if Slanger::Config.cluster
       include Aquarium::DSL
-      include Singleton
 
       def is_master?()
         @master_id == id
