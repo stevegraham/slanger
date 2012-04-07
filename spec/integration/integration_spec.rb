@@ -96,15 +96,12 @@ describe 'Integration' do
   end
 
   def matcher messages, options
-    messages.first['data']['socket_id'].should_not be_nil   if options[:id_present]
-
-    messages.first['event'].should == options[:first_event] if options[:first_event]
     messages.first['event'].should == 'pusher:connection_established' if options[:connection_established]
-    messages.length.should         == options[:count]       if options[:count]
-
+    messages.first['data']['socket_id'].should_not be_nil   if options[:id_present]
+    messages.first['event'].should == options[:first_event] if options[:first_event]
     messages.last['event'].should  == options[:last_event]  if options[:last_event]
-
     messages.last['data'].should   == options[:last_data]   if options[:last_data]
+    messages.length.should         == options[:count]       if options[:count]
   end
 
 
@@ -260,8 +257,8 @@ describe 'Integration' do
           end
 
           matcher messages, connection_established: true, id_present: true,
-	    count: 2,
-	    last_event: 'pusher:error'
+            count: 2,
+            last_event: 'pusher:error'
 
           messages.last['data']['message'].=~(/^Invalid signature: Expected HMAC SHA256 hex digest of/).should be_true
         end
