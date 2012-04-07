@@ -255,27 +255,19 @@ describe 'Integration' do
     context 'subscribing with channel data' do
       context 'and bogus authentication credentials' do
         it 'sends back an error message' do
-          messages  = []
-
-          em_thread do
-            websocket = new_websocket
-
-            stream(websocket, messages) do |message|
-              if messages.length < 2
-                websocket.send({
-                  event: 'pusher:subscribe', data: {
-                  channel: 'presence-channel', auth: 'bogus'
+          messages  = em_stream do |websocket, messages|
+            if messages.length < 2
+              websocket.send({
+                event: 'pusher:subscribe', data: {
+                  channel: 'presence-channel',
+                  auth: 'bogus'
                 },
-                  channel_data: {
+                channel_data: {
                   user_id: '0f177369a3b71275d25ab1b44db9f95f',
                   user_info: {
-                  name: 'SG'
-                }
-                }
-                }.to_json)
-              else
-                EM.stop
-              end
+                  name: 'SG' } } }.to_json)
+            else
+              EM.stop
             end
           end
           # Slanger should send an object denoting connection was succesfully established
@@ -290,27 +282,18 @@ describe 'Integration' do
 
       context 'with genuine authentication credentials'  do
         it 'sends back a success message' do
-          messages  = []
+          messages  = em_stream do |websocket, messages|
+            if messages.length < 2
+              auth = Pusher['presence-channel'].authenticate(messages.first['data']['socket_id'], {
+                user_id: '0f177369a3b71275d25ab1b44db9f95f',
+                user_info: {
+                name: 'SG' }})
 
-          em_thread do
-            websocket = new_websocket
-
-            stream(websocket, messages) do |message|
-              if messages.length < 2
-                auth = Pusher['presence-channel'].authenticate(messages.first['data']['socket_id'], {
-                  user_id: '0f177369a3b71275d25ab1b44db9f95f',
-                  user_info: {
-                  name: 'SG'
-                }
-                })
-                websocket.send({
-                  event: 'pusher:subscribe', data: {
-                  channel: 'presence-channel'
-                }.merge(auth)
-                }.to_json)
-              else
-                EM.stop
-              end
+              websocket.send({ event: 'pusher:subscribe',
+                               data: {channel: 'presence-channel'}.
+                               merge(auth)}.to_json)
+            else
+              EM.stop
             end
 
           end
