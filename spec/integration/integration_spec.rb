@@ -111,29 +111,23 @@ describe 'Integration' do
     it 'avoids duplicate events' do
       client1_messages, client2_messages  = [], []
 
-      em_thread do
-        client1 = new_websocket
+      client1_messages = em_stream do |client1, client1_messages|
+        # if this is the first message to client 1 set up another connection from the same client
+        if client1_messages.one?
+          client1.callback do
+            client1.send({ event: 'pusher:subscribe', data: { channel: 'MY_CHANNEL'} }.to_json)
+          end
 
-        client1.callback do
-          client1.send({ event: 'pusher:subscribe', data: { channel: 'MY_CHANNEL'} }.to_json)
-        end
-
-        stream(client1, client1_messages) do |message|
-          # if this is the first message to client 1 set up another connection from the same client
-          if client1_messages.one?
-            client2 = new_websocket
-
+          client2_messages = em_stream do |client2, client2_messages|
             client2.callback do
               client2.send({ event: 'pusher:subscribe', data: { channel: 'MY_CHANNEL'} }.to_json)
-            end
+            end if client2_messages.one?
 
-            stream(client2, client2_messages) do |message|
-              if client2_messages.length < 3
-                socket_id = client1_messages.first['data']['socket_id']
-                Pusher['MY_CHANNEL'].trigger_async 'an_event', { some: 'data' }, socket_id
-              else
-                EM.stop
-              end
+            if client2_messages.length < 3
+              socket_id = client1_messages.first['data']['socket_id']
+              Pusher['MY_CHANNEL'].trigger_async 'an_event', { some: 'data' }, socket_id
+            else
+              EM.stop
             end
           end
         end
@@ -151,18 +145,12 @@ describe 'Integration' do
   describe 'private channels' do
     context 'with valid authentication credentials:' do
       it 'accepts the subscription request' do
-        messages  = []
-
-        em_thread do
-          websocket = new_websocket
-
-          stream(websocket, messages) do |message|
-            if messages.empty?
-              auth = Pusher['private-channel'].authenticate(messages.first['data']['socket_id'])[:auth]
-              websocket.send({ event: 'pusher:subscribe', data: { channel: 'private-channel', auth: auth } }.to_json)
-            else
-              EM.stop
-            end
+        messages  = em_stream do |websocket, messages|
+          if messages.empty?
+            auth = Pusher['private-channel'].authenticate(messages.first['data']['socket_id'])[:auth]
+            websocket.send({ event: 'pusher:subscribe', data: { channel: 'private-channel', auth: auth } }.to_json)
+          else
+            EM.stop
           end
         end
 
