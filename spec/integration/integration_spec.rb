@@ -313,42 +313,36 @@ describe 'Integration' do
 
         context 'with more than one subscriber subscribed to the channel' do
           it 'sends a member added message to the existing subscribers' do
-            messages  = []
+            messages  = em_stream do |user1, messages|
+              if messages.one?
+                attributes = { user_id: '0f177369a3b71275d25ab1b44db9f95f',
+                               user_info: { name: 'SG' } }
 
-            em_thread do
-              user1 = new_websocket
+                id = messages.first['data']['socket_id']
 
-              stream(user1, messages) do |message|
-                if messages.length == 1
-                  auth = Pusher['presence-channel'].authenticate(messages.first['data']['socket_id'], {
-                    user_id: '0f177369a3b71275d25ab1b44db9f95f',
+                auth = Pusher['presence-channel'].authenticate(id, attributes)
+
+                user1.send({ event: 'pusher:subscribe',
+                             data: { channel: 'presence-channel'}.merge(auth)}.
+                             to_json)
+
+              elsif messages.length == 2
+                user2 = new_websocket
+                user2.stream do |message|
+                  auth2 = Pusher['presence-channel'].authenticate(JSON.parse(message)['data']['socket_id'], {
+                    user_id: '37960509766262569d504f02a0ee986d',
                     user_info: {
-                    name: 'SG'
+                    name: 'CHROME'
                   }
                   })
-                  user1.send({
+                  user2.send({
                     event: 'pusher:subscribe', data: {
                     channel: 'presence-channel'
-                  }.merge(auth)
+                  }.merge(auth2)
                   }.to_json)
-                elsif messages.length == 2
-                  user2 = new_websocket
-                  user2.stream do |message|
-                    auth2 = Pusher['presence-channel'].authenticate(JSON.parse(message)['data']['socket_id'], {
-                      user_id: '37960509766262569d504f02a0ee986d',
-                      user_info: {
-                      name: 'CHROME'
-                    }
-                    })
-                    user2.send({
-                      event: 'pusher:subscribe', data: {
-                      channel: 'presence-channel'
-                    }.merge(auth2)
-                    }.to_json)
-                  end
-                elsif messages.length == 3
-                  EM.stop
                 end
+              elsif messages.length == 3
+                EM.stop
               end
 
             end
