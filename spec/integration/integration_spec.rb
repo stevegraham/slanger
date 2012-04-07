@@ -95,6 +95,19 @@ describe 'Integration' do
                   data: {channel: 'presence-channel'}.merge(auth)}.to_json)
   end
 
+  def matcher messages, options
+    messages.first['data']['socket_id'].should_not be_nil   if options[:id_present]
+
+    messages.first['event'].should == options[:first_event] if options[:first_event]
+    messages.first['event'].should == 'pusher:connection_established' if options[:connection_established]
+    messages.length.should         == options[:count]       if options[:count]
+
+    messages.last['event'].should  == options[:last_event]  if options[:last_event]
+
+    messages.last['data'].should   == options[:last_data]   if options[:last_data]
+  end
+
+
   describe 'regular channels:' do
     it 'pushes messages to interested websocket connections' do
       messages = em_stream do |websocket, messages|
@@ -110,18 +123,12 @@ describe 'Integration' do
 
      end
 
-      # Slanger should send an object denoting connection was succesfully established
-      messages.first['event'].should == 'pusher:connection_established'
-      # Channel id should be in the payload
-      messages.first['data']['socket_id'].should_not be_nil
-      # Slanger should send out the message
-      messages.last['event'].should == 'an_event'
-      messages.last['data'].should == { some: 'data' }.to_json
-
+      matcher messages, connection_established: true, id_present: true,
+        last_event: 'an_event', last_data: { some: 'data' }.to_json
     end
 
     it 'avoids duplicate events' do
-      client1_messages, client2_messages  = [], []
+      client2_messages  = []
 
       client1_messages = em_stream do |client1, client1_messages|
         # if this is the first message to client 1 set up another connection from the same client
@@ -145,18 +152,17 @@ describe 'Integration' do
         end
       end
 
-      client1_messages.size.should == 2
-      client2_messages.last['event'].should == 'an_event'
+      matcher client1_messages, count: 2
+
+      matcher client2_messages, last_event: 'an_event'
       client2_messages.last['data'].should == { some: 'data' }.to_json
     end
   end
 
-
-
-
-  def matcher message, name
+  def private_channel
 
   end
+
   describe 'private channels' do
     context 'with valid authentication credentials:' do
       it 'accepts the subscription request' do
@@ -171,10 +177,7 @@ describe 'Integration' do
           end
         end
 
-        # Slanger should send an object denoting connection was succesfully established
-        messages.first['event'].should == 'pusher:connection_established'
-        # Channel id should be in the payload
-        messages.first['data']['socket_id'].should_not be_nil
+        matcher messages, first_event: 'pusher:connection_established', id_present: true
         messages.length.should == 1
       end
     end
@@ -256,13 +259,11 @@ describe 'Integration' do
             end
           end
 
-          # Slanger should send an object denoting connection was succesfully established
-          messages.first['event'].should == 'pusher:connection_established'
-          # Channel id should be in the payload
-          messages.first['data']['socket_id'].should_not be_nil
-          messages.last['event'].should == 'pusher:error'
+          matcher messages, connection_established: true, id_present: true,
+	    count: 2,
+	    last_event: 'pusher:error'
+
           messages.last['data']['message'].=~(/^Invalid signature: Expected HMAC SHA256 hex digest of/).should be_true
-          messages.length.should == 2
         end
       end
     end
@@ -272,7 +273,7 @@ describe 'Integration' do
         it 'sends back an error message' do
           messages  = em_stream do |websocket, messages|
             if messages.length < 2
-	       send_subscribe( user: websocket,
+               send_subscribe( user: websocket,
                                user_id: '0f177369a3b71275d25ab1b44db9f95f',
                                name: 'SG',
                                message: {data: {socket_id: 'bogus'}}.with_indifferent_access)
@@ -281,13 +282,13 @@ describe 'Integration' do
               EM.stop
             end
           end
-          # Slanger should send an object denoting connection was succesfully established
-          messages.first['event'].should == 'pusher:connection_established'
+
+          matcher messages, first_event: 'pusher:connection_established', count: 2,
+            id_present: true
+
           # Channel id should be in the payload
-          messages.first['data']['socket_id'].should_not be_nil
           messages.last['event'].should == 'pusher:error'
           messages.last['data']['message'].=~(/^Invalid signature: Expected HMAC SHA256 hex digest of/).should be_true
-          messages.length.should == 2
         end
       end
 
@@ -304,10 +305,8 @@ describe 'Integration' do
             end
 
           end
-          # Slanger should send an object denoting connection was succesfully established
-          messages.first['event'].should == 'pusher:connection_established'
-          # Channel id should be in the payload
-          messages.length.should == 2
+
+          matcher messages, connection_established: true, count: 2
 
           messages.last.should == {"channel"=>"presence-channel",
                                    "event"=>"pusher_internal:subscription_succeeded",
@@ -317,6 +316,7 @@ describe 'Integration' do
                                              "hash"=>
                                             {"0f177369a3b71275d25ab1b44db9f95f"=>{"name"=>"SG"}}}}}
         end
+
 
 
 
@@ -345,40 +345,40 @@ describe 'Integration' do
               end
 
             end
-            #puts messages.inspect
-            # Slanger should send an object denoting connection was succesfully established
-            messages.first['event'].should == 'pusher:connection_established'
+            matcher messages, connection_established: true, count: 3
             # Channel id should be in the payload
-            messages.length.should == 3
-            messages[1].should == {"channel"=>"presence-channel", "event"=>"pusher_internal:subscription_succeeded", "data"=>{"presence"=>{"count"=>1, "ids"=>["0f177369a3b71275d25ab1b44db9f95f"], "hash"=>{"0f177369a3b71275d25ab1b44db9f95f"=>{"name"=>"SG"}}}}}
-            messages.last.should == {"channel"=>"presence-channel", "event"=>"pusher_internal:member_added", "data"=>{"user_id"=>"37960509766262569d504f02a0ee986d", "user_info"=>{"name"=>"CHROME"}}}
+            messages[1].  should == {"channel"=>"presence-channel", "event"=>"pusher_internal:subscription_succeeded",
+                                     "data"=>{"presence"=>{"count"=>1, "ids"=>["0f177369a3b71275d25ab1b44db9f95f"], "hash"=>{"0f177369a3b71275d25ab1b44db9f95f"=>{"name"=>"SG"}}}}}
+
+            messages.last.should == {"channel"=>"presence-channel", "event"=>"pusher_internal:member_added",
+                                     "data"=>{"user_id"=>"37960509766262569d504f02a0ee986d", "user_info"=>{"name"=>"CHROME"}}}
           end
 
           it 'does not send multiple member added and member removed messages if one subscriber opens multiple connections, i.e. multiple browser tabs.' do
             messages  = em_stream do |user1, messages|
-              if messages.one?
+              case messages.length
+              when 1
                 send_subscribe(user: user1,
                                user_id: '0f177369a3b71275d25ab1b44db9f95f',
                                name: 'SG',
-                               message: messages.first
-                              )
+                               message: messages.first)
 
-             elsif messages.length == 2
+              when 2
                 10.times do
-                  user2 = new_websocket
-                  user2.stream do |message|
-                    # remove stream callback
-                    user2.stream do |message|
-                      # close the connection in the next tick as soon as subscription is acknowledged
-                      EM.next_tick { user2.close_connection }
+                  new_websocket.tap do |u|
+                    u.stream do |message|
+                      # remove stream callback
+                      ## close the connection in the next tick as soon as subscription is acknowledged
+                      u.stream { EM.next_tick { u.close_connection } }
+
+                      send_subscribe({ user: u,
+                         user_id: '37960509766262569d504f02a0ee986d',
+                         name: 'CHROME',
+                         message: JSON.parse(message)})
                     end
-                    send_subscribe({ user: user2,
-                                     user_id: '37960509766262569d504f02a0ee986d',
-                                     name: 'CHROME',
-                                     message: JSON.parse(message)})
-                 end
+                  end
                 end
-              elsif messages.length == 4
+              when 4
                 EM.next_tick { EM.stop }
               end
 
