@@ -233,17 +233,11 @@ describe 'Integration' do
     context 'subscribing without channel data' do
       context 'and bogus authentication credentials' do
         it 'sends back an error message' do
-          messages  = []
-
-          em_thread do
-            websocket = new_websocket
-
-            stream(websocket, messages) do |message|
-              if messages.length < 2
-                websocket.send({ event: 'pusher:subscribe', data: { channel: 'presence-channel', auth: 'bogus' } }.to_json)
-              else
-                EM.stop
-              end
+          messages  = em_stream do |websocket, messages|
+            if messages.length < 2
+              websocket.send({ event: 'pusher:subscribe', data: { channel: 'presence-channel', auth: 'bogus' } }.to_json)
+            else
+              EM.stop
             end
           end
 
