@@ -54,7 +54,6 @@ describe 'Integration' do
 
   def em_stream
     messages = []
-    websocket= nil
 
     em_thread do
       websocket = new_websocket
@@ -81,6 +80,19 @@ describe 'Integration' do
 
       yield message
     end
+  end
+
+  def auth_from options
+    id = options[:message]['data']['socket_id']
+    name = options[:name]
+    user_id = options[:user_id]
+    Pusher['presence-channel'].authenticate(id, {user_id: user_id, user_info: {name: name}})
+  end
+
+  def send_subscribe options
+    auth = auth_from options
+    options[:user].send({event: 'pusher:subscribe',
+                  data: {channel: 'presence-channel'}.merge(auth)}.to_json)
   end
 
   describe 'regular channels:' do
@@ -142,6 +154,9 @@ describe 'Integration' do
 
 
 
+  def matcher message, name
+
+  end
   describe 'private channels' do
     context 'with valid authentication credentials:' do
       it 'accepts the subscription request' do
@@ -257,16 +272,12 @@ describe 'Integration' do
         it 'sends back an error message' do
           messages  = em_stream do |websocket, messages|
             if messages.length < 2
-              websocket.send({
-                event: 'pusher:subscribe', data: {
-                  channel: 'presence-channel',
-                  auth: 'bogus'
-                },
-                channel_data: {
-                  user_id: '0f177369a3b71275d25ab1b44db9f95f',
-                  user_info: {
-                  name: 'SG' } } }.to_json)
-            else
+	       send_subscribe( user: websocket,
+                               user_id: '0f177369a3b71275d25ab1b44db9f95f',
+                               name: 'SG',
+                               message: {data: {socket_id: 'bogus'}}.with_indifferent_access)
+
+           else
               EM.stop
             end
           end
@@ -284,15 +295,11 @@ describe 'Integration' do
         it 'sends back a success message' do
           messages  = em_stream do |websocket, messages|
             if messages.length < 2
-              auth = Pusher['presence-channel'].authenticate(messages.first['data']['socket_id'], {
-                user_id: '0f177369a3b71275d25ab1b44db9f95f',
-                user_info: {
-                name: 'SG' }})
-
-              websocket.send({ event: 'pusher:subscribe',
-                               data: {channel: 'presence-channel'}.
-                               merge(auth)}.to_json)
-            else
+              send_subscribe( user: websocket,
+                              user_id: '0f177369a3b71275d25ab1b44db9f95f',
+                              name: 'SG',
+                              message: messages.first)
+           else
               EM.stop
             end
 
@@ -311,39 +318,29 @@ describe 'Integration' do
                                             {"0f177369a3b71275d25ab1b44db9f95f"=>{"name"=>"SG"}}}}}
         end
 
-        def auth_from options
-          id = options[:message]['data']['socket_id']
-          name = options[:name]
-          user_id = options[:user_id]
-          Pusher['presence-channel'].authenticate(id, {user_id: user_id, user_info: {name: name}})
-        end
 
-        def send_subscribe options
-          auth = auth_from options
-          options[:user].send({event: 'pusher:subscribe',
-                        data: {channel: 'presence-channel'}.merge(auth)}.to_json)
-        end
 
         context 'with more than one subscriber subscribed to the channel' do
           it 'sends a member added message to the existing subscribers' do
             messages  = em_stream do |user1, messages|
-              if messages.one?
+              case messages.length
+              when 1
                 send_subscribe(user: user1,
                                user_id: '0f177369a3b71275d25ab1b44db9f95f',
                                name: 'SG',
                                message: messages.first
                               )
 
-
-              elsif messages.length == 2
-                user2 = new_websocket
-                user2.stream do |message|
-                  send_subscribe({user: user2,
-                                 user_id: '37960509766262569d504f02a0ee986d',
-                                 name: 'CHROME',
-                                 message: JSON.parse(message)})
+              when 2
+                new_websocket.tap do |u|
+                  u.stream do |message|
+                    send_subscribe({user: u,
+                      user_id: '37960509766262569d504f02a0ee986d',
+                      name: 'CHROME',
+                      message: JSON.parse(message)})
+                  end
                 end
-              elsif messages.length == 3
+              else
                 EM.stop
               end
 
