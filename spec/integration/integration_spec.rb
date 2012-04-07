@@ -97,14 +97,6 @@ describe 'Integration' do
     end
   end
 
-  def private_channel websocket, message
-    auth = Pusher['private-channel'].authenticate(message['data']['socket_id'])[:auth]
-    websocket.send({ event: 'pusher:subscribe',
-                     data: { channel: 'private-channel',
-               auth: auth } }.to_json)
-
-  end
-
   describe 'private channels' do
     context 'with valid authentication credentials:' do
       it 'accepts the subscription request' do

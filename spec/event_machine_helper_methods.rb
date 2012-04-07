@@ -50,6 +50,15 @@ module EventMachineHelperMethods
                   data: {channel: 'presence-channel'}.merge(auth)}.to_json)
   end
 
+  def private_channel websocket, message
+    auth = Pusher['private-channel'].authenticate(message['data']['socket_id'])[:auth]
+    websocket.send({ event: 'pusher:subscribe',
+                     data: { channel: 'private-channel',
+               auth: auth } }.to_json)
+
+  end
+
+
   def matcher messages, options
     messages.first['event'].should == 'pusher:connection_established' if options[:connection_established]
     messages.first['data']['socket_id'].should_not be_nil   if options[:id_present]
