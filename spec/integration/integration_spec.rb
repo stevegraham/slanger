@@ -311,35 +311,37 @@ describe 'Integration' do
                                             {"0f177369a3b71275d25ab1b44db9f95f"=>{"name"=>"SG"}}}}}
         end
 
+        def auth_from options
+          id = options[:message]['data']['socket_id']
+          name = options[:name]
+          user_id = options[:user_id]
+          Pusher['presence-channel'].authenticate(id, {user_id: user_id, user_info: {name: name}})
+        end
+
+        def send_subscribe options
+          auth = auth_from options
+          options[:user].send({event: 'pusher:subscribe',
+                        data: {channel: 'presence-channel'}.merge(auth)}.to_json)
+        end
+
         context 'with more than one subscriber subscribed to the channel' do
           it 'sends a member added message to the existing subscribers' do
             messages  = em_stream do |user1, messages|
               if messages.one?
-                attributes = { user_id: '0f177369a3b71275d25ab1b44db9f95f',
-                               user_info: { name: 'SG' } }
+                send_subscribe(user: user1,
+                               user_id: '0f177369a3b71275d25ab1b44db9f95f',
+                               name: 'SG',
+                               message: messages.first
+                              )
 
-                id = messages.first['data']['socket_id']
-
-                auth = Pusher['presence-channel'].authenticate(id, attributes)
-
-                user1.send({ event: 'pusher:subscribe',
-                             data: { channel: 'presence-channel'}.merge(auth)}.
-                             to_json)
 
               elsif messages.length == 2
                 user2 = new_websocket
                 user2.stream do |message|
-                  auth2 = Pusher['presence-channel'].authenticate(JSON.parse(message)['data']['socket_id'], {
-                    user_id: '37960509766262569d504f02a0ee986d',
-                    user_info: {
-                    name: 'CHROME'
-                  }
-                  })
-                  user2.send({
-                    event: 'pusher:subscribe', data: {
-                    channel: 'presence-channel'
-                  }.merge(auth2)
-                  }.to_json)
+                  send_subscribe({user: user2,
+                                 user_id: '37960509766262569d504f02a0ee986d',
+                                 name: 'CHROME',
+                                 message: JSON.parse(message)})
                 end
               elsif messages.length == 3
                 EM.stop
@@ -353,7 +355,6 @@ describe 'Integration' do
             messages.length.should == 3
             messages[1].should == {"channel"=>"presence-channel", "event"=>"pusher_internal:subscription_succeeded", "data"=>{"presence"=>{"count"=>1, "ids"=>["0f177369a3b71275d25ab1b44db9f95f"], "hash"=>{"0f177369a3b71275d25ab1b44db9f95f"=>{"name"=>"SG"}}}}}
             messages.last.should == {"channel"=>"presence-channel", "event"=>"pusher_internal:member_added", "data"=>{"user_id"=>"37960509766262569d504f02a0ee986d", "user_info"=>{"name"=>"CHROME"}}}
-
           end
 
           it 'does not send multiple member added and member removed messages if one subscriber opens multiple connections, i.e. multiple browser tabs.' do
