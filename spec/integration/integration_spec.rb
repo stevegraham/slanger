@@ -156,7 +156,11 @@ describe 'Integration' do
     end
   end
 
-  def private_channel
+  def private_channel websocket, message
+    auth = Pusher['private-channel'].authenticate(message['data']['socket_id'])[:auth]
+    websocket.send({ event: 'pusher:subscribe',
+                     data: { channel: 'private-channel',
+               auth: auth } }.to_json)
 
   end
 
@@ -165,11 +169,8 @@ describe 'Integration' do
       it 'accepts the subscription request' do
         messages  = em_stream do |websocket, messages|
           if messages.empty?
-            auth = Pusher['private-channel'].authenticate(messages.first['data']['socket_id'])[:auth]
-            websocket.send({ event: 'pusher:subscribe',
-                             data: { channel: 'private-channel',
-                                     auth: auth } }.to_json)
-          else
+            private_channel websocket, messages.first
+         else
             EM.stop
           end
         end
@@ -211,27 +212,21 @@ describe 'Integration' do
           client1, client2 = new_websocket, new_websocket
           client2_messages, client1_messages = [], []
 
-          client1.callback do
-
-          end
+          client1.callback {}
 
           stream(client1, client1_messages) do |message|
             if client1_messages.length < 2
-              auth = Pusher['private-channel'].authenticate(client1_messages.first['data']['socket_id'])[:auth]
-              client1.send({ event: 'pusher:subscribe', data: { channel: 'private-channel', auth: auth } }.to_json)
+              private_channel client1, client1_messages.first
             elsif client1_messages.length == 3
               EM.stop
             end
           end
 
-          client2.callback do
-
-          end
+          client2.callback {}
 
           stream(client2, client2_messages) do |message|
             if client2_messages.length < 2
-              auth = Pusher['private-channel'].authenticate(client2_messages.first['data']['socket_id'])[:auth]
-              client2.send({ event: 'pusher:subscribe', data: { channel: 'private-channel', auth: auth } }.to_json)
+              private_channel client2, client2_messages.first
             else
               client2.send({ event: 'client-something', data: { some: 'stuff' }, channel: 'private-channel' }.to_json)
             end
