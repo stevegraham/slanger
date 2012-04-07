@@ -358,51 +358,31 @@ describe 'Integration' do
           end
 
           it 'does not send multiple member added and member removed messages if one subscriber opens multiple connections, i.e. multiple browser tabs.' do
-            messages  = []
+            messages  = em_stream do |user1, messages|
+              if messages.one?
+                send_subscribe(user: user1,
+                               user_id: '0f177369a3b71275d25ab1b44db9f95f',
+                               name: 'SG',
+                               message: messages.first
+                              )
 
-            em_thread do
-              user1 = new_websocket
-
-              # setup our reference user
-              stream(user1, messages) do |message|
-                if messages.length == 1
-                  auth = Pusher['presence-channel'].authenticate(messages.first['data']['socket_id'], {
-                    user_id: '0f177369a3b71275d25ab1b44db9f95f',
-                    user_info: {
-                    name: 'SG'
-                  }
-                  })
-                  user1.send({
-                    event: 'pusher:subscribe', data: {
-                    channel: 'presence-channel'
-                  }.merge(auth)
-                  }.to_json)
-                elsif messages.length == 2
-                  10.times do
-                    user = new_websocket
-                    user.stream do |message|
-                      # remove stream callback
-                      user.stream do |message|
-                        # close the connection in the next tick as soon as subscription is acknowledged
-                        EM.next_tick { user.close_connection }
-                      end
-                      message = JSON.parse(message)
-                      auth2 = Pusher['presence-channel'].authenticate(message['data']['socket_id'], {
-                        user_id: '37960509766262569d504f02a0ee986d',
-                        user_info: {
-                        name: 'CHROME'
-                      }
-                      })
-                      user.send({
-                        event: 'pusher:subscribe', data: {
-                        channel: 'presence-channel'
-                      }.merge(auth2)
-                      }.to_json)
+             elsif messages.length == 2
+                10.times do
+                  user2 = new_websocket
+                  user2.stream do |message|
+                    # remove stream callback
+                    user2.stream do |message|
+                      # close the connection in the next tick as soon as subscription is acknowledged
+                      EM.next_tick { user2.close_connection }
                     end
-                  end
-                elsif messages.length == 4
-                  EM.next_tick { EM.stop }
+                    send_subscribe({ user: user2,
+                                     user_id: '37960509766262569d504f02a0ee986d',
+                                     name: 'CHROME',
+                                     message: JSON.parse(message)})
+                 end
                 end
+              elsif messages.length == 4
+                EM.next_tick { EM.stop }
               end
 
             end
