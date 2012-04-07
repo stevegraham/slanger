@@ -133,13 +133,9 @@ describe 'Integration' do
           end
         end
 
-        # Slanger should send an object denoting connection was succesfully established
-        messages.first['event'].should == 'pusher:connection_established'
-        # Channel id should be in the payload
-        messages.first['data']['socket_id'].should_not be_nil
-        messages.last['event'].should == 'pusher:error'
+        matcher connection_established: true, count: 2, id_present: true, last_event:
+          'pusher:error'
         messages.last['data']['message'].=~(/^Invalid signature: Expected HMAC SHA256 hex digest of/).should be_true
-        messages.length.should == 2
       end
     end
 
