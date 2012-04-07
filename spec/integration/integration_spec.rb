@@ -133,7 +133,7 @@ describe 'Integration' do
           end
         end
 
-        matcher connection_established: true, count: 2, id_present: true, last_event:
+        matcher messages, connection_established: true, count: 2, id_present: true, last_event:
           'pusher:error'
         messages.last['data']['message'].=~(/^Invalid signature: Expected HMAC SHA256 hex digest of/).should be_true
       end
