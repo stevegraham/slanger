@@ -148,7 +148,9 @@ describe 'Integration' do
         messages  = em_stream do |websocket, messages|
           if messages.empty?
             auth = Pusher['private-channel'].authenticate(messages.first['data']['socket_id'])[:auth]
-            websocket.send({ event: 'pusher:subscribe', data: { channel: 'private-channel', auth: auth } }.to_json)
+            websocket.send({ event: 'pusher:subscribe',
+                             data: { channel: 'private-channel',
+                                     auth: auth } }.to_json)
           else
             EM.stop
           end
@@ -164,19 +166,14 @@ describe 'Integration' do
 
     context 'with bogus authentication credentials:' do
       it 'sends back an error message' do
-        messages  = []
-
-        em_thread do
-          websocket = new_websocket
-
-          stream(websocket, messages) do |message|
-            if messages.length < 2
-              websocket.send({ event: 'pusher:subscribe', data: { channel: 'private-channel', auth: 'bogus' } }.to_json)
-            else
-              EM.stop
-            end
+        messages  = em_stream do |websocket, messages|
+          if messages.length < 2
+            websocket.send({ event: 'pusher:subscribe',
+                             data: { channel: 'private-channel',
+                                     auth: 'bogus' } }.to_json)
+          else
+            EM.stop
           end
-
         end
 
         # Slanger should send an object denoting connection was succesfully established
