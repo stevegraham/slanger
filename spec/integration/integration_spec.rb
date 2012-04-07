@@ -60,13 +60,11 @@ describe 'Integration' do
       websocket = new_websocket
 
       stream(websocket, messages) do |message|
-        messages << JSON.parse(message)
-
         yield websocket, messages
       end
     end
 
-    return websocket, messages
+    return messages
   end
 
   def em_thread
@@ -87,23 +85,18 @@ describe 'Integration' do
 
   describe 'regular channels:' do
     it 'pushes messages to interested websocket connections' do
-      messages  = []
-
-      em_thread do
-        websocket = new_websocket
-
-        stream(websocket, messages) do |message|
-          if messages.length < 3
-            Pusher['MY_CHANNEL'].trigger_async 'an_event', { some: 'data' }
-          else
-            EM.stop
-          end
-        end
-
+      messages = em_stream do |websocket, messages|
         websocket.callback do
           websocket.send({ event: 'pusher:subscribe', data: { channel: 'MY_CHANNEL'} }.to_json)
+        end if messages.one?
+
+        if messages.length < 3
+          Pusher['MY_CHANNEL'].trigger_async 'an_event', { some: 'data' }
+        else
+          EM.stop
         end
-      end
+
+     end
 
       # Slanger should send an object denoting connection was succesfully established
       messages.first['event'].should == 'pusher:connection_established'
