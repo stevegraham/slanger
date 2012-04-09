@@ -114,10 +114,6 @@ Slanger supports several configuration options, which can be supplied as command
 
 --statistics Statistics, on or off. Default: off. Number of concurrent connection and messages will be collected for each application.
 
---statistics-http-user HTTP user for accessing statistics.
-
---statistics-http-password HTTP password for accessing statistics.
-
 --mongo Use mongo DB, on or off. Needed for statistics and multiple applications. Default: off
 
 --mongo-host Mongodb host for the statistics. Default: localhost
@@ -125,6 +121,10 @@ Slanger supports several configuration options, which can be supplied as command
 --mongo-port Mongodb TCP port for the statistics. Default: 27017
 
 --mongo-db Mongodb database name for the statistics. Defailt: slanger.
+
+--admin-http-user HTTP user for accessing statistics and applications.
+
+--admin-http-password HTTP password for accessing statistics and applications.
 </pre>
 
 # Statistics access

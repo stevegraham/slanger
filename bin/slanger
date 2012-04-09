@@ -14,7 +14,7 @@ options = {
   api_host: '0.0.0.0', api_port: '4567', websocket_host: '0.0.0.0',
   websocket_port: '8080', debug: false, redis_address: 'redis://0.0.0.0:6379/0', 
   log_level: ::Logger::WARN, log_file: $stdout, audit_log_file: $stdout, api_log_file: $stdout,
-  statistics: false, mongo:false, mongo_host: 'localhost', mongo_port: '27017', mongo_db: 'slanger'
+  statistics: false, mongo:false, mongo_host: 'localhost', mongo_port: '27017', mongo_db: 'jagan'
   }
 
 opts_app_id = nil
@@ -111,12 +111,12 @@ OptionParser.new do |opts|
     end
   end
 
-  opts.on '--statistics-http-user USER', 'Statistics HTTP user for API calls' do |p|
-    options[:statistics_http_user] = p
+  opts.on '--admin-http-user USER', 'HTTP user for statistics and REST API calls' do |p|
+    options[:admin_http_user] = p
   end
 
-  opts.on '--statistics-http-password PASSWORD', 'Statistics HTTP password for API calls' do |p|
-    options[:statistics_http_password] = p
+  opts.on '--admin-http-password PASSWORD', 'HTTP password for statistics and REST API calls' do |p|
+    options[:admin_http_password] = p
   end
 
   opts.on '--mongo on/off', 'Use mongodb' do |p|
@@ -156,6 +156,7 @@ EM.run do
   File.tap { |f| require f.expand_path(f.join(f.dirname(__FILE__),'..', 'slanger.rb')) }
   Slanger::Cluster
   Slanger::Statistics
+  Slanger::Applications
   # Are all application parameters missing ?
   if [opts_app_id, opts_app_key, opts_secret].any?{|item| not item.nil?}
     # No, some were given, verify that all are present
@@ -167,8 +168,8 @@ EM.run do
   end
   Slanger::Service.run
 
-  puts "\x1b[2J\x1b[H"
-  puts "\n"
+#  puts "\x1b[2J\x1b[H"
+#  puts "\n"
   puts "    .d8888b.  888                                               "
   puts "   d88P  Y88b 888                                               "
   puts "   Y88b.      888                                               "
