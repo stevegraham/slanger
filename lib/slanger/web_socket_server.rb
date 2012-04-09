@@ -11,9 +11,21 @@ module Slanger
           # Keep track of handler instance in instance of EM::Connection to ensure a unique handler instance is used per connection.
           ws.class_eval    { attr_accessor :connection_handler }
           # Delegate connection management to handler instance.
-          ws.onopen        { ws.connection_handler = Slanger::Handler.new ws }
-          ws.onmessage     { |msg| ws.connection_handler.onmessage msg }
-          ws.onclose       { ws.connection_handler.onclose }
+          ws.onopen do
+            Fiber.new do
+              ws.connection_handler = Slanger::Handler.new ws
+            end.resume
+          end
+          ws.onmessage do |msg|
+            Fiber.new do
+              ws.connection_handler.onmessage msg
+            end.resume
+          end
+          ws.onclose do
+            Fiber.new do
+              ws.connection_handler.onclose
+            end.resume
+          end
         end
       end
     end
