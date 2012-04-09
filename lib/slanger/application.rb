@@ -29,5 +29,10 @@ module Slanger
       end      
       find_channel(channel_id)
     end   
+
+    def to_json
+      # Do not serialize channels, or we risk an infinite recusion
+      {id: id, key: key, secret: secret}.to_json
+    end
   end
 end
