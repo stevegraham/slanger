@@ -101,15 +101,15 @@ describe 'Integration' do
     context 'with valid authentication credentials:' do
       it 'accepts the subscription request' do
         messages  = em_stream do |websocket, messages|
-          if messages.empty?
+          if messages.length < 2
             private_channel websocket, messages.first
          else
             EM.stop
           end
         end
 
-        matcher messages, first_event: 'pusher:connection_established', id_present: true
-        messages.length.should == 1
+        matcher messages, connection_established: true, count: 2, id_present: true,
+          last_event: 'pusher_internal:subscription_succeeded'
       end
     end
 
