@@ -42,38 +42,34 @@ module Slanger
 
       around :calls_to => :by_id, :for_object => Slanger::Applications do |join_point, applicationssingleton, *args|
         # Get result
-        Fiber.new do
-          result = join_point.proceed
-          if result.nil?
-            # No result, try looking into the Database
-            app_id = args[0]
-            result = get(_id: app_id)
-          end
-          # Add to memory db
-          unless result.nil?
-            Applications.apps[result.id] = result
-            Applications.apps_by_key[result.key] = result
-          end
-          result
-        end.resume
+        result = join_point.proceed
+        if result.nil?
+          # No result, try looking into the Database
+          app_id = args[0]
+          result = get(_id: app_id)
+        end
+        # Add to memory db
+        unless result.nil?
+          Applications.apps[result.id] = result
+          Applications.apps_by_key[result.key] = result
+        end
+        result
       end
 
       around :calls_to => :by_key, :for_object => Slanger::Applications do |join_point, applicationssingleton, *args|
         # Get result
-        Fiber.new do
-          result = join_point.proceed
-          if result.nil?
-            # No result, try looking into the Database
-            app_key = args[0]
-            result = get(key: app_key)
-          end
-          # Add to memory db
-          unless result.nil?
-            Applications.apps[result.id] = result
-            Applications.apps_by_key[result.key] = result
-          end
-          result
-        end.resume
+        result = join_point.proceed
+        if result.nil?
+          # No result, try looking into the Database
+          app_key = args[0]
+          result = get(key: app_key)
+        end
+        # Add to memory db
+        unless result.nil?
+          Applications.apps[result.id] = result
+          Applications.apps_by_key[result.key] = result
+        end
+        result
       end
 
       # Retrieve an application from the database
@@ -90,16 +86,39 @@ module Slanger
           f.resume nil
         end
         doc = Fiber.yield
-        doc && Application.new(doc['_id'], doc['key'], doc['secret'])
+        app = doc && Application.new(doc['_id'], doc['key'], doc['secret'])
+        app
       end
 
       # Application collection in Mongodb
       def applications
-        @applications ||= Mongo.collection("slanger.applications")
+        @applications ||= Mongo.collection("jagan.applications")
       end
       extend self
     end
+
+    # Add a REST API for accessing applications
+    class ApiServer
+      get '/applications/:id' do
+        protected!
+        app = Applications.by_id(params[:id])
+        return [404, {}, "404 NOT FOUND\n"] if app.nil?
+        return [200, {}, app.to_json]
+      end
+
+      # Authenticate requests
+      def protected!
+        unless authorized?
+          response['WWW-Authenticate'] = %(Basic realm="Restricted Area")
+          throw(:halt, [401, "Not authorized\n"])
+        end
+      end
+
+      # authorise HTTP users for the API calls
+      def authorized?
+        @auth ||=  Rack::Auth::Basic::Request.new(request.env)
+        @auth.provided? && @auth.basic? && @auth.credentials && @auth.credentials == [Config.admin_http_user, Config.admin_http_password]
+      end
+    end
   end
 end
-
-
