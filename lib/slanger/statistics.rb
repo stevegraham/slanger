@@ -62,7 +62,7 @@ if Slanger::Config.statistics
       # authorise HTTP users for the API calls
       def statistics_authorized?
         @auth ||=  Rack::Auth::Basic::Request.new(request.env)
-        @auth.provided? && @auth.basic? && @auth.credentials && @auth.credentials == [Config.statistics_http_user, Config.statistics_http_password]
+        @auth.provided? && @auth.basic? && @auth.credentials && @auth.credentials == [Config.admin_http_user, Config.admin_http_password]
      end
     end
   end
@@ -244,17 +244,17 @@ module Slanger
    
       # Work data collection in Mongodb
       def work_data
-        @work_data ||= Mongo.collection("slanger.statistics.work_data")
+        @work_data ||= Mongo.collection("jagan.statistics.work_data")
       end
 
       # Variables collection in Mongodb
       def variables
-        @variables ||= Mongo.collection("slanger.statistics.variables")
+        @variables ||= Mongo.collection("jagan.statistics.variables")
       end
  
       # Metrics collection in Mongodb
       def metrics
-        @metrics ||= Mongo.collection("slanger.statistics.metrics")
+        @metrics ||= Mongo.collection("jagan.statistics.metrics")
       end
 
       def log_message(message)
