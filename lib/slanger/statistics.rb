@@ -210,7 +210,7 @@ module Slanger
             reduce_function,
             {
               query: {timestamp: {'$gte' => last_timestamp}},
-              out: {reduce: 'slanger.statistics.metrics'}
+              out: {reduce: 'jagan.statistics.metrics'}
             }
           )
           # Save timestamp
