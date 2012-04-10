@@ -61,7 +61,7 @@ describe 'Integration' do
 
      end
 
-      matcher messages, connection_established: true, id_present: true,
+      messages.should have_attributes connection_established: true, id_present: true,
         last_event: 'an_event', last_data: { some: 'data' }.to_json
     end
 
@@ -90,10 +90,10 @@ describe 'Integration' do
         end
       end
 
-      matcher client1_messages, count: 2
+      client1_messages.should have_attributes count: 2
 
-      matcher client2_messages, last_event: 'an_event'
-      client2_messages.last['data'].should == { some: 'data' }.to_json
+      client2_messages.should have_attributes last_event: 'an_event',
+                                              last_data: { some: 'data' }.to_json
     end
   end
 
@@ -108,8 +108,10 @@ describe 'Integration' do
           end
         end
 
-        matcher messages, connection_established: true, count: 2, id_present: true,
-          last_event: 'pusher_internal:subscription_succeeded'
+        messages.should have_attributes connection_established: true,
+                                        count: 2,
+                                        id_present: true,
+                                        last_event: 'pusher_internal:subscription_succeeded'
       end
     end
 
@@ -125,7 +127,7 @@ describe 'Integration' do
           end
         end
 
-        matcher messages, connection_established: true, count: 2, id_present: true, last_event:
+        messages.should have_attributes connection_established: true, count: 2, id_present: true, last_event:
           'pusher:error'
         messages.last['data']['message'].=~(/^Invalid signature: Expected HMAC SHA256 hex digest of/).should be_true
       end
@@ -180,7 +182,7 @@ describe 'Integration' do
             end
           end
 
-          matcher messages, connection_established: true, id_present: true,
+          messages.should have_attributes connection_established: true, id_present: true,
             count: 2,
             last_event: 'pusher:error'
 
@@ -204,7 +206,7 @@ describe 'Integration' do
             end
           end
 
-          matcher messages, first_event: 'pusher:connection_established', count: 2,
+          messages.should have_attributes first_event: 'pusher:connection_established', count: 2,
             id_present: true
 
           # Channel id should be in the payload
@@ -227,7 +229,7 @@ describe 'Integration' do
 
           end
 
-          matcher messages, connection_established: true, count: 2
+          messages.should have_attributes connection_established: true, count: 2
 
           messages.last.should == {"channel"=>"presence-channel",
                                    "event"=>"pusher_internal:subscription_succeeded",
@@ -266,7 +268,8 @@ describe 'Integration' do
               end
 
             end
-            matcher messages, connection_established: true, count: 3
+
+            messages.should have_attributes connection_established: true, count: 3
             # Channel id should be in the payload
             messages[1].  should == {"channel"=>"presence-channel", "event"=>"pusher_internal:subscription_succeeded",
                                      "data"=>{"presence"=>{"count"=>1, "ids"=>["0f177369a3b71275d25ab1b44db9f95f"], "hash"=>{"0f177369a3b71275d25ab1b44db9f95f"=>{"name"=>"SG"}}}}}
