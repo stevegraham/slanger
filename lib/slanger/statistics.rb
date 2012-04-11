@@ -8,7 +8,6 @@ if Slanger::Config.statistics
       attr_accessor :application
       attr_accessor :socket
       attr_accessor :peername
-      attr_accessor :slanger_id
     end
   end
 
@@ -85,6 +84,11 @@ module Slanger
       end
 
       def initialize()
+        # Clean up our work data in case we crashed previously
+        work_data.update(
+          {},
+          {'$pull' => {connections: {slanger_id: Cluster.id}}}
+        )
         # Starts up a periodic timer in eventmachine to calculate the metrics every minutes
         EventMachine::PeriodicTimer.new(60) do
           refresh_metrics
@@ -110,31 +114,39 @@ module Slanger
           peername = Statistics.get_peer_ip_port(handler.socket)
           # Save them so that we can remove them from mongo later
           handler.peername = peername
-          # Get slanger_id if it exists or the listening IP and port
-          slanger_id = Config.slanger_id || get_socket_ip_port(handler.socket)
-          # Save them
-          handler.slanger_id = slanger_id
           # Update record
           Statistics.work_data.update(
             {app_id: application.id},
-            {'$addToSet' => {connections: {slanger_id: slanger_id, peer: peername}}, '$set' => {timestamp: Time.now.to_i}},
+            {'$addToSet' => {connections: {slanger_id: Cluster.id, peer: peername}}, '$set' => {timestamp: Time.now.to_i}},
             {upsert: true}
           )
         end
       end
-  
+ 
       # Remove connexions when it is closed
       before :calls_to => :onclose, :on_type => Slanger::Handler do |join_point, handler, *args|
         application = handler.application
         peername = handler.peername
-        slanger_id = handler.slanger_id
-        unless application.nil? or peername.nil? or slanger_id.nil?
+        unless application.nil? or peername.nil?
           # Update record
           Statistics.work_data.update(
             {app_id: application.id},
-            {'$pull' => {connections: {slanger_id: slanger_id, peer: peername}}, '$set' => {timestamp: Time.now.to_i}},
-            {upsert: true}
+            {'$pull' => {connections: {slanger_id: Cluster.id, peer: peername}}, '$set' => {timestamp: Time.now.to_i}}
           )
+        end
+      end
+
+      # Remove all connexions before we stop
+      around :calls_to => :stop, :on_object => Slanger::Service do |join_point, service, *args|
+        Logger.debug Statistics.log_message("Removing connections from DB before stop.")
+        # Update record
+        update_resp = Statistics.work_data.update(
+          {},
+          {'$pull' => {connections: {slanger_id: Cluster.id}}, '$set' => {timestamp: Time.now.to_i}}
+        )
+        # Actually proceed in a little while
+        EM.next_tick do
+          join_point.proceed
         end
       end
 
@@ -232,16 +244,6 @@ module Slanger
         end
       end
    
-      def get_socket_ip_port(socket)
-        slanger_id = socket.get_sockname
-        if slanger_id.nil?
-          nil
-        else
-          port, ip = Socket.unpack_sockaddr_in(slanger_id) 
-          "" + ip + ":" + port.to_s
-        end
-      end
-   
       # Work data collection in Mongodb
       def work_data
         @work_data ||= Mongo.collection("jagan.statistics.work_data")
@@ -258,7 +260,7 @@ module Slanger
       end
 
       def log_message(message)
-        "Node " + Cluster.id + ": " + message
+        "Node " + Cluster.id + ": Statistics: " + message
       end
     end
   end
