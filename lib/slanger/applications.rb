@@ -100,6 +100,7 @@ module Slanger
     # Add a REST API for accessing applications
     class ApiServer
       get '/applications/:id' do
+        content_type :json
         protected!
         app = Applications.by_id(params[:id])
         return [404, {}, "404 NOT FOUND\n"] if app.nil?
