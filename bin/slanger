@@ -34,6 +34,16 @@ OptionParser.new do |opts|
     options[:websocket_host], options[:websocket_port] = p.split(':')
   end
 
+  opts.on '-p', '--private_key_file FILE', "Private key file for SSL transport" do |p|
+    options[:tls_options] ||= {}
+    options[:tls_options][:private_key_file] = p
+  end
+
+  opts.on '-c', '--cert_chain_file FILE', "Certificate chain file for SSL transport" do |p|
+    options[:tls_options] ||= {}
+    options[:tls_options][:cert_chain_file] = p
+  end
+
   opts.on "-v", "--[no-]verbose", "Run verbosely" do |v|
     options[:debug] = v
   end
@@ -41,6 +51,12 @@ end.parse!
 
 %w<app_key secret>.each do |parameter|
   raise RuntimeError.new "--#{parameter} STRING is a required argument. Use your Pusher #{parameter}." unless options[parameter.to_sym]
+end
+
+if options[:tls_options]
+  [:cert_chain_file, :private_key_file].each do |param|
+    raise RuntimeError.new "Both --cert_chain_file and --private_key_file need to be specified" unless options[:tls_options][param]
+  end
 end
 
 EM.run do
