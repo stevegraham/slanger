@@ -146,6 +146,12 @@ OptionParser.new do |opts|
   end
 end.parse!
 
+# Checks
+if (not options[:statistics].nil?) && options[:slanger_id].nil?
+  # Statistics needs the cluster so they need a slanger_id
+  raise RuntimeError.new "Statistics need the --slanger-id parameter."
+end
+
 # Set up configuration
 File.tap do |f|
   require f.expand_path(f.join(f.dirname(__FILE__),'..', 'lib', 'slanger', 'config.rb'))
