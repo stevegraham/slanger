@@ -14,7 +14,7 @@ module Slanger
 
       def id()
         # Returns a unique identifier for this node
-        @id ||= Socket.gethostname + "-" + Process.pid.to_s
+        Config.slanger_id
       end
  
       def start()
@@ -82,7 +82,7 @@ module Slanger
       # On startup, subscribe to Redis for cluster messages
       after :calls_to => :run, :for_object => Slanger::Service do |join_point, service, *args|
         Cluster.start()
-     end
+      end
 
       # Process cluster messages
       around :calls_to => :on_message, :restricting_methods_to => :private, :for_object => Slanger::Redis do |join_point, redis, *args|
@@ -99,9 +99,10 @@ module Slanger
         end
       end
 
-      # On stop, leave the cluster
-      before :calls_to => :stop, :for_object => Slanger::Service do |join_point, service, *args|
-      end
+      # TODO: On stop, leave the cluster
+      #before :calls_to => :stop, :for_object => Slanger::Service do |join_point, service, *args|
+      #  puts "TODO"
+      #end
 
       ############################################
       # Cluster
