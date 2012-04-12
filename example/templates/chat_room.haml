@@ -17,6 +17,7 @@
     :javascript
       Pusher.host    = "#{@use_pusher ? 'ws.pusherapp.com' : '0.0.0.0' }"
       Pusher.ws_port = "#{@use_pusher ? 80 : 8080}"
+      Pusher.wss_port = "#{@use_pusher ? 443 : 8080}"
       Pusher.log = function(data) {
         console.log('\t\t', data);
       };
