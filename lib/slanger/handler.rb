@@ -42,11 +42,11 @@ module Slanger
     private
 
     def find_channel(channel_id)
-      Slanger.const_get(channel_const channel_id).find_by_channel_id(channel_id)
+      channel_class(channel_id).find_by_channel_id(channel_id)
     end
 
-    def channel_const(channel_name)
-      channel_name =~ /^presence-/ ? 'PresenceChannel' : 'Channel'
+    def channel_class(channel_name)
+      channel_name =~ /^presence-/ ? PresenceChannel : Channel
     end
 
     # Verify app key. Send connection_established message to connection if it checks out. Send error message and disconnect if invalid.
