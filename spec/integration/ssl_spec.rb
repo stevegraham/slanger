@@ -1,12 +1,10 @@
 require 'bundler/setup'
 
-require 'active_support/json'
-require 'active_support/core_ext/hash'
 require 'eventmachine'
-require 'em-http-request'
-require 'pusher'
 require 'thin'
 require './spec/spec_helper'
+require 'openssl'
+require 'socket'
 
 describe 'Integration' do
   let(:errback) { Proc.new { fail 'cannot connect to slanger. your box might be too slow. try increasing sleep value in the before block' } }
@@ -22,8 +20,10 @@ describe 'Integration' do
                            websocket_port:   '8080',
                            app_key:          '765ec374ae0a69f4ce44',
                            secret:           'your-pusher-secret',
-                           cert_chain_file:  'spec/server.crt',
-                           private_key_file: 'spec/server.key'
+                           tls_options: {
+                             cert_chain_file:  'spec/server.crt',
+                             private_key_file: 'spec/server.key'
+                           }
 
       Slanger::Service.run
     end
@@ -46,24 +46,14 @@ describe 'Integration' do
       p.key    = '765ec374ae0a69f4ce44'
     end
   end
-  
-  describe 'regular channels:' do
-    it 'pushes messages to interested websocket connections' do
-      messages = em_stream do |websocket, messages|
-        websocket.callback do
-          websocket.send({ event: 'pusher:subscribe', data: { channel: 'MY_CHANNEL'} }.to_json)
-        end if messages.one?
 
-        if messages.length < 3
-          Pusher['MY_CHANNEL'].trigger_async 'an_event', { some: 'data' }
-        else
-          EM.stop
-        end
-
-     end
-
-      messages.should have_attributes connection_established: true, id_present: true,
-        last_event: 'an_event', last_data: { some: 'data' }.to_json
+  describe 'Slanger when configured to use SSL' do
+    it 'encrypts the connection' do
+      socket                 = TCPSocket.new('0.0.0.0', 8080)
+      expected_cert          = OpenSSL::X509::Certificate.new(File.open('spec/server.crt'))
+      ssl_socket             = OpenSSL::SSL::SSLSocket.new(socket)
+      ssl_socket.connect
+      ssl_socket.peer_cert.to_s.should == expected_cert.to_s
     end
   end
 end
