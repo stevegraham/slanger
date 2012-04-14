@@ -29,6 +29,8 @@ module Slanger
         channel = find_channel msg['channel']
         channel.try :send_client_message, msg
       end
+    rescue Exception => e
+      handle_error(e)
     end
 
     # Unsubscribe this connection from all the channels on close.
@@ -148,6 +150,15 @@ module Slanger
     def token(channel_id, params=nil)
       string_to_sign = [@socket_id, channel_id, params].compact.join ':'
       HMAC::SHA256.hexdigest(Slanger::Config.secret, string_to_sign)
+    end
+
+    def handle_error(e)
+      case e
+      when JSON::ParserError
+        @socket.send(payload nil, 'pusher:error', { code: '5001', message: "Invalid JSON" })
+      else
+        @socket.send(payload nil, 'pusher:error', { code: '5000', message: "Internal Server error" })
+      end
     end
   end
 end
