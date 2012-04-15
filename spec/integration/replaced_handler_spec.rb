@@ -8,7 +8,7 @@ require 'pusher'
 require 'thin'
 require './spec/spec_helper'
 
-describe 'replacable handler' do
+describe 'Replacable handler' do
   let(:errback) { Proc.new { fail 'cannot connect to slanger. your box might be too slow. try increasing sleep value in the before block' } }
 
   before(:each) do
@@ -54,7 +54,7 @@ describe 'replacable handler' do
     end
   end
 
-  it 'immediately disconnects' do
+  it 'says welcome' do
     msgs = em_stream do |websocket, messages|
       if messages.length == 2
         EM.stop
