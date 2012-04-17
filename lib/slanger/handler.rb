@@ -59,9 +59,9 @@ module Slanger
       app_key = @socket.request['path'].split(/\W/)[2]
       if app_key == Slanger::Config.app_key
         @socket_id = SecureRandom.uuid
-        @socket.send(payload nil, 'pusher:connection_established', { socket_id: @socket_id })
+        send_payload nil, 'pusher:connection_established', { socket_id: @socket_id }
       else
-        @socket.send(payload nil, 'pusher:error', { code: '4001', message: "Could not find app by key #{app_key}" })
+        handle_error({ code: '4001', message: "Could not find app by key #{app_key}" })
         @socket.close_websocket
       end
     end
@@ -78,16 +78,20 @@ module Slanger
     end
 
     def pusher_ping(msg)
-      @socket.send(payload nil, 'pusher:ping')
+      send_payload nil, 'pusher:ping'
     end
 
     def pusher_pong msg; end
+
+    def send_payload *args
+      @socket.send payload(*args)
+    end
 
     #TODO: think about moving all subscription stuff into channel classes
     # Add connection to channel subscribers
     def subscribe_channel(channel_id)
       channel = Slanger::Channel.find_or_create_by_channel_id(channel_id)
-      @socket.send(payload channel_id, 'pusher_internal:subscription_succeeded')
+      send_payload channel_id, 'pusher_internal:subscription_succeeded'
       # Subscribe to the channel and have the events received from it
       # sent to the client's socket.
       subscription_id = channel.subscribe do |msg|
@@ -102,7 +106,7 @@ module Slanger
     def handle_private_subscription(msg)
       channel = msg['data']['channel']
       if msg['data']['auth'] && token(channel, msg['data']['channel_data']) != msg['data']['auth'].split(':')[1]
-        @socket.send(payload nil, 'pusher:error', {
+        handle_error( {
           message: "Invalid signature: Expected HMAC SHA256 hex digest of #{@socket_id}:#{channel}, but got #{msg['data']['auth']}"
         })
       else
@@ -114,17 +118,17 @@ module Slanger
     def handle_presence_subscription(msg)
       channel_id = msg['data']['channel']
       if token(channel_id, msg['data']['channel_data']) != msg['data']['auth'].split(':')[1]
-        @socket.send(payload nil, 'pusher:error', {
+        handle_error( {
           message: "Invalid signature: Expected HMAC SHA256 hex digest of #{@socket_id}:#{msg['data']['channel']}, but got #{msg['data']['auth']}"
         })
       elsif !msg['data']['channel_data']
-        @socket.send(payload nil, 'pusher:error', {
+        handle_error( {
           message: "presence-channel is a presence channel and subscription must include channel_data"
         })
       else
         channel = Slanger::PresenceChannel.find_or_create_by_channel_id(channel_id)
         callback = Proc.new {
-          @socket.send(payload channel_id, 'pusher_internal:subscription_succeeded', {
+          send_payload(channel_id, 'pusher_internal:subscription_succeeded', {
             presence: {
               count: channel.subscribers.size,
               ids:   channel.ids,
