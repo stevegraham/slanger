@@ -18,16 +18,15 @@ module Slanger
     # Dispatches message handling to method with same name as the event name
     def onmessage(msg)
       msg   = JSON.parse msg
-      event = msg['event'].gsub('pusher:', 'pusher_')
+      event = msg['event'].gsub('pusher:', '')
 
-      if event =~ /^pusher_/
-        # Pusher event, call method if it exists.
-        send(event, msg) if respond_to? event, true
-      elsif event =~ /^client-/
+      if event =~ /^client-/
         # Client event. Send it to the destination channel.
         msg['socket_id'] = @socket_id
 
         Channel.from(msg['channel']).try :send_client_message, msg
+      elsif %w(subscribe ping pong authenticate).include? event
+        send event, msg
       end
     rescue JSON::ParserError
       handle_error({ code: '5001', message: "Invalid JSON" })
@@ -58,7 +57,7 @@ module Slanger
     end
 
     # Dispatch to handler method if channel requires authentication, otherwise subscribe.
-    def pusher_subscribe(msg)
+    def subscribe(msg)
       channel_id = msg['data']['channel']
 
       klass, message =
@@ -74,18 +73,17 @@ module Slanger
       @subscriptions[channel_id] = subscription_id
     end
 
-    def pusher_ping(msg)
+    def ping(msg)
       send_payload nil, 'pusher:ping'
     end
 
-    def pusher_pong msg; end
+    def pong msg; end
 
     def send_payload *args
-      @socket.send payload(*args)
+      @socket.send to_pusher_payload(*args)
     end
 
-    # Message helper method. Converts a hash into the Pusher JSON protocol
-    def payload(channel_id, event_name, payload = {})
+    def to_pusher_payload(channel_id, event_name, payload = {})
       { channel: channel_id, event: event_name, data: payload }.to_json
     end
 
