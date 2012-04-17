@@ -26,8 +26,8 @@ module Slanger
       elsif event =~ /^client-/
         # Client event. Send it to the destination channel.
         msg['socket_id'] = @socket_id
-        channel = Channel.from msg['channel']
-        channel.try :send_client_message, msg
+
+        Channel.from(msg['channel']).try :send_client_message, msg
       end
     rescue JSON::ParserError
       handle_error({ code: '5001', message: "Invalid JSON" })
@@ -39,8 +39,7 @@ module Slanger
     # Unsubscribe this connection from all the channels on close.
     def onclose
       @subscriptions.each do |channel_id, subscription_id|
-        channel = Channel.from channel_id
-        channel.try :unsubscribe, subscription_id
+        Channel.from(channel_id).try :unsubscribe, subscription_id
       end
     end
 
