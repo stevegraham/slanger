@@ -27,11 +27,9 @@ module Slanger
       elsif %w(subscribe ping pong authenticate).include? event
         send event, msg
       end
+
     rescue JSON::ParserError
       handle_error({ code: '5001', message: "Invalid JSON" })
-
-    rescue StandardError => e
-      handle_error({ code: '5000', message: "Internal Server error: #{e.message}, #{e.backtrace}" })
     end
 
     def onclose
@@ -57,25 +55,25 @@ module Slanger
     end
 
     def subscribe(msg)
-      klass, message =
-        if private_subscription?
-          [PrivateSubscription, msg]
-        elsif presence_subscription?
-          [PresenceSubscription, msg]
-        else
-          [Subscription, channel_id]
-        end
+      channel_id = msg['data']['channel']
 
-      subscription_id = klass.new(self).handle message
-      @subscriptions[channel_id] = subscription_id
+      klass = if private_subscription? channel_id
+                PrivateSubscription
+              elsif presence_subscription? channel_id
+                PresenceSubscription
+              else
+                Subscription
+              end
+
+      @subscriptions[channel_id] = klass.new(self).handle msg
     end
 
-    def private_subscription? msg
-      msg['data']['channel'] =~ /^private-/
+    def private_subscription? channel_id
+      channel_id =~ /^private-/
     end
 
-    def presence_subscription? msg
-      msg['data']['channel'] =~ /^presence-/
+    def presence_subscription? channel_id
+      channel_id =~ /^presence-/
     end
 
     def ping(msg)

@@ -10,7 +10,9 @@ module Slanger
       @handler = handler
     end
 
-    def handle channel_id
+    def handle msg
+      channel_id = msg['data']['channel']
+
       channel = Channel.from channel_id
 
       send_payload channel_id, 'pusher_internal:subscription_succeeded'

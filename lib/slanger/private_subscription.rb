@@ -6,7 +6,7 @@ module Slanger
       if msg['data']['auth'] && invalid_signature?(msg, channel_id)
         handle_invalid_signature msg
       else
-        Subscription.new(handler).handle channel_id
+        Subscription.new(handler).handle msg
       end
     end
   end
