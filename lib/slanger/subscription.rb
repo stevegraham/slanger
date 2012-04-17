@@ -11,7 +11,7 @@ module Slanger
     end
 
     def handle channel_id
-      channel = Slanger::Channel.find_or_create_by_channel_id(channel_id)
+      channel = Channel.from channel_id
 
       send_payload channel_id, 'pusher_internal:subscription_succeeded'
 
