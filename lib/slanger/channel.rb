@@ -16,9 +16,15 @@ module Slanger
 
     def_delegators :channel, :subscribe, :unsubscribe, :push
 
-    def self.from channel_id
-      klass = channel_id[/^presence-/] ? PresenceChannel : Channel
-      klass.find_or_create_by_channel_id channel_id
+    class << self
+      def from channel_id
+        klass = channel_id[/^presence-/] ? PresenceChannel : Channel
+        klass.find_or_create_by_channel_id channel_id
+      end
+
+      def unsubscribe channel_id, subscription_id
+        from(channel_id).try :unsubscribe, subscription_id
+      end
     end
 
     def initialize(attrs)

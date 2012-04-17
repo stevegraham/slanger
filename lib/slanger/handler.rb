@@ -35,11 +35,8 @@ module Slanger
       handle_error({ code: '5000', message: "Internal Server error: #{e.message}, #{e.backtrace}" })
     end
 
-    # Unsubscribe this connection from all the channels on close.
     def onclose
-      @subscriptions.each do |channel_id, subscription_id|
-        Channel.from(channel_id).try :unsubscribe, subscription_id
-      end
+      @subscriptions.each { |c, s| Channel.unsubscribe c, s }
     end
 
     private
