@@ -1,9 +1,9 @@
 # PresenceChannel class.
 #
 # Uses an EventMachine channel to let handlers interact with the
-# Pusher channel. Relay events received from Redis into the 
+# Pusher channel. Relay events received from Redis into the
 # EM channel. Keeps data on the subscribers to send it to clients.
-# 
+#
 
 require 'glamazon'
 require 'eventmachine'
@@ -105,7 +105,7 @@ module Slanger
     # This is the state of the presence channel across the system. kept in sync
     # with redis pubsub
     def subscriptions
-      @subscriptions = @subscriptions || get_roster || Hash.new
+      @subscriptions ||= get_roster || {}
     end
 
     # This is used map public subscription ids to em channel subscription ids.
