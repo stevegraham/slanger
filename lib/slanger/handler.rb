@@ -60,11 +60,15 @@ module Slanger
     # Dispatch to handler method if channel requires authentication, otherwise subscribe.
     def pusher_subscribe(msg)
       channel_id = msg['data']['channel']
-      subscription_id = if match = channel_id.match(/^((private)|(presence))-/)
-        send "handle_#{match.captures[0]}_subscription", msg
-      else
-        subscribe_channel channel_id
-      end
+
+      subscription_id = if channel_id =~ /^private-/
+                          PrivateSubscription.new(self).handle(msg)
+                        elsif channel_id =~ /^presence-/
+                          PresenceSubscription.new(self).handle(msg)
+                        else
+                          subscribe_channel channel_id
+                          #Subscription.new(self).handle(msg)
+                        end
       @subscriptions[channel_id] = subscription_id
     end
 
@@ -80,6 +84,7 @@ module Slanger
 
     #TODO: think about moving all subscription stuff into channel classes
     # Add connection to channel subscribers
+
     def subscribe_channel(channel_id)
       channel = Slanger::Channel.find_or_create_by_channel_id(channel_id)
       send_payload channel_id, 'pusher_internal:subscription_succeeded'
@@ -90,59 +95,6 @@ module Slanger
         # Don't send the event if it was sent by the client
         socket_id = msg.delete 'socket_id'
         @socket.send msg.to_json unless socket_id == @socket_id
-      end
-    end
-
-    # Validate authentication token for private channel and add connection to channel subscribers if it checks out
-    def handle_private_subscription(msg)
-      channel_id = msg['data']['channel']
-
-      if msg['data']['auth'] && invalid_signature?(msg, channel_id)
-        handle_invalid_signature msg
-      else
-        subscribe_channel channel_id
-      end
-    end
-
-    def invalid_signature? msg, channel_id
-      token(channel_id, msg['data']['channel_data']) != msg['data']['auth'].split(':')[1]
-    end
-
-    def handle_invalid_signature msg
-      handle_error({ message: "Invalid signature: Expected HMAC SHA256 hex digest of #{@socket_id}:#{msg['data']['channel']}, but got #{msg['data']['auth']}" })
-    end
-
-    # Validate authentication token and check channel_data. Add connection to channel subscribers if it checks out
-    def handle_presence_subscription(msg)
-      channel_id = msg['data']['channel']
-
-      if invalid_signature? msg, channel_id
-        handle_invalid_signature msg
-
-      elsif !msg['data']['channel_data']
-        handle_error( {
-          message: "presence-channel is a presence channel and subscription must include channel_data"
-        })
-      else
-        channel = Slanger::PresenceChannel.find_or_create_by_channel_id(channel_id)
-        callback = Proc.new {
-          send_payload(channel_id, 'pusher_internal:subscription_succeeded', {
-            presence: {
-              count: channel.subscribers.size,
-              ids:   channel.ids,
-              hash:  channel.subscribers
-            }
-          })
-        }
-        # Subscribe to channel, call callback when done to send a
-        # subscription_succeeded event to the client.
-        channel.subscribe(msg, callback) do |msg|
-          # Send channel messages to the client, unless it is the
-          # sender of the event.
-          msg       = JSON.parse(msg)
-          socket_id = msg.delete 'socket_id'
-          @socket.send msg.to_json unless socket_id == @socket_id
-        end
       end
     end
 
