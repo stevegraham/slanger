@@ -50,8 +50,8 @@ module Slanger
       channel_class(channel_id).find_by_channel_id(channel_id)
     end
 
-    def channel_class(channel_name)
-      channel_name =~ /^presence-/ ? PresenceChannel : Channel
+    def channel_class(channel_id)
+      channel_id =~ /^presence-/ ? PresenceChannel : Channel
     end
 
     # Verify app key. Send connection_established message to connection if it checks out. Send error message and disconnect if invalid.
