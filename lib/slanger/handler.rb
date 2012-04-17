@@ -57,15 +57,19 @@ module Slanger
     def subscribe(msg)
       channel_id = msg['data']['channel']
 
-      klass = if private_subscription? channel_id
-                PrivateSubscription
-              elsif presence_subscription? channel_id
-                PresenceSubscription
-              else
-                Subscription
-              end
+      klass = subscriptions_klass channel_id
 
       @subscriptions[channel_id] = klass.new(self).handle msg
+    end
+
+    def subscription_klass channel_id
+      if private_subscription? channel_id
+        PrivateSubscription
+      elsif presence_subscription? channel_id
+        PresenceSubscription
+      else
+        Subscription
+      end
     end
 
     def private_subscription? channel_id
