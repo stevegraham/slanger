@@ -107,9 +107,7 @@ module Slanger
       channel_id = msg['data']['channel']
 
       if msg['data']['auth'] && invalid_signature?(msg, channel_id)
-        handle_error( {
-          message: "Invalid signature: Expected HMAC SHA256 hex digest of #{@socket_id}:#{channel_id}, but got #{msg['data']['auth']}"
-        })
+        handle_invalid_signature msg
       else
         subscribe_channel channel_id
       end
@@ -119,13 +117,17 @@ module Slanger
       token(channel_id, msg['data']['channel_data']) != msg['data']['auth'].split(':')[1]
     end
 
+    def handle_invalid_signature msg
+      handle_error({ message: "Invalid signature: Expected HMAC SHA256 hex digest of #{@socket_id}:#{msg['data']['channel']}, but got #{msg['data']['auth']}" })
+    end
+
     # Validate authentication token and check channel_data. Add connection to channel subscribers if it checks out
     def handle_presence_subscription(msg)
       channel_id = msg['data']['channel']
-      if token(channel_id, msg['data']['channel_data']) != msg['data']['auth'].split(':')[1]
-        handle_error( {
-          message: "Invalid signature: Expected HMAC SHA256 hex digest of #{@socket_id}:#{msg['data']['channel']}, but got #{msg['data']['auth']}"
-        })
+
+      if invalid_signature? msg, channel_id
+        handle_invalid_signature msg
+
       elsif !msg['data']['channel_data']
         handle_error( {
           message: "presence-channel is a presence channel and subscription must include channel_data"
@@ -165,7 +167,7 @@ module Slanger
     end
 
     def handle_error(error)
-      @socket.send(payload nil, 'pusher:error', error)
+      send_payload nil, 'pusher:error', error
     end
   end
 end
