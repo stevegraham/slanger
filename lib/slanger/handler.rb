@@ -56,14 +56,11 @@ module Slanger
       send_payload nil, 'pusher:connection_established', { socket_id: @socket_id }
     end
 
-    # Dispatch to handler method if channel requires authentication, otherwise subscribe.
     def subscribe(msg)
-      channel_id = msg['data']['channel']
-
       klass, message =
-        if channel_id =~ /^private-/
+        if private_subscription?
           [PrivateSubscription, msg]
-        elsif channel_id =~ /^presence-/
+        elsif presence_subscription?
           [PresenceSubscription, msg]
         else
           [Subscription, channel_id]
@@ -71,6 +68,14 @@ module Slanger
 
       subscription_id = klass.new(self).handle message
       @subscriptions[channel_id] = subscription_id
+    end
+
+    def private_subscription? msg
+      msg['data']['channel'] =~ /^private-/
+    end
+
+    def presence_subscription? msg
+      msg['data']['channel'] =~ /^presence-/
     end
 
     def ping(msg)
