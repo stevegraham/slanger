@@ -29,8 +29,11 @@ module Slanger
         channel = find_channel msg['channel']
         channel.try :send_client_message, msg
       end
+    rescue JSON::ParserError
+      handle_error({ code: '5001', message: "Invalid JSON" })
+
     rescue StandardError => e
-      handle_error(e)
+      handle_error({ code: '5000', message: "Internal Server error: #{e.message}, #{e.backtrace}" })
     end
 
     # Unsubscribe this connection from all the channels on close.
@@ -152,13 +155,8 @@ module Slanger
       HMAC::SHA256.hexdigest(Slanger::Config.secret, string_to_sign)
     end
 
-    def handle_error(e)
-      case e
-      when JSON::ParserError
-        @socket.send(payload nil, 'pusher:error', { code: '5001', message: "Invalid JSON" })
-      else
-        @socket.send(payload nil, 'pusher:error', { code: '5000', message: "Internal Server error" })
-      end
+    def handle_error(error)
+      @socket.send(payload nil, 'pusher:error', error)
     end
   end
 end
