@@ -25,6 +25,10 @@ module Slanger
       def unsubscribe channel_id, subscription_id
         from(channel_id).try :unsubscribe, subscription_id
       end
+
+      def send_client_message msg
+        from(msg['channel']).try :send_client_message, msg
+      end
     end
 
     def initialize(attrs)

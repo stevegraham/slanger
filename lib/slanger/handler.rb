@@ -21,10 +21,9 @@ module Slanger
       event = msg['event'].gsub('pusher:', '')
 
       if event =~ /^client-/
-        # Client event. Send it to the destination channel.
         msg['socket_id'] = @socket_id
 
-        Channel.from(msg['channel']).try :send_client_message, msg
+        Channel.send_client_message msg
       elsif %w(subscribe ping pong authenticate).include? event
         send event, msg
       end
@@ -41,16 +40,20 @@ module Slanger
 
     private
 
-    # Verify app key. Send connection_established message to connection if it checks out. Send error message and disconnect if invalid.
     def authenticate
-      app_key = @socket.request['path'].split(/\W/)[2]
-      if app_key == Slanger::Config.app_key
-        @socket_id = SecureRandom.uuid
-        send_payload nil, 'pusher:connection_established', { socket_id: @socket_id }
-      else
-        handle_error({ code: '4001', message: "Could not find app by key #{app_key}" })
-        @socket.close_websocket
-      end
+      return send_connection_established if valid_app_key?
+
+      handle_error({ code: '4001', message: "Could not find app by key #{app_key}" })
+      @socket.close_websocket
+    end
+
+    def valid_app_key?
+      Slanger::Config.app_key = @socket.request['path'].split(/\W/)[2]
+    end
+
+    def send_connection_established
+      @socket_id = SecureRandom.uuid
+      send_payload nil, 'pusher:connection_established', { socket_id: @socket_id }
     end
 
     # Dispatch to handler method if channel requires authentication, otherwise subscribe.
