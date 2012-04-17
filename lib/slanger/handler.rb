@@ -29,7 +29,7 @@ module Slanger
         channel = find_channel msg['channel']
         channel.try :send_client_message, msg
       end
-    rescue Exception => e
+    rescue StandardError => e
       handle_error(e)
     end
 
@@ -129,7 +129,7 @@ module Slanger
             }
           })
         }
-        # Subscribe to channel, call callback when done to send a 
+        # Subscribe to channel, call callback when done to send a
         # subscription_succeeded event to the client.
         channel.subscribe(msg, callback) do |msg|
           # Send channel messages to the client, unless it is the
