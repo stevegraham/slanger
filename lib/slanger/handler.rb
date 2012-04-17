@@ -26,7 +26,7 @@ module Slanger
       elsif event =~ /^client-/
         # Client event. Send it to the destination channel.
         msg['socket_id'] = @socket_id
-        channel = find_channel msg['channel']
+        channel = Channel.from msg['channel']
         channel.try :send_client_message, msg
       end
     rescue JSON::ParserError
@@ -39,20 +39,12 @@ module Slanger
     # Unsubscribe this connection from all the channels on close.
     def onclose
       @subscriptions.each do |channel_id, subscription_id|
-        channel = find_channel channel_id
+        channel = Channel.from channel_id
         channel.try :unsubscribe, subscription_id
       end
     end
 
     private
-
-    def find_channel(channel_id)
-      channel_class(channel_id).find_by_channel_id(channel_id)
-    end
-
-    def channel_class(channel_id)
-      channel_id =~ /^presence-/ ? PresenceChannel : Channel
-    end
 
     # Verify app key. Send connection_established message to connection if it checks out. Send error message and disconnect if invalid.
     def authenticate
