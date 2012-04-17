@@ -10,6 +10,20 @@ module Slanger
       @handler = handler
     end
 
+    def handle channel_id
+      channel = Slanger::Channel.find_or_create_by_channel_id(channel_id)
+
+      send_payload channel_id, 'pusher_internal:subscription_succeeded'
+
+      # Subscribe to the channel and have the events received from it
+      # sent to the client's socket.
+      subscription_id = channel.subscribe do |msg|
+        msg       = JSON.parse(msg)
+        # Don't send the event if it was sent by the client
+        s = msg.delete 'socket_id'
+        socket.send msg.to_json unless s == socket_id
+      end
+    end
     private
 
     delegate :handle_error, :send_payload, to: :handler

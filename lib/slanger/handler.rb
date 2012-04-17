@@ -61,14 +61,16 @@ module Slanger
     def pusher_subscribe(msg)
       channel_id = msg['data']['channel']
 
-      subscription_id = if channel_id =~ /^private-/
-                          PrivateSubscription.new(self).handle(msg)
-                        elsif channel_id =~ /^presence-/
-                          PresenceSubscription.new(self).handle(msg)
-                        else
-                          subscribe_channel channel_id
-                          #Subscription.new(self).handle(msg)
-                        end
+      klass, message =
+        if channel_id =~ /^private-/
+          [PrivateSubscription, msg]
+        elsif channel_id =~ /^presence-/
+          [PresenceSubscription, msg]
+        else
+          [Subscription, channel_id]
+        end
+
+      subscription_id = klass.new(self).handle message
       @subscriptions[channel_id] = subscription_id
     end
 
@@ -82,31 +84,9 @@ module Slanger
       @socket.send payload(*args)
     end
 
-    #TODO: think about moving all subscription stuff into channel classes
-    # Add connection to channel subscribers
-
-    def subscribe_channel(channel_id)
-      channel = Slanger::Channel.find_or_create_by_channel_id(channel_id)
-      send_payload channel_id, 'pusher_internal:subscription_succeeded'
-      # Subscribe to the channel and have the events received from it
-      # sent to the client's socket.
-      subscription_id = channel.subscribe do |msg|
-        msg       = JSON.parse(msg)
-        # Don't send the event if it was sent by the client
-        socket_id = msg.delete 'socket_id'
-        @socket.send msg.to_json unless socket_id == @socket_id
-      end
-    end
-
     # Message helper method. Converts a hash into the Pusher JSON protocol
     def payload(channel_id, event_name, payload = {})
       { channel: channel_id, event: event_name, data: payload }.to_json
-    end
-
-    # HMAC token validation
-    def token(channel_id, params=nil)
-      string_to_sign = [@socket_id, channel_id, params].compact.join ':'
-      HMAC::SHA256.hexdigest(Slanger::Config.secret, string_to_sign)
     end
 
     def handle_error(error)
