@@ -104,14 +104,19 @@ module Slanger
 
     # Validate authentication token for private channel and add connection to channel subscribers if it checks out
     def handle_private_subscription(msg)
-      channel = msg['data']['channel']
-      if msg['data']['auth'] && token(channel, msg['data']['channel_data']) != msg['data']['auth'].split(':')[1]
+      channel_id = msg['data']['channel']
+
+      if msg['data']['auth'] && invalid_signature?(msg, channel_id)
         handle_error( {
-          message: "Invalid signature: Expected HMAC SHA256 hex digest of #{@socket_id}:#{channel}, but got #{msg['data']['auth']}"
+          message: "Invalid signature: Expected HMAC SHA256 hex digest of #{@socket_id}:#{channel_id}, but got #{msg['data']['auth']}"
         })
       else
-        subscribe_channel channel
+        subscribe_channel channel_id
       end
+    end
+
+    def invalid_signature? msg, channel_id
+      token(channel_id, msg['data']['channel_data']) != msg['data']['auth'].split(':')[1]
     end
 
     # Validate authentication token and check channel_data. Add connection to channel subscribers if it checks out
