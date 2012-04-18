@@ -1,14 +1,14 @@
 module Slanger
   class Subscription
-    attr_accessor :payload, :socket
+    attr_accessor :connection, :socket
 
     def initialize socket, socket_id, msg
-      @payload = Payload.new socket, socket_id
+      @connection = Connection.new socket, socket_id
       @msg       = msg
     end
 
     def handle
-      payload.send channel_id, 'pusher_internal:subscription_succeeded'
+      connection.send_payload channel_id, 'pusher_internal:subscription_succeeded'
 
       channel.subscribe { |m| send_message m }
     end
@@ -18,7 +18,7 @@ module Slanger
     def send_message m
       msg = JSON.parse(m)
       s = msg.delete 'socket_id'
-      payload.socket.send msg.to_json unless s == payload.socket_id
+      connection.socket.send msg.to_json unless s == connection.socket_id
     end
 
     def channel
@@ -30,7 +30,7 @@ module Slanger
     end
 
     def token(channel_id, params=nil)
-      string_to_sign = [payload.socket_id, channel_id, params].compact.join ':'
+      string_to_sign = [connection.socket_id, channel_id, params].compact.join ':'
       HMAC::SHA256.hexdigest(Slanger::Config.secret, string_to_sign)
     end
 
@@ -40,9 +40,9 @@ module Slanger
 
     def handle_invalid_signature
       message = "Invalid signature: Expected HMAC SHA256 hex digest of "
-      message << "#{payload.socket_id}:#{@msg['data']['channel']}, but got #{@msg['data']['auth']}"
+      message << "#{connection.socket_id}:#{@msg['data']['channel']}, but got #{@msg['data']['auth']}"
 
-      payload.error({ message: message})
+      connection.error({ message: message})
     end
   end
 end

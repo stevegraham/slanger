@@ -4,7 +4,7 @@ module Slanger
       return handle_invalid_signature if invalid_signature?
 
       unless channel_data?
-        return payload.error({
+        return connection.error({
           message: "presence-channel is a presence channel and subscription must include channel_data"
         })
       end
@@ -20,7 +20,7 @@ module Slanger
 
     def callback
       Proc.new {
-        payload.send(channel_id, 'pusher_internal:subscription_succeeded', {
+        connection.send_payload(channel_id, 'pusher_internal:subscription_succeeded', {
           presence: {
             count: channel.subscribers.size,
             ids:   channel.ids,
