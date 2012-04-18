@@ -1,55 +1,46 @@
 module Slanger
   class Subscription
-    attr_reader :handler
+    include Payload
 
-    #not too keen on all this delegation and instance_eval stuff, but as part
-    #of an initial refactor to break the Handler into multiple classes I think it
-    #makes sense as an intermediate step
-
-    def initialize handler
-      @handler = handler
+    def initialize socket, socket_id, msg
+      @socket    = socket
+      @socket_id = socket_id
+      @msg       = msg
     end
 
-    def handle msg
-      channel_id = msg['data']['channel']
-
-      channel = Channel.from channel_id
-
+    def handle
       send_payload channel_id, 'pusher_internal:subscription_succeeded'
 
-      # Subscribe to the channel and have the events received from it
-      # sent to the client's socket.
-      subscription_id = channel.subscribe do |msg|
-        msg       = JSON.parse(msg)
-        # Don't send the event if it was sent by the client
-        s = msg.delete 'socket_id'
-        socket.send msg.to_json unless s == socket_id
-      end
+      channel.subscribe { |m| send_message m }
     end
+
     private
 
-    delegate :handle_error, :send_payload, to: :handler
-
-    def socket_id
-      handler.instance_eval{@socket_id}
+    def send_message m
+      msg = JSON.parse(m)
+      s = msg.delete 'socket_id'
+      socket.send msg.to_json unless s == socket_id
     end
 
-    def socket
-      handler.instance_eval{@socket}
+    def channel
+      Channel.from channel_id
     end
 
-    # HMAC token validation
+    def channel_id
+      @msg['data']['channel']
+    end
+
     def token(channel_id, params=nil)
       string_to_sign = [socket_id, channel_id, params].compact.join ':'
       HMAC::SHA256.hexdigest(Slanger::Config.secret, string_to_sign)
     end
 
-    def invalid_signature? msg, channel_id
-      token(channel_id, msg['data']['channel_data']) != msg['data']['auth'].split(':')[1]
+    def invalid_signature?
+      token(channel_id, @msg['data']['channel_data']) != @msg['data']['auth'].split(':')[1]
     end
 
-    def handle_invalid_signature msg
-      handle_error({ message: "Invalid signature: Expected HMAC SHA256 hex digest of #{socket_id}:#{msg['data']['channel']}, but got #{msg['data']['auth']}" })
+    def handle_invalid_signature
+      handle_error({ message: "Invalid signature: Expected HMAC SHA256 hex digest of #{socket_id}:#{@msg['data']['channel']}, but got #{@msg['data']['auth']}" })
     end
   end
 end

@@ -9,6 +9,8 @@ require 'fiber'
 
 module Slanger
   class Handler
+    include Payload
+
     def initialize(socket)
       @socket        = socket
       @subscriptions = {}
@@ -45,9 +47,11 @@ module Slanger
       @socket.close_websocket
     end
 
-    def valid_app_key?
-      Slanger::Config.app_key = @socket.request['path'].split(/\W/)[2]
+    def ping(msg)
+      send_payload nil, 'pusher:ping'
     end
+
+    def pong msg; end
 
     def send_connection_established
       @socket_id = SecureRandom.uuid
@@ -59,7 +63,11 @@ module Slanger
 
       klass = subscription_klass channel_id
 
-      @subscriptions[channel_id] = klass.new(self).handle msg
+      @subscriptions[channel_id] = klass.new(socket, socket_id, msg).handle
+    end
+
+    def valid_app_key?
+      Slanger::Config.app_key = @socket.request['path'].split(/\W/)[2]
     end
 
     def subscription_klass channel_id
@@ -78,24 +86,6 @@ module Slanger
 
     def presence_subscription? channel_id
       channel_id =~ /^presence-/
-    end
-
-    def ping(msg)
-      send_payload nil, 'pusher:ping'
-    end
-
-    def pong msg; end
-
-    def send_payload *args
-      @socket.send to_pusher_payload(*args)
-    end
-
-    def to_pusher_payload(channel_id, event_name, payload = {})
-      { channel: channel_id, event: event_name, data: payload }.to_json
-    end
-
-    def handle_error(error)
-      send_payload nil, 'pusher:error', error
     end
   end
 end

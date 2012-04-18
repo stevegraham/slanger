@@ -1,12 +1,10 @@
 module Slanger
   class PrivateSubscription < Subscription
-    def handle msg
-      channel_id = msg['data']['channel']
-
-      if msg['data']['auth'] && invalid_signature?(msg, channel_id)
-        handle_invalid_signature msg
+    def handle
+      if @msg['data']['auth'] && invalid_signature?
+        handle_invalid_signature
       else
-        Subscription.new(handler).handle msg
+        Subscription.new(socket, socket_id, @msg).handle
       end
     end
   end
