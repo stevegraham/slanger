@@ -34,6 +34,11 @@ OptionParser.new do |opts|
     options[:websocket_host], options[:websocket_port] = p.split(':')
   end
 
+  opts.on '-i', '--require FILE', "Require a file before starting Slanger" do |p|
+    options[:require] ||= []
+    options[:require] << p
+  end
+
   opts.on '-p', '--private_key_file FILE', "Private key file for SSL transport" do |p|
     options[:tls_options] ||= {}
     options[:tls_options][:private_key_file] = p
