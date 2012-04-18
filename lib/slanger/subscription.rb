@@ -4,6 +4,7 @@ module Slanger
 
     def initialize socket, socket_id, msg
       @payload = Payload.new socket, socket_id
+    delegate :send_message, to: :connection
       @msg       = msg
     end
 
@@ -14,12 +15,6 @@ module Slanger
     end
 
     private
-
-    def send_message m
-      msg = JSON.parse(m)
-      s = msg.delete 'socket_id'
-      payload.socket.send msg.to_json unless s == payload.socket_id
-    end
 
     def channel
       Channel.from channel_id
