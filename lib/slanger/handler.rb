@@ -9,11 +9,11 @@ require 'fiber'
 
 module Slanger
   class Handler
-    attr_accessor :payload
+    attr_accessor :connection
 
     def initialize(socket)
       @socket        = socket
-      @payload = Payload.new(@socket)
+      @connection    = Connection.new(@socket)
       @subscriptions = {}
       authenticate
     end
@@ -32,7 +32,7 @@ module Slanger
       end
 
     rescue JSON::ParserError
-      payload.error({ code: '5001', message: "Invalid JSON" })
+      connection.error({ code: '5001', message: "Invalid JSON" })
     end
 
     def onclose
@@ -42,14 +42,14 @@ module Slanger
     private
 
     def authenticate
-      return payload.establish_connection if valid_app_key?
+      return connection.establish if valid_app_key?
 
-      payload.error({ code: '4001', message: "Could not find app by key #{app_key}" })
+      connection.error({ code: '4001', message: "Could not find app by key #{app_key}" })
       @socket.close_websocket
     end
 
     def ping(msg)
-      send_payload nil, 'pusher:ping'
+      connection.send_payload nil, 'pusher:ping'
     end
 
     def pong msg; end
@@ -59,7 +59,7 @@ module Slanger
 
       klass = subscription_klass channel_id
 
-      @subscriptions[channel_id] = klass.new(payload.socket, payload.socket_id, msg).handle
+      @subscriptions[channel_id] = klass.new(connection, msg).handle
     end
 
     def valid_app_key?

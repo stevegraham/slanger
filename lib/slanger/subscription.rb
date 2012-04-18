@@ -1,15 +1,21 @@
 module Slanger
   class Subscription
-    attr_accessor :payload, :socket
+    attr_accessor :connection, :socket
 
-    def initialize socket, socket_id, msg
-      @payload = Payload.new socket, socket_id
     delegate :send_message, to: :connection
+
+    def self.from socket, socket_id, msg
+      connection = Connection.new socket, socket_id
+      new connection, msg
+    end
+
+    def initialize connection, msg
+      @connection = connection
       @msg       = msg
     end
 
     def handle
-      payload.send channel_id, 'pusher_internal:subscription_succeeded'
+      connection.send_payload channel_id, 'pusher_internal:subscription_succeeded'
 
       channel.subscribe { |m| send_message m }
     end
@@ -39,9 +45,9 @@ module Slanger
 
     def handle_invalid_signature
       message = "Invalid signature: Expected HMAC SHA256 hex digest of "
-      message << "#{payload.socket_id}:#{@msg['data']['channel']}, but got #{@msg['data']['auth']}"
+      message << "#{connection.socket_id}:#{channel_id}, but got #{auth}"
 
-      payload.error({ message: message})
+      connection.error({ message: message})
     end
   end
 end
