@@ -42,7 +42,7 @@ module Slanger
     private
 
     def authenticate
-      return connection.establish_connection if valid_app_key?
+      return connection.establish if valid_app_key?
 
       connection.error({ code: '4001', message: "Could not find app by key #{app_key}" })
       @socket.close_websocket

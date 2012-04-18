@@ -10,7 +10,7 @@ module Slanger
       socket.send format(*args)
     end
 
-    def establish_connection
+    def establish
       @socket_id = SecureRandom.uuid
       send_payload nil, 'pusher:connection_established', { socket_id: @socket_id }
     end
