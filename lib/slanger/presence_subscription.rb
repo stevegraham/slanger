@@ -1,16 +1,15 @@
 module Slanger
   class PresenceSubscription < Subscription
     def handle
-      if invalid_signature?
-        handle_invalid_signature
+      return handle_invalid_signature if invalid_signature?
 
-      elsif !channel_data?
-        handle_error( {
+      unless channel_data?
+        return handle_error({
           message: "presence-channel is a presence channel and subscription must include channel_data"
         })
-      else
-        channel.subscribe(@msg, callback) { |m| send_message m }
       end
+
+      channel.subscribe(@msg, callback) { |m| send_message m }
     end
 
     private
