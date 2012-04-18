@@ -26,6 +26,7 @@ Gem::Specification.new do |s|
   s.add_development_dependency    'rspec',            '~> 2.6.0'
   s.add_development_dependency    'pusher',           '~> 0.8.2'
   s.add_development_dependency    'haml',             '~> 3.1.2'
+  s.add_development_dependency    'debugger'
 
   s.files                       = Dir['README.md', 'lib/**/*', 'slanger.rb']
   s.require_path                = '.'
