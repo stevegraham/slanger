@@ -57,7 +57,7 @@ module Slanger
     def subscribe(msg)
       channel_id = msg['data']['channel']
 
-      klass = subscriptions_klass channel_id
+      klass = subscription_klass channel_id
 
       @subscriptions[channel_id] = klass.new(self).handle msg
     end
