@@ -10,7 +10,7 @@ require 'fiber'
 module Slanger
   class Handler
     attr_accessor :connection
-    delegate :error, :establish, :send_payload, to: :payload
+    delegate :error, :establish, :send_payload, to: :connection
 
     def initialize(socket)
       @socket        = socket
