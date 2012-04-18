@@ -1,6 +1,6 @@
 module Slanger
   class PresenceSubscription < Subscription
-    def handle
+    def subscribe
       return handle_invalid_signature if invalid_signature?
 
       unless channel_data?

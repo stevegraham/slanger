@@ -60,7 +60,8 @@ module Slanger
 
       klass = subscription_klass channel_id
 
-      @subscriptions[channel_id] = klass.new(connection.socket, connection.socket_id, msg).handle
+      @subscriptions[channel_id] = klass.new(connection.socket,
+                                             connection.socket_id, msg).subscribe
     end
 
     def valid_app_key?
