@@ -9,6 +9,8 @@ require 'fiber'
 
 module Slanger
   class Handler
+    include PusherMethods
+
     attr_accessor :connection
     delegate :error, :establish, :send_payload, to: :connection
 
@@ -38,44 +40,6 @@ module Slanger
 
     def onclose
       @subscriptions.each { |c, s| Channel.unsubscribe c, s }
-    end
-
-    private
-
-    def authenticate
-      return establish if valid_app_key?
-
-      error({ code: '4001', message: "Could not find app by key #{app_key}" })
-      @socket.close_websocket
-    end
-
-    def ping(msg)
-      send_payload nil, 'pusher:ping'
-    end
-
-    def pong msg; end
-
-    def subscribe(msg)
-      channel_id = msg['data']['channel']
-
-      klass = subscription_klass channel_id
-
-      @subscriptions[channel_id] = klass.new(connection.socket,
-                                             connection.socket_id, msg).subscribe
-    end
-
-    def valid_app_key?
-      Slanger::Config.app_key == @socket.request['path'].split(/\W/)[2]
-    end
-
-    def subscription_klass channel_id
-      if channel_id =~ /^private-/
-        PrivateSubscription
-      elsif channel_id =~ /^presence-/
-        PresenceSubscription
-      else
-        Subscription
-      end
     end
   end
 end
