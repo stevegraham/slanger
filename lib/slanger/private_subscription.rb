@@ -4,7 +4,7 @@ module Slanger
       if @msg['data']['auth'] && invalid_signature?
         handle_invalid_signature
       else
-        Subscription.new(socket, socket_id, @msg).handle
+        Subscription.new(payload.socket, payload.socket_id, @msg).handle
       end
     end
   end

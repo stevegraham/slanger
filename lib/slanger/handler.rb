@@ -9,10 +9,11 @@ require 'fiber'
 
 module Slanger
   class Handler
-    include Payload
+    attr_accessor :payload
 
     def initialize(socket)
       @socket        = socket
+      @payload = Payload.new(@socket)
       @subscriptions = {}
       authenticate
     end
@@ -31,7 +32,7 @@ module Slanger
       end
 
     rescue JSON::ParserError
-      handle_error({ code: '5001', message: "Invalid JSON" })
+      payload.error({ code: '5001', message: "Invalid JSON" })
     end
 
     def onclose
@@ -41,9 +42,9 @@ module Slanger
     private
 
     def authenticate
-      return send_connection_established if valid_app_key?
+      return payload.establish_connection if valid_app_key?
 
-      handle_error({ code: '4001', message: "Could not find app by key #{app_key}" })
+      payload.error({ code: '4001', message: "Could not find app by key #{app_key}" })
       @socket.close_websocket
     end
 
@@ -53,21 +54,16 @@ module Slanger
 
     def pong msg; end
 
-    def send_connection_established
-      @socket_id = SecureRandom.uuid
-      send_payload nil, 'pusher:connection_established', { socket_id: @socket_id }
-    end
-
     def subscribe(msg)
       channel_id = msg['data']['channel']
 
       klass = subscription_klass channel_id
 
-      @subscriptions[channel_id] = klass.new(socket, socket_id, msg).handle
+      @subscriptions[channel_id] = klass.new(payload.socket, payload.socket_id, msg).handle
     end
 
     def valid_app_key?
-      Slanger::Config.app_key = @socket.request['path'].split(/\W/)[2]
+      Slanger::Config.app_key == @socket.request['path'].split(/\W/)[2]
     end
 
     def subscription_klass channel_id

@@ -57,11 +57,11 @@ module Slanger
     end
 
     def ids
-      subscriptions.map { |k,v| v['user_id'] }
+      subscriptions.map { |_,v| v['user_id'] }
     end
 
     def subscribers
-      Hash[subscriptions.map { |k,v| [v['user_id'], v['user_info']] }]
+      Hash[subscriptions.map { |_,v| [v['user_id'], v['user_info']] }]
     end
 
     def unsubscribe(public_subscription_id)
