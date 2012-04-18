@@ -16,12 +16,13 @@ module Slanger
 
     def initialize(socket)
       @socket        = socket
-      @connection = Connection.new(@socket)
+      @connection    = Connection.new(@socket)
       @subscriptions = {}
       authenticate
     end
 
-    # Dispatches message handling to method with same name as the event name
+    # Dispatches message handling to method with same name as
+    # the event name
     def onmessage(msg)
       msg   = JSON.parse msg
       event = msg['event'].gsub('pusher:', '')
