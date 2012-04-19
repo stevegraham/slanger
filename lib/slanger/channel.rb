@@ -1,7 +1,7 @@
 # Channel class.
 #
 # Uses an EventMachine channel to let clients interact with the
-# Pusher channel. Relay events received from Redis into the 
+# Pusher channel. Relay events received from Redis into the
 # EM channel.
 #
 
@@ -15,6 +15,21 @@ module Slanger
     extend  Forwardable
 
     def_delegators :channel, :subscribe, :unsubscribe, :push
+
+    class << self
+      def from channel_id
+        klass = channel_id[/^presence-/] ? PresenceChannel : Channel
+        klass.find_or_create_by_channel_id channel_id
+      end
+
+      def unsubscribe channel_id, subscription_id
+        from(channel_id).try :unsubscribe, subscription_id
+      end
+
+      def send_client_message msg
+        from(msg['channel']).try :send_client_message, msg
+      end
+    end
 
     def initialize(attrs)
       super
