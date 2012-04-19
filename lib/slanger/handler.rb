@@ -18,20 +18,20 @@ module Slanger
       @socket        = socket
       @connection    = Connection.new(@socket)
       @subscriptions = {}
-      authenticate
+      pusher_authenticate
     end
 
     # Dispatches message handling to method with same name as
     # the event name
     def onmessage(msg)
       msg   = JSON.parse msg
-      event = msg['event'].gsub('pusher:', '')
+      event = msg['event'].gsub(/^pusher:/, 'pusher_')
 
       if event =~ /^client-/
         msg['socket_id'] = @socket_id
 
         Channel.send_client_message msg
-      elsif %w(subscribe ping pong authenticate).include? event
+      elsif %w(pusher_subscribe pusher_ping pusher_pong pusher_authenticate).include? event
         send event, msg
       end
 

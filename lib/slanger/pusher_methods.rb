@@ -1,18 +1,18 @@
 module Slanger::PusherMethods
-  def authenticate
+  def pusher_authenticate
     return establish if valid_app_key?
 
     error({ code: '4001', message: "Could not find app by key #{app_key}" })
     @socket.close_websocket
   end
 
-  def ping(msg)
+  def pusher_ping(msg)
     send_payload nil, 'pusher:ping'
   end
 
-  def pong msg; end
+  def pusher_pong msg; end
 
-  def subscribe(msg)
+  def pusher_subscribe(msg)
     channel_id = msg['data']['channel']
 
     klass = subscription_klass channel_id
