@@ -28,12 +28,10 @@ module Slanger::PusherMethods
   end
 
   def subscription_klass channel_id
-    if channel_id =~ /^private-/
-      Slanger::PrivateSubscription
-    elsif channel_id =~ /^presence-/
-      Slanger::PresenceSubscription
-    else
-      Slanger::Subscription
+    klass = channel_id.match(/^(private|presence)-/) do |match|
+      Slanger.const_get "#{match[1]}_subscription".classify
     end
+
+    klass || Slanger::Subscription
   end
 end
