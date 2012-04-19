@@ -1,5 +1,5 @@
 module Slanger::PusherMethods
-  def pusher_authenticate
+  def authenticate
     return establish if valid_app_key?
 
     error({ code: '4001', message: "Could not find app by key #{app_key}" })

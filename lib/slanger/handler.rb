@@ -18,7 +18,7 @@ module Slanger
       @socket        = socket
       @connection    = Connection.new(@socket)
       @subscriptions = {}
-      pusher_authenticate
+      authenticate
     end
 
     # Dispatches message handling to method with same name as

@@ -19,7 +19,7 @@ describe 'Replacable handler' do
       class ReplacedHandler < Slanger::Handler
         def authenticate
           super
-          @socket.send(payload nil, 'pusher:info', { message: "Welcome!" })
+          send_payload nil, 'pusher:info', { message: "Welcome!" }
         end
       end
 
