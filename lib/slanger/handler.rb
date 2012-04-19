@@ -1,7 +1,6 @@
 # Handler class.
 # Handles a client connected via a websocket connection.
 
-require 'active_support/json'
 require 'active_support/core_ext/hash'
 require 'securerandom'
 require 'signature'

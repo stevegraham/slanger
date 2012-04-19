@@ -1,3 +1,4 @@
+#encoding: utf-8
 require 'bundler/setup'
 
 require 'active_support/json'
@@ -54,7 +55,7 @@ describe 'Integration' do
         end if messages.one?
 
         if messages.length < 3
-          Pusher['MY_CHANNEL'].trigger_async 'an_event', { some: 'data' }
+          Pusher['MY_CHANNEL'].trigger_async 'an_event', { some: "Mit Raben Und Wölfen" }
         else
           EM.stop
         end
@@ -62,7 +63,7 @@ describe 'Integration' do
      end
 
       messages.should have_attributes connection_established: true, id_present: true,
-        last_event: 'an_event', last_data: { some: 'data' }.to_json
+        last_event: 'an_event', last_data: { some: "Mit Raben Und Wölfen" }.to_json
     end
 
     it 'avoids duplicate events' do

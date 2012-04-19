@@ -1,6 +1,7 @@
+# encoding: utf-8
 require 'sinatra/base'
 require 'signature'
-require 'active_support/json'
+require 'json'
 require 'active_support/core_ext/hash'
 require 'eventmachine'
 require 'em-hiredis'
@@ -35,7 +36,7 @@ module Slanger
 
     def payload
       payload = {
-        event: params['name'], data: request.body.read, channel: params[:channel_id], socket_id: params[:socket_id]
+        event: params['name'], data: request.body.read.tap { |s| s.force_encoding('utf-8') }, channel: params[:channel_id], socket_id: params[:socket_id]
       }
       Hash[payload.reject { |k,v| v.nil? }].to_json
     end
