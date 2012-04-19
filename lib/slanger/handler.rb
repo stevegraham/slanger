@@ -31,7 +31,7 @@ module Slanger
         msg['socket_id'] = @socket_id
 
         Channel.send_client_message msg
-      elsif %w(pusher_subscribe pusher_ping pusher_pong pusher_authenticate).include? event
+      elsif respond_to? event, true
         send event, msg
       end
 
