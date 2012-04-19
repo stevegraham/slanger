@@ -8,8 +8,7 @@ Slanger is smart enough to know if a new channel subscription belongs to the sam
 
 Slanger was designed to be highly available and partition tolerant with eventual consistency, which in practise is instantaneous.
 
-{<img src="http://travis-ci.org/stevegraham/slanger.png" />}[http://travis-ci.org/stevegraham/slanger]
-
+[![Build Status](https://secure.travis-ci.org/stevegraham/slanger.png?branch=master)](http://travis-ci.org/stevegraham/slanger)
 # How to use it
 
 ## Requirements
