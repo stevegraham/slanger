@@ -96,6 +96,12 @@ Slanger supports several configuration options, which can be supplied as command
 
 -w or --websocket_host This is the address that Slanger will bind the WebSocket part of the service to. This is an optional argument and defaults to 0.0.0.0:8080
 
+-i or --require Require an additional file before starting Slanger to tune it to your needs. This is an optional argument
+
+-p or --private_key_file Private key file for SSL support. This argument is optional, if given, SSL will be enabled
+
+-c or --cert_chain_file Certificate chain file for SSL support. This argument is optional, if given, SSL will be enabled
+
 -v or --[no-]verbose This makes Slanger run verbosely, meaning WebSocket frames will be echoed to STDOUT. Useful for debugging
 </pre>
 
