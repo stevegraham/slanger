@@ -9,9 +9,10 @@ describe 'Integration' do
     context 'with valid authentication credentials:' do
       it 'accepts the subscription request' do
         messages  = em_stream do |websocket, messages|
-          if messages.length < 2
+          case messages.length
+          when 1
             private_channel websocket, messages.first
-         else
+          else
             EM.stop
           end
         end
@@ -26,7 +27,8 @@ describe 'Integration' do
     context 'with bogus authentication credentials:' do
       it 'sends back an error message' do
         messages  = em_stream do |websocket, messages|
-          if messages.length < 2
+          case messages.length
+          when 1
             websocket.send({ event: 'pusher:subscribe',
                              data: { channel: 'private-channel',
                                      auth: 'bogus' } }.to_json)
@@ -54,9 +56,10 @@ describe 'Integration' do
           client1.callback {}
 
           stream(client1, client1_messages) do |message|
-            if client1_messages.length < 2
+            case client1_messages.length
+            when 1
               private_channel client1, client1_messages.first
-            elsif client1_messages.length == 3
+            else
               EM.stop
             end
           end
@@ -64,9 +67,10 @@ describe 'Integration' do
           client2.callback {}
 
           stream(client2, client2_messages) do |message|
-            if client2_messages.length < 2
+            case client2_messages.length
+            when 1
               private_channel client2, client2_messages.first
-            else
+            when 2
               client2.send({ event: 'client-something', data: { some: 'stuff' }, channel: 'private-channel' }.to_json)
             end
           end
