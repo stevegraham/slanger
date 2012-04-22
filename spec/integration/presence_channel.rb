@@ -10,7 +10,8 @@ describe 'Integration' do
       context 'and bogus authentication credentials' do
         it 'sends back an error message' do
           messages  = em_stream do |websocket, messages|
-            if messages.length < 2
+            case messages.length
+            when 1
               websocket.send({ event: 'pusher:subscribe', data: { channel: 'presence-channel', auth: 'bogus' } }.to_json)
             else
               EM.stop
@@ -30,12 +31,12 @@ describe 'Integration' do
       context 'and bogus authentication credentials' do
         it 'sends back an error message' do
           messages  = em_stream do |websocket, messages|
-            if messages.length < 2
+            case messages.length
+            when 1
                send_subscribe( user: websocket,
                                user_id: '0f177369a3b71275d25ab1b44db9f95f',
                                name: 'SG',
                                message: {data: {socket_id: 'bogus'}}.with_indifferent_access)
-
            else
               EM.stop
             end
@@ -53,15 +54,15 @@ describe 'Integration' do
       context 'with genuine authentication credentials'  do
         it 'sends back a success message' do
           messages  = em_stream do |websocket, messages|
-            if messages.length < 2
+            case messages.length
+            when 1
               send_subscribe( user: websocket,
                               user_id: '0f177369a3b71275d25ab1b44db9f95f',
                               name: 'SG',
                               message: messages.first)
-           else
+            else
               EM.stop
             end
-
           end
 
           messages.should have_attributes connection_established: true, count: 2
@@ -106,7 +107,7 @@ describe 'Integration' do
 
             messages.should have_attributes connection_established: true, count: 3
             # Channel id should be in the payload
-            messages[1].  should == {"channel"=>"presence-channel", "event"=>"pusher_internal:subscription_succeeded",
+            messages[1].should == {"channel"=>"presence-channel", "event"=>"pusher_internal:subscription_succeeded",
                                      "data"=>{"presence"=>{"count"=>1, "ids"=>["0f177369a3b71275d25ab1b44db9f95f"], "hash"=>{"0f177369a3b71275d25ab1b44db9f95f"=>{"name"=>"SG"}}}}}
 
             messages.last.should == {"channel"=>"presence-channel", "event"=>"pusher_internal:member_added",
