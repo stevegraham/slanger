@@ -10,7 +10,6 @@ class ReplacedHandler < Slanger::Handler
 end
 
 describe 'Replacable handler' do
-
   it 'says welcome' do
     start_slanger_with_options socket_handler: ReplacedHandler
 
@@ -20,6 +19,7 @@ describe 'Replacable handler' do
       end
     end
 
-    msgs.last.should == {"channel"=>nil, "event"=>"pusher:info", "data"=>{"message"=>"Welcome!"}}
+    msgs.last.should == { "channel" => nil, "event" => "pusher:info",
+                          "data" => { "message" => "Welcome!" } }
   end
 end
