@@ -8,16 +8,14 @@ describe 'Integration' do
   describe 'regular channels:' do
     it 'pushes messages to interested websocket connections' do
       messages = em_stream do |websocket, messages|
-        websocket.callback do
-          websocket.send({ event: 'pusher:subscribe', data: { channel: 'MY_CHANNEL'} }.to_json)
-        end if messages.one?
-
-        if messages.length < 3
+        case messages.length
+        when 1
+          websocket.callback { websocket.send({ event: 'pusher:subscribe', data: { channel: 'MY_CHANNEL'} }.to_json) }
+        when 2
           Pusher['MY_CHANNEL'].trigger_async 'an_event', { some: "Mit Raben Und Wölfen" }
-        else
+        when 3
           EM.stop
         end
-
      end
 
       messages.should have_attributes connection_established: true, id_present: true,
@@ -35,14 +33,13 @@ describe 'Integration' do
           end
 
           client2_messages = em_stream do |client2, client2_messages|
-            client2.callback do
-              client2.send({ event: 'pusher:subscribe', data: { channel: 'MY_CHANNEL'} }.to_json)
-            end if client2_messages.one?
-
-            if client2_messages.length < 3
+            case client2_messages.length
+            when 1
+              client2.callback { client2.send({ event: 'pusher:subscribe', data: { channel: 'MY_CHANNEL'} }.to_json) }
+            when 2
               socket_id = client1_messages.first['data']['socket_id']
               Pusher['MY_CHANNEL'].trigger_async 'an_event', { some: 'data' }, socket_id
-            else
+            when 3
               EM.stop
             end
           end
