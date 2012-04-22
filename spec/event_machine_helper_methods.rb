@@ -1,4 +1,33 @@
 module EventMachineHelperMethods
+
+  def start_slanger_with_options options={}
+    # Fork service. Our integration tests MUST block the main thread because we want to wait for i/o to finish.
+    @server_pid = EM.fork_reactor do
+      require File.expand_path(File.dirname(__FILE__) + '/../slanger.rb')
+      Thin::Logging.silent = true
+
+      opts = { host:             '0.0.0.0',
+               api_port:         '4567',
+               websocket_port:   '8080',
+               app_key:          '765ec374ae0a69f4ce44',
+               secret:           'your-pusher-secret' }
+
+      Slanger::Config.load opts.merge(options)
+
+      Slanger::Service.run
+    end
+    # Give Slanger a chance to start
+    sleep 0.6
+  end
+
+  alias start_slanger start_slanger_with_options
+
+  def stop_slanger
+    # Ensure Slanger is properly stopped. No orphaned processes allowed!
+     Process.kill 'SIGKILL', @server_pid
+     Process.wait @server_pid
+  end
+
   def new_websocket
     uri = "ws://0.0.0.0:8080/app/#{Pusher.key}?client=js&version=1.8.5"
 
