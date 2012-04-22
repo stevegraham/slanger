@@ -1,4 +1,5 @@
 # Slanger
+[![Build Status](https://secure.travis-ci.org/stevegraham/slanger.png?branch=master)](http://travis-ci.org/stevegraham/slanger)
 
 Slanger is an open source server implementation of the Pusher protocol written in Ruby. It is designed to scale horizontally across N nodes and to be agnostic as to which Slanger node a subscriber is connected to, i.e subscribers to the same channel are NOT required to be connected to the same Slanger node. Multiple Slanger nodes can sit behind a load balancer with no special configuration. In essence it was designed to be very easy to scale.
 
@@ -95,6 +96,12 @@ Slanger supports several configuration options, which can be supplied as command
 -a or --api_host This is the address that Slanger will bind the HTTP REST API part of the service to. This is an optional argument and defaults to 0.0.0.0:4567
 
 -w or --websocket_host This is the address that Slanger will bind the WebSocket part of the service to. This is an optional argument and defaults to 0.0.0.0:8080
+
+-i or --require Require an additional file before starting Slanger to tune it to your needs. This is an optional argument
+
+-p or --private_key_file Private key file for SSL support. This argument is optional, if given, SSL will be enabled
+
+-c or --cert_chain_file Certificate chain file for SSL support. This argument is optional, if given, SSL will be enabled
 
 -v or --[no-]verbose This makes Slanger run verbosely, meaning WebSocket frames will be echoed to STDOUT. Useful for debugging
 </pre>
