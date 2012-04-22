@@ -11,8 +11,7 @@ describe 'Integration' do
         websocket.callback do
           websocket.send("{ event: 'pusher:subscribe', data: { channel: 'MY_CHANNEL'} }23123")
           EM.next_tick { EM.stop }
-        end if messages.one?
-
+        end
       end
 
       EM.run { new_websocket.tap { |u| u.stream { EM.next_tick { EM.stop } } }}
