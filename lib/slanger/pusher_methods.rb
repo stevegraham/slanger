@@ -25,7 +25,11 @@ module Slanger
     private
 
     def valid_app_key?
-      Slanger::Config.app_key == @socket.request['path'].split(/\W/)[2]
+      Slanger::Config.app_key == app_key
+    end
+
+    def app_key
+      @socket.request['path'].split(/\W/)[2]
     end
 
     def subscription_klass channel_id
