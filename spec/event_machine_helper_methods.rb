@@ -29,7 +29,7 @@ module EventMachineHelperMethods
   def wait_for_slanger opts = {}
     opts = { port: 8080 }.update opts
     begin
-      TCPSocket.new '0.0.0.0', opts[:port]
+      TCPSocket.new('0.0.0.0', opts[:port]).close
     rescue
       sleep 0.1
       retry
