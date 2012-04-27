@@ -21,6 +21,7 @@ describe 'Integration' do
       require File.expand_path(File.dirname(__FILE__) + '/../../slanger.rb')
       Thin::Logging.silent = true
       Slanger::Config.load host: '0.0.0.0', api_port: '4567', websocket_port: '8080', app_key: '765ec374ae0a69f4ce44', secret: 'your-pusher-secret'
+      Slanger::Applications.add('your-pusher-app-id', '765ec374ae0a69f4ce44', 'your-pusher-secret')
       Slanger::Service.run
     end
     # Give Slanger a chance to start
