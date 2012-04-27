@@ -35,7 +35,10 @@ module Slanger
       end
 
     rescue JSON::ParserError
-      error({ code: '5001', message: "Invalid JSON" })
+      error({ code: 5001, message: "Invalid JSON" })
+
+    rescue Exception => e
+      error({ code: 500, message: "#{e.message}\n #{e.backtrace}" })
     end
 
     def onclose
