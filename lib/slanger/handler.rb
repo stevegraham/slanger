@@ -22,20 +22,25 @@ module Slanger
     # Dispatches message handling to method with same name as
     # the event name
     def onmessage(msg)
-      msg   = JSON.parse msg
-      event = msg['event'].gsub(/^pusher:/, 'pusher_')
+      begin
+        msg   = JSON.parse msg
+        event = msg['event'].gsub(/^pusher:/, 'pusher_')
 
-      if event =~ /^client-/
-        msg['socket_id'] = @socket_id
-        Channel.send_client_message msg
-      elsif respond_to? event, true
-        send event, msg
+        if event =~ /^client-/
+          msg['socket_id'] = @socket_id
+          Channel.send_client_message msg
+        elsif respond_to? event, true
+          send event, msg
+        end
+
+      rescue Exception => e
+        case e
+        when JSON::ParserError
+          error({ code: 5001, message: "Invalid JSON" })
+        else
+          error({ code: 500, message: "#{e.message}\n #{e.backtrace}" })
+        end
       end
-
-    rescue JSON::ParserError
-      error({ code: 5001, message: "Invalid JSON" })
-    rescue Exception => e
-      error({ code: 500, message: "#{e.message}\n #{e.backtrace}" })
     end
 
     def onclose
