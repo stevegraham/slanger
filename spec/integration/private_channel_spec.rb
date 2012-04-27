@@ -53,8 +53,6 @@ describe 'Integration' do
           client1, client2 = new_websocket, new_websocket
           client2_messages, client1_messages = [], []
 
-          client1.callback {}
-
           stream(client1, client1_messages) do |message|
             case client1_messages.length
             when 1
@@ -63,8 +61,6 @@ describe 'Integration' do
               EM.stop
             end
           end
-
-          client2.callback {}
 
           stream(client2, client2_messages) do |message|
             case client2_messages.length
