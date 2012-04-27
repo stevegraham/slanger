@@ -114,8 +114,8 @@ module Slanger
         socket_id = msg.delete 'socket_id'
         @socket.send msg.to_json unless socket_id == @socket_id
       end
-      Logger.debug log_message("Subscribed to channel: " + channel_id + " subscriptions id: " + subscription_id)
-      Logger.audit log_message("Subscribed to channel: " + channel_id + " subscriptions id: " + subscription_id)
+      Logger.debug log_message("Subscribed to channel: " + channel_id.to_s + " subscriptions id: " + subscription_id.to_s)
+      Logger.audit log_message("Subscribed to channel: " + channel_id.to_s + " subscriptions id: " + subscription_id.to_s)
     end
 
     # Validate authentication token for private channel and add connection to channel subscribers if it checks out
