@@ -30,7 +30,7 @@ module EventMachineHelperMethods
     opts = { port: 8080 }.update opts
     begin
       TCPSocket.new '0.0.0.0', opts[:port]
-    rescue
+    rescue SystemCallError
       sleep 0.1
       retry
     end
