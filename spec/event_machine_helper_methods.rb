@@ -16,6 +16,7 @@ module EventMachineHelperMethods
 
       Slanger::Service.run
     end
+    wait_for_slanger
   end
 
   alias start_slanger start_slanger_with_options

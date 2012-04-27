@@ -3,10 +3,7 @@ require 'spec/spec_helper'
 
 describe 'Integration' do
 
-  before(:each) do
-    start_slanger
-    wait_for_slanger
-  end
+  before(:each) { start_slanger }
 
   describe 'private channels' do
     context 'with valid authentication credentials:' do

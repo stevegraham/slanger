@@ -3,10 +3,7 @@ require 'spec/spec_helper'
 
 describe 'Integration:' do
 
-  before(:each) do
-    start_slanger
-    wait_for_slanger
-  end
+  before(:each) { start_slanger }
 
   describe 'channel' do
     it 'pushes messages to interested websocket connections' do
