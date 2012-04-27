@@ -8,7 +8,6 @@ require 'fiber'
 
 module Slanger
   class Handler
-    include PusherMethods
 
     attr_accessor :connection
     delegate :error, :establish, :send_payload, to: :connection
@@ -23,23 +22,67 @@ module Slanger
     # Dispatches message handling to method with same name as
     # the event name
     def onmessage(msg)
-      msg   = JSON.parse msg
-      event = msg['event'].gsub(/^pusher:/, 'pusher_')
+      begin
+        msg   = JSON.parse msg
+        event = msg['event'].gsub(/^pusher:/, 'pusher_')
 
-      if event =~ /^client-/
-        msg['socket_id'] = @socket_id
+        if event =~ /^client-/
+          msg['socket_id'] = @socket_id
+          Channel.send_client_message msg
+        elsif respond_to? event, true
+          send event, msg
+        end
 
-        Channel.send_client_message msg
-      elsif respond_to? event, true
-        send event, msg
+      rescue Exception => e
+        case e
+        when JSON::ParserError
+          error({ code: 5001, message: "Invalid JSON" })
+        else
+          error({ code: 500, message: "#{e.message}\n #{e.backtrace}" })
+        end
       end
-
-    rescue JSON::ParserError
-      error({ code: '5001', message: "Invalid JSON" })
     end
 
     def onclose
       @subscriptions.each { |c, s| Channel.unsubscribe c, s }
+    end
+
+    def authenticate
+      return establish if valid_app_key? app_key
+
+      error({ code: '4001', message: "Could not find app by key #{app_key}" })
+      @socket.close_websocket
+    end
+
+    def pusher_ping(msg)
+      send_payload nil, 'pusher:ping'
+    end
+
+    def pusher_pong msg; end
+
+    def pusher_subscribe(msg)
+      channel_id = msg['data']['channel']
+      klass      = subscription_klass channel_id
+
+      @subscriptions[channel_id] = klass.new(connection.socket, connection.socket_id, msg).subscribe
+    end
+
+    private
+
+    def app_key
+      @socket.request['path'].split(/\W/)[2]
+    end
+
+    def valid_app_key? app_key
+      Slanger::Config.app_key == app_key
+    end
+
+    def subscription_klass channel_id
+      klass = channel_id.match(/^(private|presence)-/) do |match|
+        Slanger.const_get "#{match[1]}_subscription".classify
+      end
+
+      klass || Slanger::Subscription
     end
   end
 end

@@ -28,19 +28,20 @@ module EventMachineHelperMethods
      Process.wait @server_pid
   end
 
-  def new_websocket
-    uri = "ws://0.0.0.0:8080/app/#{Pusher.key}?client=js&version=1.8.5"
+  def new_websocket opts = {}
+    opts = { key: Pusher.key }.update opts
+    uri = "ws://0.0.0.0:8080/app/#{opts[:key]}?client=js&version=1.8.5"
 
     EM::HttpRequest.new(uri).get(:timeout => 0).tap do |ws|
       ws.errback &errback
     end
   end
 
-  def em_stream
+  def em_stream opts = {}
     messages = []
 
     em_thread do
-      websocket = new_websocket
+      websocket = new_websocket opts
 
       stream(websocket, messages) do |message|
         yield websocket, messages

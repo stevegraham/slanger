@@ -1,5 +1,4 @@
 require 'spec/spec_helper'
-require 'lib/slanger/pusher_methods.rb'
 require 'lib/slanger/handler.rb'
 
 class ReplacedHandler < Slanger::Handler

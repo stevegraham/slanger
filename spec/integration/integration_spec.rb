@@ -5,6 +5,17 @@ describe 'Integration' do
 
   before(:each) { start_slanger }
 
+  context "connecting with invalid credentials" do
+    it "sends an error message" do
+      messages = em_stream(key: 'bogus_key') do |websocket, messages|
+        websocket.callback { EM.stop }
+      end
+      messages.should have_attributes count: 1, last_event: 'pusher:error',
+        connection_established: false, id_present: false
+      messages.first['data'] == 'Could not find app by key bogus_key'
+    end
+  end
+
   context "given invalid JSON as input" do
     it 'should not crash' do
       messages  = em_stream do |websocket, messages|
