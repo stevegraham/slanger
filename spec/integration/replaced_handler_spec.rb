@@ -11,6 +11,7 @@ end
 describe 'Replacable handler' do
   it 'says welcome' do
     start_slanger_with_options socket_handler: ReplacedHandler
+    wait_for_slanger
 
     msgs = em_stream do |websocket, messages|
       if messages.length == 2

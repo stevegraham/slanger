@@ -7,6 +7,7 @@ describe 'Integration' do
         cert_chain_file:  'spec/server.crt',
         private_key_file: 'spec/server.key'
       }
+      wait_for_slanger
 
       socket                 = TCPSocket.new('0.0.0.0', 8080)
       expected_cert          = OpenSSL::X509::Certificate.new(File.open('spec/server.crt'))

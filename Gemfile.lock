@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    slanger (0.1.1)
+    slanger (0.2.1)
       activesupport (~> 3.1.0)
       em-hiredis (~> 0.1.0)
       em-http-request (~> 0.3.0)
@@ -19,10 +19,10 @@ GEM
   specs:
     activesupport (3.1.1)
       multi_json (~> 1.0)
-    addressable (2.2.6)
+    addressable (2.2.7)
     columnize (0.3.6)
     crack (0.1.8)
-    daemons (1.1.4)
+    daemons (1.1.8)
     debugger (1.1.1)
       columnize (>= 0.3.1)
       debugger-linecache (~> 1.1)
@@ -42,7 +42,6 @@ GEM
       eventmachine (>= 0.12.9)
     escape_utils (0.2.4)
     eventmachine (0.12.10)
-    eventmachine (0.12.10-java)
     glamazon (0.3.1)
       activesupport (>= 3.1.0)
       i18n (~> 0.6.0)

@@ -16,8 +16,6 @@ module EventMachineHelperMethods
 
       Slanger::Service.run
     end
-    # Give Slanger a chance to start
-    sleep 0.6
   end
 
   alias start_slanger start_slanger_with_options
@@ -26,6 +24,16 @@ module EventMachineHelperMethods
     # Ensure Slanger is properly stopped. No orphaned processes allowed!
      Process.kill 'SIGKILL', @server_pid
      Process.wait @server_pid
+  end
+
+  def wait_for_slanger opts = {}
+    opts = { port: 8080 }.update opts
+    begin
+      TCPSocket.new '0.0.0.0', opts[:port]
+    rescue
+      sleep 0.1
+      retry
+    end
   end
 
   def new_websocket opts = {}

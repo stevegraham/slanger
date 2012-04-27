@@ -3,7 +3,10 @@ require 'spec/spec_helper'
 
 describe 'Integration' do
 
-  before(:each) { start_slanger }
+  before(:each) do
+    start_slanger
+    wait_for_slanger
+  end
 
   context "connecting with invalid credentials" do
     it "sends an error message" do
