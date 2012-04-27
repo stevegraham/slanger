@@ -8,6 +8,9 @@ require 'active_support/core_ext/string'
 
 module Slanger; end
 
+EM.epoll
+EM.kqueue
+
 EM.run do
   File.tap do |f|
     Dir[f.expand_path(f.join(f.dirname(__FILE__),'lib', 'slanger', '*.rb'))].each do |file|

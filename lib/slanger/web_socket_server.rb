@@ -4,6 +4,9 @@ require 'em-websocket'
 module Slanger
   module WebSocketServer
     def run
+      EM.epoll
+      EM.kqueue
+
       EM.run do
         options = {
           host:    Slanger::Config[:websocket_host],

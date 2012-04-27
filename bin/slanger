@@ -66,6 +66,9 @@ if options[:tls_options]
   end
 end
 
+EM.epoll
+EM.kqueue
+
 EM.run do
   File.tap { |f| require f.expand_path(f.join(f.dirname(__FILE__),'..', 'slanger.rb')) }
   Slanger::Config.load options
