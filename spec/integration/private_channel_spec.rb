@@ -18,9 +18,9 @@ describe 'Integration' do
         end
 
         messages.should have_attributes connection_established: true,
-                                        count: 2,
-                                        id_present: true,
-                                        last_event: 'pusher_internal:subscription_succeeded'
+          count: 2,
+          id_present: true,
+          last_event: 'pusher_internal:subscription_succeeded'
       end
     end
 
@@ -57,8 +57,8 @@ describe 'Integration' do
             case client1_messages.length
             when 1
               private_channel client1, client1_messages.first
-            else
-              EM.stop
+            when 3
+              EM.next_tick { EM.stop }
             end
           end
 
@@ -72,9 +72,9 @@ describe 'Integration' do
           end
         end
 
-        client1_messages.none? { |m| m['event'] == 'client-something' }
-        client2_messages.one?  { |m| m['event'] == 'client-something' }
+        client1_messages.one? { |m| m['event'] == 'client-something' }.should be_true
+        client2_messages.none?  { |m| m['event'] == 'client-something' }.should be_true
       end
     end
   end
- end
+end
