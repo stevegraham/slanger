@@ -126,12 +126,12 @@ Pusher is an awesome service, very reasonably priced, and run by an awesome crew
 
 - Stevie Graham
 
-## Core Team
+# Core Team
 
 - Stevie Graham
 - Mark Burns
 
-## Contributors
+# Contributors
 
 - Stevie Graham
 - Mark Burns
