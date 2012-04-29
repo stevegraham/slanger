@@ -44,7 +44,7 @@ module Slanger
     # Only events to channels requiring authentication (private or presence)
     # are accepted. Public channels only get events from the API.
     def send_client_message(message)
-      push message.to_json if authenticated?
+      Slanger::Redis.publish(message['channel'], message.to_json) if authenticated?
     end
 
     # Send an event received from Redis to the EventMachine channel
