@@ -32,7 +32,7 @@ module EventMachineHelperMethods
     begin
       TCPSocket.new('0.0.0.0', opts[:port]).close
     rescue
-      sleep 0.1
+      sleep 0.005
       retry
     end
   end
