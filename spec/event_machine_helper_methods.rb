@@ -41,9 +41,7 @@ module EventMachineHelperMethods
     opts = { key: Pusher.key }.update opts
     uri = "ws://0.0.0.0:8080/app/#{opts[:key]}?client=js&version=1.8.5"
 
-    EM::HttpRequest.new(uri).get(:timeout => 0).tap do |ws|
-      ws.errback &errback
-    end
+    EM::HttpRequest.new(uri).get.tap { |ws| ws.errback &errback }
   end
 
   def em_stream opts = {}
