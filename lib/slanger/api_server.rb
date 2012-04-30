@@ -36,9 +36,12 @@ module Slanger
 
     def payload
       payload = {
-        event: params['name'], data: request.body.read.tap { |s| s.force_encoding('utf-8') }, channel: params[:channel_id], socket_id: params[:socket_id]
+        event:     params['name'],
+        data:      request.body.read.tap{ |s| s.force_encoding('utf-8') },
+        channel:   params[:channel_id],
+        socket_id: params[:socket_id]
       }
-      Hash[payload.reject { |k,v| v.nil? }].to_json
+      Hash[payload.reject { |_,v| v.nil? }].to_json
     end
   end
 end
