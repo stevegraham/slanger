@@ -10,7 +10,7 @@ module Slanger
   class Handler
 
     attr_accessor :connection
-    delegate :error, :establish, :send_payload, to: :connection
+    delegate :error, :send_payload, to: :connection
 
     def initialize(socket)
       @socket        = socket
@@ -43,7 +43,7 @@ module Slanger
     end
 
     def authenticate
-      return establish if valid_app_key? app_key
+      return connection.establish if valid_app_key? app_key
 
       error({ code: 4001, message: "Could not find app by key #{app_key}" })
       @socket.close_websocket
