@@ -16,7 +16,7 @@ Gem::Specification.new do |s|
   s.add_dependency                'em-websocket',     '~> 0.3.5'
   s.add_dependency                'rack',             '~> 1.3.3'
   s.add_dependency                'rack-fiber_pool',  '0.9.1'
-  s.add_dependency                'signature',        '~> 0.1.2'
+  s.add_dependency                'signature',        '~> 0.1.3'
   s.add_dependency                'activesupport',    '~> 3.1.0'
   s.add_dependency                'glamazon',         '~> 0.3.1'
   s.add_dependency                'sinatra',          '~> 1.2.6'
