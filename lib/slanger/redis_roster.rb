@@ -6,7 +6,7 @@ class RedisRoster
   def subscribe channel_data
     public_subscription_id = SecureRandom.uuid
 
-    add                public_subscription_id, channel_data
+    add public_subscription_id, channel_data
     publisher = publish_connection public_subscription_id, channel_data
 
     return publisher, public_subscription_id
@@ -51,6 +51,7 @@ class RedisRoster
   def update_internal_table public_subscription_id, internal_id
     internal_subscription_table[public_subscription_id] = internal_id
   end
+
   private
 
   def publish_connection_notification(payload, retry_count=0)
