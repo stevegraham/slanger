@@ -39,7 +39,7 @@ module Slanger
       publisher = publish_connection(public_subscription_id, channel_data, channel_id)
 
       # Associate the subscription data to the public id in Redis.
-      roster.add public_subscription_id, channel_data
+      redis_roster.add public_subscription_id, channel_data
 
       # fuuuuuuuuuccccccck!
       publisher.callback do
@@ -66,44 +66,42 @@ module Slanger
       # Unsubcribe from EM::Channel
       em_channel.unsubscribe(internal_subscription_table.delete(public_subscription_id)) # if internal_subscription_table[public_subscription_id]
 
-      # Remove subscription data from Redis
-      roster.remove public_subscription_id
+      redis_roster.remove public_subscription_id
 
-      # Notify all instances
-      publish_disconnection public_subscription_id, channel_id
+      publish_redis_disconnection public_subscription_id, channel_id
     end
 
     private
 
-    def roster
-      @roster ||= Roster.new channel_id
+    def redis_roster
+      @redis_roster ||= RedisRoster.new channel_id
     end
 
-    def publish_connection public_subscription_id, channel_data, channel_id
-      publish_connection_notification subscription_id: public_subscription_id,
+    def publish_redis_connection public_subscription_id, channel_data, channel_id
+      publish_redis_connection_notification subscription_id: public_subscription_id,
         online: true,
         channel_data: channel_data,
         channel: channel_id
     end
 
-    def publish_disconnection public_subscription_id, channel_id
-      publish_connection_notification subscription_id: public_subscription_id,
+    def publish_redis_disconnection public_subscription_id, channel_id
+      publish_redis_connection_notification subscription_id: public_subscription_id,
                                       online: false,
                                       channel: channel_id
 
     end
 
-    def publish_connection_notification(payload, retry_count=0)
+    def publish_redis_connection_notification(payload, retry_count=0)
       # Send a subscription notification to the global slanger:connection_notification
       # channel.
       Slanger::Redis.publish('slanger:connection_notification', payload.to_json).
-        tap { |r| r.errback { publish_connection_notification payload, retry_count.succ unless retry_count == 5 } }
+        tap { |r| r.errback { publish_redis_connection_notification payload, retry_count.succ unless retry_count == 5 } }
     end
 
     # This is the state of the presence channel across the system. kept in sync
     # with redis pubsub
     def subscriptions
-      @subscriptions ||= roster.get || {}
+      @subscriptions ||= redis_roster.get || {}
     end
 
     # This is used map public subscription ids to em channel subscription ids.

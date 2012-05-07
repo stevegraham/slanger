@@ -1,4 +1,4 @@
-class Roster
+class RedisRoster
   def initialize channel_id
     @channel_id = channel_id
   end
