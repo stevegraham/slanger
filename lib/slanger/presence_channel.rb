@@ -13,7 +13,6 @@ require 'fiber'
 module Slanger
   class PresenceChannel < Channel
     def_delegators :em_channel, :push
-    def_delegators :redis_roster, :publish_connection, :publish_disconnection
 
     # Send an event received from Redis to the EventMachine channel
     def dispatch(message, channel_id)
@@ -42,7 +41,7 @@ module Slanger
       publisher.callback do
         EM.next_tick do
           subscription_succeeded_callback.call
-          em_channel_subscribe blk
+          em_channel_subscribe public_subscription_id, blk
         end
       end
 
@@ -56,7 +55,7 @@ module Slanger
     def unsubscribe(public_subscription_id)
       em_channel.unsubscribe(internal_subscription_table.delete(public_subscription_id)) # if internal_subscription_table[public_subscription_id]
 
-      roster.unsubscribe public_subscription_id
+      redis_roster.unsubscribe public_subscription_id
     end
 
     def ids
