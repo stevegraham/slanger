@@ -40,20 +40,17 @@ module Slanger
       publisher.callback do
         EM.next_tick do
           subscription_succeeded_callback.call
-          em_channel_subscribe public_subscription_id, blk
+          internal_id = em_channel.subscribe &blk
+
+          redis_roster.update_internal_table public_subscription_id, internal_id
         end
       end
 
       public_subscription_id
     end
 
-    def em_channel_subscribe public_subscription_id, blk
-      internal_subscription_table[public_subscription_id] = em_channel.subscribe &blk
-    end
-
     def unsubscribe(public_subscription_id)
-      em_channel.unsubscribe(internal_subscription_table.delete(public_subscription_id)) # if internal_subscription_table[public_subscription_id]
-
+      em_channel.  unsubscribe public_subscription_id
       redis_roster.unsubscribe public_subscription_id
     end
 
@@ -75,13 +72,6 @@ module Slanger
     # with redis pubsub
     def subscriptions
       @subscriptions ||= redis_roster.get || {}
-    end
-
-    # This is used map public subscription ids to em channel subscription ids.
-    # em channel subscription ids are incremented integers, so they cannot
-    # be used as keys in distributed system because they will not be unique
-    def internal_subscription_table
-      @internal_subscription_table ||= {}
     end
 
     def update_subscribers(message)
