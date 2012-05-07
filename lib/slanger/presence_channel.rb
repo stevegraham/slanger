@@ -36,9 +36,6 @@ module Slanger
 
       publisher, public_subscription_id = redis_roster.subscribe channel_data
 
-      # Associate the subscription data to the public id in Redis.
-      roster_add public_subscription_id, channel_data
-
       publisher.callback do
         EM.next_tick do
           subscription_succeeded_callback.call
