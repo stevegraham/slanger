@@ -9,7 +9,9 @@ module Slanger
         })
       end
 
-      channel.subscribe(@msg, callback) { |m| connection.send_message m }
+      channel.subscribe(@msg, subscription_succeeded_callback) do |m|
+        connection.send_message m
+      end
     end
 
     private
@@ -18,7 +20,7 @@ module Slanger
       @msg['data']['channel_data']
     end
 
-    def callback
+    def subscription_succeeded_callback
       Proc.new {
         connection.send_payload(channel_id, 'pusher_internal:subscription_succeeded', {
           presence: {

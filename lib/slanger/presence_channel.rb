@@ -12,11 +12,11 @@ require 'fiber'
 
 module Slanger
   class PresenceChannel < Channel
-    def_delegators :channel, :push
+    def_delegators :em_channel, :push
 
     # Send an event received from Redis to the EventMachine channel
-    def dispatch(message, channel)
-      if channel =~ /^slanger:/
+    def dispatch(message, channel_id)
+      if channel_id =~ /^slanger:/
         # Messages received from the Redis channel slanger:*  carry info on
         # subscriptions. Update our subscribers accordingly.
         update_subscribers message
@@ -31,13 +31,12 @@ module Slanger
       Slanger::Redis.subscribe 'slanger:connection_notification'
     end
 
-    def subscribe(msg, callback, &blk)
+    def subscribe(msg, subscription_succeeded_callback, &blk)
       channel_data = JSON.parse msg['data']['channel_data']
       public_subscription_id = SecureRandom.uuid
 
       # Send event about the new subscription to the Redis slanger:connection_notification Channel.
-      publisher = publish_connection_notification subscription_id: public_subscription_id, online: true,
-        channel_data: channel_data, channel: channel_id
+      publisher = publish_connection(public_subscription_id, channel_data, channel_id)
 
       # Associate the subscription data to the public id in Redis.
       roster.add public_subscription_id, channel_data
@@ -45,11 +44,10 @@ module Slanger
       # fuuuuuuuuuccccccck!
       publisher.callback do
         EM.next_tick do
-          # The Subscription event has been sent to Redis successfully.
-          # Call the provided callback.
-          callback.call
-          # Add the subscription to our table.
-          internal_subscription_table[public_subscription_id] = channel.subscribe &blk
+          subscription_succeeded_callback.call
+          # Actually do the EM::Channel#subscribe and
+          # add the subscription to our table.
+          internal_subscription_table[public_subscription_id] = em_channel.subscribe &blk
         end
       end
 
@@ -66,21 +64,33 @@ module Slanger
 
     def unsubscribe(public_subscription_id)
       # Unsubcribe from EM::Channel
-      channel.unsubscribe(internal_subscription_table.delete(public_subscription_id)) # if internal_subscription_table[public_subscription_id]
+      em_channel.unsubscribe(internal_subscription_table.delete(public_subscription_id)) # if internal_subscription_table[public_subscription_id]
 
       # Remove subscription data from Redis
       roster.remove public_subscription_id
 
       # Notify all instances
-      publish_connection_notification subscription_id: public_subscription_id,
-                                      online: false,
-                                      channel: channel_id
+      publish_disconnection public_subscription_id, channel_id
     end
 
     private
 
     def roster
       @roster ||= Roster.new channel_id
+    end
+
+    def publish_connection public_subscription_id, channel_data, channel_id
+      publish_connection_notification subscription_id: public_subscription_id,
+        online: true,
+        channel_data: channel_data,
+        channel: channel_id
+    end
+
+    def publish_disconnection public_subscription_id, channel_id
+      publish_connection_notification subscription_id: public_subscription_id,
+                                      online: false,
+                                      channel: channel_id
+
     end
 
     def publish_connection_notification(payload, retry_count=0)

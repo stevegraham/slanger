@@ -12,12 +12,12 @@ class Roster
     end.resume
   end
 
-  def add key, value
-    Slanger::Redis.hset(channel_id, key, value)
+  def add public_subscription_id, uuid
+    Slanger::Redis.hset(channel_id, public_subscription_id, uuid)
   end
 
-  def remove key
-    Slanger::Redis.hdel(channel_id, key)
+  def remove public_subscription_id
+    Slanger::Redis.hdel(channel_id, public_subscription_id)
   end
 
   private
