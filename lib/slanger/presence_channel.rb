@@ -36,32 +36,28 @@ module Slanger
       channel_data = JSON.parse msg['data']['channel_data']
       public_subscription_id = SecureRandom.uuid
 
-      # Send event about the new subscription to the Redis slanger:connection_notification Channel.
-      publisher = publish_connection(public_subscription_id, channel_data)
-
-      redis_roster.add public_subscription_id, channel_data
+      publisher = redis_roster.subscribe public_subscription_id, channel_data
 
       # fuuuuuuuuuccccccck!
       publisher.callback do
         EM.next_tick do
           subscription_succeeded_callback.call
-          # Actually do the EM::Channel#subscribe and
-          # add the subscription to our table.
-          internal_subscription_table[public_subscription_id] = em_channel.subscribe &blk
+          em_channel_subscribe blk
         end
       end
 
       public_subscription_id
     end
 
+    def em_channel_subscribe public_subscription_id, blk
+      internal_subscription_table[public_subscription_id] = em_channel.subscribe &blk
+    end
+
     def unsubscribe(public_subscription_id)
       em_channel.unsubscribe(internal_subscription_table.delete(public_subscription_id)) # if internal_subscription_table[public_subscription_id]
 
-      redis_roster.remove public_subscription_id
-
-      publish_disconnection public_subscription_id
+      roster.unsubscribe public_subscription_id
     end
-
 
     def ids
       subscriptions.map { |_,v| v['user_id'] }

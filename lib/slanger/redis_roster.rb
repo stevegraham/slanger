@@ -3,6 +3,16 @@ class RedisRoster
     @channel_id = channel_id
   end
 
+  def subscribe public_subscription_id, channel_data
+    add                public_subscription_id, channel_data
+    publish_connection public_subscription_id, channel_data
+  end
+
+  def unsubscribe public_subscription_id
+    remove public_subscription_id
+    publish_disconnection public_subscription_id
+  end
+
   def get
     Fiber.new do
       f = Fiber.current
