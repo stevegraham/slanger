@@ -13,6 +13,7 @@ require 'fiber'
 module Slanger
   class PresenceChannel < Channel
     def_delegators :em_channel, :push
+    def_delegators :redis_roster, :publish_connection, :publish_disconnection
 
     # Send an event received from Redis to the EventMachine channel
     def dispatch(message, channel_id)
@@ -36,7 +37,7 @@ module Slanger
       public_subscription_id = SecureRandom.uuid
 
       # Send event about the new subscription to the Redis slanger:connection_notification Channel.
-      publisher = publish_redis_connection(public_subscription_id, channel_data, channel_id)
+      publisher = publish_connection(public_subscription_id, channel_data)
 
       redis_roster.add public_subscription_id, channel_data
 
@@ -53,6 +54,15 @@ module Slanger
       public_subscription_id
     end
 
+    def unsubscribe(public_subscription_id)
+      em_channel.unsubscribe(internal_subscription_table.delete(public_subscription_id)) # if internal_subscription_table[public_subscription_id]
+
+      redis_roster.remove public_subscription_id
+
+      publish_disconnection public_subscription_id
+    end
+
+
     def ids
       subscriptions.map { |_,v| v['user_id'] }
     end
@@ -61,40 +71,10 @@ module Slanger
       Hash[subscriptions.map { |_,v| [v['user_id'], v['user_info']] }]
     end
 
-    def unsubscribe(public_subscription_id)
-      # Unsubcribe from EM::Channel
-      em_channel.unsubscribe(internal_subscription_table.delete(public_subscription_id)) # if internal_subscription_table[public_subscription_id]
-
-      redis_roster.remove public_subscription_id
-
-      publish_redis_disconnection public_subscription_id, channel_id
-    end
-
     private
 
     def redis_roster
       @redis_roster ||= RedisRoster.new channel_id
-    end
-
-    def publish_redis_connection public_subscription_id, channel_data, channel_id
-      publish_redis_connection_notification subscription_id: public_subscription_id,
-        online: true,
-        channel_data: channel_data,
-        channel: channel_id
-    end
-
-    def publish_redis_disconnection public_subscription_id, channel_id
-      publish_redis_connection_notification subscription_id: public_subscription_id,
-                                      online: false,
-                                      channel: channel_id
-
-    end
-
-    def publish_redis_connection_notification(payload, retry_count=0)
-      # Send a subscription notification to the global slanger:connection_notification
-      # channel.
-      Slanger::Redis.publish('slanger:connection_notification', payload.to_json).
-        tap { |r| r.errback { publish_redis_connection_notification payload, retry_count.succ unless retry_count == 5 } }
     end
 
     # This is the state of the presence channel across the system. kept in sync
