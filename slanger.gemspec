@@ -28,6 +28,8 @@ Gem::Specification.new do |s|
   s.add_development_dependency    'haml',             '~> 3.1.2'
   s.add_development_dependency    'rake'
   s.add_development_dependency    'debugger'
+  s.add_development_dependency    'simplecov'
+
 
   s.files                       = Dir['README.md', 'lib/**/*', 'slanger.rb']
   s.require_path                = '.'

@@ -9,6 +9,10 @@ require 'thin'
 require 'event_machine_helper_methods'
 require 'openssl'
 require 'socket'
+require 'simplecov'
+
+SimpleCov.start
+
 
 def errback
   @errback ||= Proc.new { |e| fail 'cannot connect to slanger. your box might be too slow. try increasing sleep value in the before block' }
