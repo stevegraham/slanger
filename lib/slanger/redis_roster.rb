@@ -3,9 +3,13 @@ class RedisRoster
     @channel_id = channel_id
   end
 
-  def subscribe public_subscription_id, channel_data
+  def subscribe channel_data
+    public_subscription_id = SecureRandom.uuid
+
     add                public_subscription_id, channel_data
-    publish_connection public_subscription_id, channel_data
+    publisher = publish_connection public_subscription_id, channel_data
+
+    return publisher, public_subscription_id
   end
 
   def unsubscribe public_subscription_id

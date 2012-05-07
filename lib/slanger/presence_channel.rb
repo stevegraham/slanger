@@ -33,9 +33,8 @@ module Slanger
 
     def subscribe(msg, subscription_succeeded_callback, &blk)
       channel_data = JSON.parse msg['data']['channel_data']
-      public_subscription_id = SecureRandom.uuid
 
-      publisher = redis_roster.subscribe public_subscription_id, channel_data
+      publisher, public_subscription_id = redis_roster.subscribe channel_data
 
       # fuuuuuuuuuccccccck!
       publisher.callback do
