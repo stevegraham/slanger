@@ -36,9 +36,8 @@ module Slanger
       public_subscription_id = SecureRandom.uuid
 
       # Send event about the new subscription to the Redis slanger:connection_notification Channel.
-      publisher = publish_connection(public_subscription_id, channel_data, channel_id)
+      publisher = publish_redis_connection(public_subscription_id, channel_data, channel_id)
 
-      # Associate the subscription data to the public id in Redis.
       redis_roster.add public_subscription_id, channel_data
 
       # fuuuuuuuuuccccccck!
