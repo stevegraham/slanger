@@ -36,6 +36,7 @@ module Slanger
 
       publisher, public_subscription_id = redis_roster.subscribe channel_data
 
+      # fuuuuuuuuuccccccck!
       publisher.callback do
         EM.next_tick do
           subscription_succeeded_callback.call
