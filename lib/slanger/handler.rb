@@ -185,7 +185,10 @@ module Slanger
         port, ip = Socket.unpack_sockaddr_in(peername) 
         result += "Peer: " + ip + ":" + port.to_s
       end     
-      result += "socket_id: " + @socket_id + " " + msg unless @socket_id.nil?
+      unless @socket_id.nil?
+        result += "socket_id: " + @socket_id
+      end
+      result += " " + msg
     end
   end
 end
