@@ -26,6 +26,9 @@ module Slanger
               ws.connection_handler.onclose
             end.resume
           end
+          ws.onerror do |message|
+            Logger.error("Websocket error: " + message)
+          end
         end
       end
     end
