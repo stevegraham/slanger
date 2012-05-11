@@ -129,15 +129,15 @@ OptionParser.new do |opts|
     options[:mongo] = param_mongo
   end
 
-  opts.on '--mongo-host', 'Mongodb host' do |p|
+  opts.on '--mongo-host HOST', 'Mongodb host' do |p|
     options[:mongo_host] = p
   end
 
-  opts.on '--mongo-port', 'Mongodb port' do |p|
+  opts.on '--mongo-port PORT', 'Mongodb port' do |p|
     options[:mongo_port] = Integer(p)
   end
 
-  opts.on '--mongo-db', 'Mongodb database' do |p|
+  opts.on '--mongo-db DB', 'Mongodb database' do |p|
     options[:mongo_db] = p
   end
 
