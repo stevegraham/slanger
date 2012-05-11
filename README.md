@@ -1,12 +1,12 @@
-# Slanger
+# Jagan
 
-Slanger is an open source server implementation of the Pusher protocol written in Ruby. It is designed to scale horizontally across N nodes and to be agnostic as to which Slanger node a subscriber is connected to, i.e subscribers to the same channel are NOT required to be connected to the same Slanger node. Multiple Slanger nodes can sit behind a load balancer with no special configuration. In essence it was designed to be very easy to scale.
+Jagan is an open source server implementation of the Pusher protocol written in Ruby. It is designed to scale horizontally across N nodes and to be agnostic as to which Jagan node a subscriber is connected to, i.e subscribers to the same channel are NOT required to be connected to the same Jagan node. Multiple Jagan nodes can sit behind a load balancer with no special configuration. In essence it was designed to be very easy to scale.
 
-Presence channel state is shared using Redis. Channels are lazily instantiated internally within a given Slanger node when the first subscriber connects. When a presence channel is instantiated within a Slanger node, it queries Redis for the global state across all nodes within the system for that channel, and then copies that state internally. Afterwards, when subscribers connect or disconnect the node publishes a presence message to all interested nodes, i.e. all nodes with at least one subscriber interested in the given channel.
+Presence channel state is shared using Redis. Channels are lazily instantiated internally within a given Jagan node when the first subscriber connects. When a presence channel is instantiated within a Jagan node, it queries Redis for the global state across all nodes within the system for that channel, and then copies that state internally. Afterwards, when subscribers connect or disconnect the node publishes a presence message to all interested nodes, i.e. all nodes with at least one subscriber interested in the given channel.
 
-Slanger is smart enough to know if a new channel subscription belongs to the same user. It will not send presence messages to subscribers in this case. This happens when the user has multiple browser tabs open for example. Using a chat room backed by presence channels as a real example, one would not want "Barrington" to show up N times in the presence roster because Barrington is a retard and has the chat room open in N browser tabs.
+Jagan is smart enough to know if a new channel subscription belongs to the same user. It will not send presence messages to subscribers in this case. This happens when the user has multiple browser tabs open for example. Using a chat room backed by presence channels as a real example, one would not want "Barrington" to show up N times in the presence roster because Barrington is a retard and has the chat room open in N browser tabs.
 
-Slanger was designed to be highly available and partition tolerant with eventual consistency, which in practise is instantaneous.
+Jagan was designed to be highly available and partition tolerant with eventual consistency, which in practise is instantaneous.
 
 # How to use it
 
@@ -14,19 +14,18 @@ Slanger was designed to be highly available and partition tolerant with eventual
 
 - Ruby 1.9.2-p290 or greater
 - Redis
+- Mongodb
 
 ## Starting the service
 
-Slanger is packaged as a Rubygem. Installing the gem makes the 'slanger' executable available. The `slanger` executable takes arguments, of which two are mandatory: `--app_key` and `--secret`. These can but do not have to be the same as the credentials you use for Pusher. They are required because Slanger performs the same HMAC signing of API requests that Pusher does.
+Jagan is packaged as a Rubygem. Installing the gem makes the 'jagan' executable available. The `jagan` executable takes arguments, of which two are mandatory: `--app_key` and `--secret`. These can but do not have to be the same as the credentials you use for Pusher. They are required because Jagan performs the same HMAC signing of API requests that Pusher does.
 
-__IMPORTANT:__ Redis must be running where Slanger expects it to be (either on localhost:6379 or somewhere else you told Slanger it would be using the option flag) or Slanger will fail silently. I haven't yet figured out how to get em-hiredis to treat an unreachable host as an error
+__IMPORTANT:__ Redis must be running where Jagan expects it to be (either on localhost:6379 or somewhere else you told Jagan it would be using the option flag) or Jagan will fail silently. I haven't yet figured out how to get em-hiredis to treat an unreachable host as an error
 
 <pre>
-$ gem install slanger
-
 $ redis-server &> /dev/null &
 
-$ slanger --app_key 765ec374ae0a69f4ce44 --secret your-pusher-secret
+$ ./bin/slanger --app_key 765ec374ae0a69f4ce44 --secret your-pusher-secret --mongo on --statistics on --id Jagan1 --admin-http-user admin --admin-http-password Verysecret
 </pre>
 
 If all went to plan you should see the following output to STDOUT
@@ -46,14 +45,14 @@ If all went to plan you should see the following output to STDOUT
                                     "Y88P"
 
 
-Slanger API server listening on port 4567
-Slanger WebSocket server listening on port 8080
+Jagan API server listening on port 4567
+Jagan WebSocket server listening on port 8080
 
 </pre>
 
-## Modifying your application code to use the Slanger service
+## Modifying your application code to use the Jagan service
 
-Once you have a Slanger instance listening for incoming connections you need to alter you application code to use the Slanger endpoint instead of Pusher. Fortunately this is very simple, unobtrusive, easily reversable, and very painless.
+Once you have a Jagan instance listening for incoming connections you need to alter you application code to use the Jagan endpoint instead of Pusher. Fortunately this is very simple, unobtrusive, easily reversable, and very painless.
 
 
 First you will need to add code to your server side component that publishes events to the Pusher HTTP REST API, usually this means telling the Pusher client to use a different host and port, e.g. consider this Ruby example
@@ -61,7 +60,7 @@ First you will need to add code to your server side component that publishes eve
 <pre>
 ...
 
-Pusher.host   = 'slanger.example.com'
+Pusher.host   = 'jagan.example.com'
 Pusher.port   = 4567
 
 </pre>
@@ -73,17 +72,17 @@ You will also need to do the same to the Pusher JavaScript client in your client
 <script type="text/javascript">
   ...
 
-  Pusher.host    = 'slanger.example.com'
+  Pusher.host    = 'jagan.example.com'
   Pusher.ws_port = 8080
 
 </script>
 </pre>
 
-Of course you could proxy all requests to `ws.example.com` to port 8080 of your Slanger node and `api.example.com` to port 4567 of your Slanger node for example, that way you would only need to set the host property of the Pusher client.
+Of course you could proxy all requests to `ws.example.com` to port 8080 of your Jagan node and `api.example.com` to port 4567 of your Jagan node for example, that way you would only need to set the host property of the Pusher client.
 
 # Configuration Options
 
-Slanger supports several configuration options, which can be supplied as command line arguments at invocation.
+Jagan supports several configuration options, which can be supplied as command line arguments at invocation.
 
 <pre>
 -i or --app_id This is the Pusher app id you want to use. Optional.
@@ -96,9 +95,9 @@ Slanger supports several configuration options, which can be supplied as command
 
 --redis_write_address An address where there is a Redis server running where writes will be done. This is an optional argument.
 
--a or --api_host This is the address that Slanger will bind the HTTP REST API part of the service to. This is an optional argument and defaults to 0.0.0.0:4567
+-a or --api_host This is the address that Jagan will bind the HTTP REST API part of the service to. This is an optional argument and defaults to 0.0.0.0:4567
 
--w or --websocket_host This is the address that Slanger will bind the WebSocket part of the service to. This is an optional argument and defaults to 0.0.0.0:8080
+-w or --websocket_host This is the address that Jagan will bind the WebSocket part of the service to. This is an optional argument and defaults to 0.0.0.0:8080
 
 -l or --log-level This is the log level. Optional. Accepted values: fatal, error, warn, info, debug. Default: warn.
 
@@ -108,9 +107,9 @@ Slanger supports several configuration options, which can be supplied as command
 
 --api-log-file API server log file. Optional. Default: STDOUT.
 
--v or --[no-]verbose This makes Slanger run verbosely, meaning WebSocket frames will be echoed to STDOUT. Useful for debugging
+-v or --[no-]verbose This makes Jagan run verbosely, meaning WebSocket frames will be echoed to STDOUT. Useful for debugging
 
---id A unique identifier for this slanger daemon in a cluster. Optional.
+--id A unique identifier for this jagan daemon in a cluster. Optional.
 
 --statistics Statistics, on or off. Default: off. Number of concurrent connection and messages will be collected for each application.
 
@@ -120,7 +119,7 @@ Slanger supports several configuration options, which can be supplied as command
 
 --mongo-port Mongodb TCP port for the statistics. Default: 27017
 
---mongo-db Mongodb database name for the statistics. Defailt: slanger.
+--mongo-db Mongodb database name for the statistics. Defailt: jagan.
 
 --admin-http-user HTTP user for accessing statistics and applications.
 
@@ -130,23 +129,9 @@ Slanger supports several configuration options, which can be supplied as command
 # Statistics access
 
 Statistics can be accessed from these URL with GET requests:
-http://slanger.example.com/statistics/all_apps
-http://slanger.example.com/statistics/apps/myapp
+http://jagan.example.com/statistics/all_apps
+http://jagan.example.com/statistics/apps/myapp
 
-# Why use Slanger instead of Pusher?
-
-There a few reasons you might want to use Slanger instead of Pusher, e.g.
-
-- You operate in a heavily regulated industry and are worried about sending data to 3rd parties, and it is an organisational requirement that you own your own infrastructure.
-- You might be travelling on an airplane without internet connectivity as I am right now. Airplane rides are very good times to get a lot done, unfortunately external services are also usually unreachable. Remove internet connectivity as a dependency of your development envirionment by running a local Slanger instance in development and Pusher in production.
-- Remove the network dependency from your test suite.
-- You want to extend the Pusher protocol or have some special requirement. If this applies to you, chances are you are out of luck as Pusher is unlikely to implement something to suit your special use case, and rightly so. With Slanger you are free to modify and extend its behavior anyway that suits your purpose.
-
-# Why did you write Slanger
-
-I wanted to write a non-trivial evented app. I also want to write a book on evented programming in Ruby as I feel there is scant good information available on the topic and this project is handy to show publishers.
-
-Pusher is an awesome service, very reasonably priced, and run by an awesome crew. Give them a spin on your next project.
 
 &copy; 2011 a Stevie Graham joint.
 
