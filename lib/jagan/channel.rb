@@ -9,7 +9,7 @@ require 'glamazon'
 require 'eventmachine'
 require 'forwardable'
 
-module Slanger
+module Jagan
   class Channel
     include Glamazon::Base
     extend  Forwardable
@@ -20,7 +20,7 @@ module Slanger
       super
       # Subscribe to the redis channel, prefixed by the app_id so that two
       # applications don't get each other's messages.
-      Slanger::Redis.subscribe application.id + ":" + channel_id
+      Jagan::Redis.subscribe application.id + ":" + channel_id
       Logger.debug log_message("app_id: " + application.id + " Subscribed to Redis channel: " + channel_id)
     end
 
@@ -40,7 +40,7 @@ module Slanger
     # Send an event received from Redis to the EventMachine channel
     # which will send it to subscribed clients.
     def dispatch(message, channel)
-      unless channel =~ /^slanger:/
+      unless channel =~ /^jagan:/
         push(message.to_json)
         Logger.debug log_message("Message: " + message.to_s)
         Logger.audit log_message("Message: " + message.to_s)

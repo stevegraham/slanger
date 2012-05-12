@@ -2,10 +2,10 @@ require 'aquarium'
 require 'singleton'
 require 'socket'
 
-module Slanger
+module Jagan
   class ClusterSingleton
     include Singleton
-    if Slanger::Config.cluster
+    if Jagan::Config.cluster
       include Aquarium::DSL
 
       def is_master?()
@@ -14,12 +14,12 @@ module Slanger
 
       def id()
         # Returns a unique identifier for this node
-        Config.slanger_id
+        Config.jagan_id
       end
  
       def start()
-        Slanger::Redis.subscribe 'slanger:cluster'
-        Logger.debug log_message("Subscribed to Redis channel: slanger:cluster")
+        Jagan::Redis.subscribe 'jagan:cluster'
+        Logger.debug log_message("Subscribed to Redis channel: jagan:cluster")
         Logger.info log_message("Entering cluster.")
         # Ask which node is the master
         send_enquiry
@@ -80,14 +80,14 @@ module Slanger
       ##############################################
 
       # On startup, subscribe to Redis for cluster messages
-      after :calls_to => :run, :for_object => Slanger::Service do |join_point, service, *args|
+      after :calls_to => :run, :for_object => Jagan::Service do |join_point, service, *args|
         Cluster.start()
       end
 
       # Process cluster messages
-      around :calls_to => :on_message, :restricting_methods_to => :private, :for_object => Slanger::Redis do |join_point, redis, *args|
+      around :calls_to => :on_message, :restricting_methods_to => :private, :for_object => Jagan::Redis do |join_point, redis, *args|
         (channel, message) = args
-        if channel == 'slanger:cluster'
+        if channel == 'jagan:cluster'
           begin
             Cluster.process_message(message)
           rescue Exception => ex
@@ -100,7 +100,7 @@ module Slanger
       end
 
       # TODO: On stop, leave the cluster
-      #before :calls_to => :stop, :for_object => Slanger::Service do |join_point, service, *args|
+      #before :calls_to => :stop, :for_object => Jagan::Service do |join_point, service, *args|
       #  puts "TODO"
       #end
 
@@ -116,7 +116,7 @@ module Slanger
       # Message sending
       def send_message(event, payload = nil, destination = nil)
         @clock = clock + 1
-        Redis.publish('slanger:cluster', {clock: clock, sender: id, destination: destination, event: event, payload: payload}.to_json)
+        Redis.publish('jagan:cluster', {clock: clock, sender: id, destination: destination, event: event, payload: payload}.to_json)
       end
 
       # The last time a "election victory" occured. 

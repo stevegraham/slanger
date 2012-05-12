@@ -1,4 +1,4 @@
-module Slanger
+module Jagan
   class Application
     attr_accessor :id, :key, :secret, :channels
 

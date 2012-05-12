@@ -6,7 +6,7 @@
   require 'forwardable'
   require 'singleton'
 
-  module Slanger
+  module Jagan
     class MongoSingleton
       extend Forwardable
       include Singleton

@@ -92,7 +92,7 @@ OptionParser.new do |opts|
   end
 
   opts.on '--id IDENTIFIER', 'Unique identified' do |p|
-    options[:slanger_id] = p
+    options[:jagan_id] = p
   end
 
   opts.on '--statistics on/off', 'Statistics flag' do |p|
@@ -104,7 +104,7 @@ OptionParser.new do |opts|
     raise RuntimeError.new "Statistics flag unknown. Accepted values are: " + values.keys.join(', ') if param_statistics.nil?
     options[:statistics] = param_statistics
     if param_statistics 
-      # Statistics needs the cluster to know which slanger is master
+      # Statistics needs the cluster to know which jagan is master
       options[:cluster] = true
       # Statistics needs mongodb
       options[:mongo] = true
@@ -147,22 +147,22 @@ OptionParser.new do |opts|
 end.parse!
 
 # Checks
-if (not options[:statistics].nil?) && options[:slanger_id].nil?
-  # Statistics needs the cluster so they need a slanger_id
-  raise RuntimeError.new "Statistics need the --slanger-id parameter."
+if (not options[:statistics].nil?) && options[:jagan_id].nil?
+  # Statistics needs the cluster so they need a jagan_id
+  raise RuntimeError.new "Statistics need the --jagan-id parameter."
 end
 
 # Set up configuration
 File.tap do |f|
-  require f.expand_path(f.join(f.dirname(__FILE__),'..', 'lib', 'slanger', 'config.rb'))
+  require f.expand_path(f.join(f.dirname(__FILE__),'..', 'lib', 'jagan', 'config.rb'))
 end
-Slanger::Config.load options
+Jagan::Config.load options
 
 EM.run do
-  File.tap { |f| require f.expand_path(f.join(f.dirname(__FILE__),'..', 'slanger.rb')) }
-  Slanger::Cluster
-  Slanger::Statistics
-  Slanger::Applications
+  File.tap { |f| require f.expand_path(f.join(f.dirname(__FILE__),'..', 'jagan.rb')) }
+  Jagan::Cluster
+  Jagan::Statistics
+  Jagan::Applications
   # Are all application parameters missing ?
   if [opts_app_id, opts_app_key, opts_secret].any?{|item| not item.nil?}
     # No, some were given, verify that all are present
@@ -170,25 +170,18 @@ EM.run do
       raise RuntimeError.new "--#{parameter} STRING is a required argument. Use your Pusher #{parameter}." unless eval "opts_" + parameter
     end
     # All parameters are present, add the application
-    Slanger::Applications.add(opts_app_id, opts_app_key, opts_secret)
+    Jagan::Applications.add(opts_app_id, opts_app_key, opts_secret)
   end
-  Slanger::Service.run
+  Jagan::Service.run
 
-#  puts "\x1b[2J\x1b[H"
-#  puts "\n"
-  puts "    .d8888b.  888                                               "
-  puts "   d88P  Y88b 888                                               "
-  puts "   Y88b.      888                                               "
-  puts '    "Y888b.   888  8888b.  88888b.   .d88b.   .d88b.  888d888   '
-  puts '       "Y88b. 888     "88b 888 "88b d88P"88b d8P  Y8b 888P"     '
-  puts '         "888 888 .d888888 888  888 888  888 88888888 888       '
-  puts "   Y88b  d88P 888 888  888 888  888 Y88b 888 Y8b.     888       "
-  puts '    "Y8888P"  888 "Y888888 888  888  "Y88888  "Y8888  888       '
-  puts "                                         888                    "
-  puts "                                    Y8b d88P                    "
-  puts '                                    "Y88P"                      '
+  puts "      d88b  .d8b.   d888b   .d8b.  d8b   db   "
+  puts "      `8P' d8' `8b 88' Y8b d8' `8b 888o  88   "
+  puts "       88  88ooo88 88      88ooo88 88V8o 88   "
+  puts "       88  88~~~88 88  ooo 88~~~88 88 V8o88   "
+  puts "   db. 88  88   88 88. ~8~ 88   88 88  V888   "
+  puts "   Y8888P  YP   YP  Y888P  YP   YP VP   V8P   "
   puts "\n" * 2
 
-  puts "Slanger API server listening on port #{options[:api_port]}"
-  puts "Slanger WebSocket server listening on port #{options[:websocket_port]}"
+  puts "Jagan API server listening on port #{options[:api_port]}"
+  puts "Jagan WebSocket server listening on port #{options[:websocket_port]}"
 end

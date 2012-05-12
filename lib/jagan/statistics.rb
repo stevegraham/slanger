@@ -1,9 +1,9 @@
 require 'aquarium'
 require 'singleton'
  
-if Slanger::Config.statistics
+if Jagan::Config.statistics
   # Add accessors to the Handler class
-  module Slanger
+  module Jagan
     class Handler
       attr_accessor :application
       attr_accessor :socket
@@ -12,7 +12,7 @@ if Slanger::Config.statistics
   end
 
   # Add new API calls
-  module Slanger
+  module Jagan
     class ApiServer
       get '/statistics/apps/:app_id' do
         statistics_protected!
@@ -67,10 +67,10 @@ if Slanger::Config.statistics
   end
 end
   
-module Slanger
+module Jagan
   class StatisticsSingleton
     include Singleton
-    if Slanger::Config.statistics
+    if Jagan::Config.statistics
       include Aquarium::DSL
   
       # Return the metrics for one application
@@ -87,7 +87,7 @@ module Slanger
         # Clean up our work data in case we crashed previously
         work_data.update(
           {},
-          {'$pull' => {connections: {slanger_id: Cluster.id}}}
+          {'$pull' => {connections: {jagan_id: Cluster.id}}}
         )
         # Starts up a periodic timer in eventmachine to calculate the metrics every minutes
         EventMachine::PeriodicTimer.new(60) do
@@ -97,7 +97,7 @@ module Slanger
 
       # Increment the number of message for an application each time a message is dispatched into one
       # of its channels
-      after :calls_to => :dispatch, :on_types => [Slanger::Channel, Slanger::PresenceChannel] do |join_point, channel, *args|
+      after :calls_to => :dispatch, :on_types => [Jagan::Channel, Jagan::PresenceChannel] do |join_point, channel, *args|
         # Update record
         Statistics.work_data.update(
           {app_id: channel.application.id},
@@ -107,7 +107,7 @@ module Slanger
       end
   
       # Add new connections to an application to its list
-      after :calls_to => :authenticate, :restricting_methods_to => :private, :on_type => Slanger::Handler do |join_point, handler, *args|
+      after :calls_to => :authenticate, :restricting_methods_to => :private, :on_type => Jagan::Handler do |join_point, handler, *args|
         application = handler.application
         unless application.nil?
           # Get peer's IP and port
@@ -117,32 +117,32 @@ module Slanger
           # Update record
           Statistics.work_data.update(
             {app_id: application.id},
-            {'$addToSet' => {connections: {slanger_id: Cluster.id, peer: peername}}, '$set' => {timestamp: Time.now.to_i}},
+            {'$addToSet' => {connections: {jagan_id: Cluster.id, peer: peername}}, '$set' => {timestamp: Time.now.to_i}},
             {upsert: true}
           )
         end
       end
  
       # Remove connexions when it is closed
-      before :calls_to => :onclose, :on_type => Slanger::Handler do |join_point, handler, *args|
+      before :calls_to => :onclose, :on_type => Jagan::Handler do |join_point, handler, *args|
         application = handler.application
         peername = handler.peername
         unless application.nil? or peername.nil?
           # Update record
           Statistics.work_data.update(
             {app_id: application.id},
-            {'$pull' => {connections: {slanger_id: Cluster.id, peer: peername}}, '$set' => {timestamp: Time.now.to_i}}
+            {'$pull' => {connections: {jagan_id: Cluster.id, peer: peername}}, '$set' => {timestamp: Time.now.to_i}}
           )
         end
       end
 
       # Remove all connexions before we stop
-      around :calls_to => :stop, :on_object => Slanger::Service do |join_point, service, *args|
+      around :calls_to => :stop, :on_object => Jagan::Service do |join_point, service, *args|
         Logger.debug Statistics.log_message("Removing connections from DB before stop.")
         # Update record
         update_resp = Statistics.work_data.update(
           {},
-          {'$pull' => {connections: {slanger_id: Cluster.id}}, '$set' => {timestamp: Time.now.to_i}}
+          {'$pull' => {connections: {jagan_id: Cluster.id}}, '$set' => {timestamp: Time.now.to_i}}
         )
         # Actually proceed in a little while
         EM.next_tick do
@@ -194,10 +194,10 @@ module Slanger
         REDUCEFUNCTION
       end
 
-      # Run a MapReduce query to fill the slanger metrics collection from data
+      # Run a MapReduce query to fill the jagan metrics collection from data
       def refresh_metrics()
         # Only run it on the master node, so that it isn't run several time
-        # if several slanger daemons are running
+        # if several jagan daemons are running
         return unless Cluster.is_master?
         Logger.debug log_message("Calculating metrics.")
         Fiber.new {

@@ -25,7 +25,7 @@ __IMPORTANT:__ Redis must be running where Jagan expects it to be (either on loc
 <pre>
 $ redis-server &> /dev/null &
 
-$ ./bin/slanger --app_key 765ec374ae0a69f4ce44 --secret your-pusher-secret --mongo on --statistics on --id Jagan1 --admin-http-user admin --admin-http-password Verysecret
+$ ./bin/jagan --app_key 765ec374ae0a69f4ce44 --secret your-pusher-secret --mongo on --statistics on --id Jagan1 --admin-http-user admin --admin-http-password Verysecret
 </pre>
 
 If all went to plan you should see the following output to STDOUT

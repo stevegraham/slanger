@@ -4,7 +4,7 @@
 require 'forwardable'
 require 'singleton'
 
-module Slanger
+module Jagan
   class RedisSingleton
     extend Forwardable
     include Singleton
@@ -51,12 +51,12 @@ module Slanger
 
     def new_connection
       # Redis read only connection
-      EM::Hiredis.connect Slanger::Config.redis_address
+      EM::Hiredis.connect Jagan::Config.redis_address
     end
 
     def new_write_connection
       # Redis write connection
-      EM::Hiredis.connect (Slanger::Config.redis_write_address || Slanger::Config.redis_address)
+      EM::Hiredis.connect (Jagan::Config.redis_write_address || Jagan::Config.redis_address)
     end
   end
 

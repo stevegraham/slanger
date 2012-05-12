@@ -7,7 +7,7 @@ require 'securerandom'
 require 'signature'
 require 'fiber'
 
-module Slanger
+module Jagan
   class Handler
 
 
