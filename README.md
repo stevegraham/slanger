@@ -12,7 +12,6 @@ Jagan was designed to be highly available and partition tolerant with eventual c
 
 ## Requirements
 
-- Ruby 1.9.2-p290 or greater
 - Redis
 - Mongodb
 
