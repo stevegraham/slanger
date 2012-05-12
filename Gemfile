@@ -1,7 +1,7 @@
 source 'https://rubygems.org'
 
 gem 'activesupport'
-gem 'aquarium'
+gem 'nfedyashev-aquarium', :github => 'nfedyashev/Aquarium'
 gem 'bson_ext'
 gem 'em-hiredis'
 gem 'em-http-request'
