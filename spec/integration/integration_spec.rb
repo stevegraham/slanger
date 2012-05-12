@@ -8,7 +8,7 @@ require 'pusher'
 require 'thin'
 
 describe 'Integration' do
-  let(:errback) { Proc.new { fail 'cannot connect to slanger. your box might be too slow. try increasing sleep value in the before block' } }
+  let(:errback) { Proc.new { fail 'cannot connect to jagan. your box might be too slow. try increasing sleep value in the before block' } }
 
   def new_websocket
     EM::HttpRequest.new("ws://0.0.0.0:8080/app/#{Pusher.key}?client=js&version=1.8.5").
@@ -18,18 +18,18 @@ describe 'Integration' do
   before(:each) do
     # Fork service. Our integration tests MUST block the main thread because we want to wait for i/o to finish.
     @server_pid = EM.fork_reactor do
-      require File.expand_path(File.dirname(__FILE__) + '/../../slanger.rb')
+      require File.expand_path(File.dirname(__FILE__) + '/../../jagan.rb')
       Thin::Logging.silent = true
-      Slanger::Config.load host: '0.0.0.0', api_port: '4567', websocket_port: '8080', app_key: '765ec374ae0a69f4ce44', secret: 'your-pusher-secret'
-      Slanger::Applications.add('your-pusher-app-id', '765ec374ae0a69f4ce44', 'your-pusher-secret')
-      Slanger::Service.run
+      Jagan::Config.load host: '0.0.0.0', api_port: '4567', websocket_port: '8080', app_key: '765ec374ae0a69f4ce44', secret: 'your-pusher-secret'
+      Jagan::Applications.add('your-pusher-app-id', '765ec374ae0a69f4ce44', 'your-pusher-secret')
+      Jagan::Service.run
     end
-    # Give Slanger a chance to start
+    # Give Jagan a chance to start
     sleep 0.6
   end
 
   after(:each) do
-    # Ensure Slanger is properly stopped. No orphaned processes allowed!
+    # Ensure Jagan is properly stopped. No orphaned processes allowed!
     Process.kill 'SIGKILL', @server_pid
     Process.wait @server_pid
   end
@@ -70,11 +70,11 @@ describe 'Integration' do
         end
       end.join
 
-      # Slanger should send an object denoting connection was succesfully established
+      # Jagan should send an object denoting connection was succesfully established
       JSON.parse(messages.first)['event'].should == 'pusher:connection_established'
       # Channel id should be in the payload
       JSON.parse(messages.first)['data']['socket_id'].should_not be_nil
-      # Slanger should send out the message
+      # Jagan should send out the message
       JSON.parse(messages.last)['event'].should == 'an_event'
       JSON.parse(messages.last)['data'].should == { some: 'data' }.to_json
     end
@@ -148,7 +148,7 @@ describe 'Integration' do
           end
         end.join
 
-        # Slanger should send an object denoting connection was succesfully established
+        # Jagan should send an object denoting connection was succesfully established
         messages.first['event'].should == 'pusher:connection_established'
         # Channel id should be in the payload
         messages.first['data']['socket_id'].should_not be_nil
@@ -178,7 +178,7 @@ describe 'Integration' do
           end
         end.join
 
-        # Slanger should send an object denoting connection was succesfully established
+        # Jagan should send an object denoting connection was succesfully established
         messages.first['event'].should == 'pusher:connection_established'
         # Channel id should be in the payload
         messages.first['data']['socket_id'].should_not be_nil
@@ -260,7 +260,7 @@ describe 'Integration' do
 
             end
           end.join
-          # Slanger should send an object denoting connection was succesfully established
+          # Jagan should send an object denoting connection was succesfully established
           messages.first['event'].should == 'pusher:connection_established'
           # Channel id should be in the payload
           messages.first['data']['socket_id'].should_not be_nil
@@ -303,7 +303,7 @@ describe 'Integration' do
 
             end
           end.join
-          # Slanger should send an object denoting connection was succesfully established
+          # Jagan should send an object denoting connection was succesfully established
           messages.first['event'].should == 'pusher:connection_established'
           # Channel id should be in the payload
           messages.first['data']['socket_id'].should_not be_nil
@@ -343,7 +343,7 @@ describe 'Integration' do
 
             end
           end.join
-          # Slanger should send an object denoting connection was succesfully established
+          # Jagan should send an object denoting connection was succesfully established
           messages.first['event'].should == 'pusher:connection_established'
           # Channel id should be in the payload
           messages.length.should == 2
@@ -395,7 +395,7 @@ describe 'Integration' do
               end
             end.join
             #puts messages.inspect
-            # Slanger should send an object denoting connection was succesfully established
+            # Jagan should send an object denoting connection was succesfully established
             messages.first['event'].should == 'pusher:connection_established'
             # Channel id should be in the payload
             messages.length.should == 3

@@ -1,6 +1,6 @@
 require 'singleton'
 
-module Slanger
+module Jagan
   class ApplicationsSingleton
     extend  Forwardable
     include Singleton
@@ -40,7 +40,7 @@ module Slanger
     module ApplicationsMongoDBAspect
       include Aquarium::DSL
 
-      around :calls_to => :by_id, :for_object => Slanger::Applications do |join_point, applicationssingleton, *args|
+      around :calls_to => :by_id, :for_object => Jagan::Applications do |join_point, applicationssingleton, *args|
         # Get result
         result = join_point.proceed
         if result.nil?
@@ -56,7 +56,7 @@ module Slanger
         result
       end
 
-      around :calls_to => :by_key, :for_object => Slanger::Applications do |join_point, applicationssingleton, *args|
+      around :calls_to => :by_key, :for_object => Jagan::Applications do |join_point, applicationssingleton, *args|
         # Get result
         result = join_point.proceed
         if result.nil?

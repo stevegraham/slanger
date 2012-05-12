@@ -2,15 +2,15 @@ require 'thin'
 require 'rack'
 require 'singleton'
 
-module Slanger
+module Jagan
   class ServiceSingleton
     include Singleton
 
     def run
       Logger.info "Starting."
       Thin::Logging.silent = true
-      Rack::Handler::Thin.run Slanger::ApiServer, Host: Slanger::Config.api_host, Port: Slanger::Config.api_port
-      Slanger::WebSocketServer.run
+      Rack::Handler::Thin.run Jagan::ApiServer, Host: Jagan::Config.api_host, Port: Jagan::Config.api_port
+      Jagan::WebSocketServer.run
 
       # em-websocket installs its own trap handler which stop eventmachine
       # we need to install ours in next tick to be sure to use ours

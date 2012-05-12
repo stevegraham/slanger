@@ -10,14 +10,14 @@ require 'eventmachine'
 require 'forwardable'
 require 'fiber'
 
-module Slanger
+module Jagan
   class PresenceChannel < Channel
     def_delegators :channel, :push
 
     # Send an event received from Redis to the EventMachine channel
     def dispatch(message, channel)
-      if channel =~ /^slanger:/
-        # Messages received from the Redis channel slanger:*  carry info on
+      if channel =~ /^jagan:/
+        # Messages received from the Redis channel jagan:*  carry info on
         # subscriptions. Update our subscribers accordingly.
         update_subscribers message
       else
@@ -29,16 +29,16 @@ module Slanger
 
     def initialize(attrs)
       super
-      # Also subscribe the slanger daemon to a Redis channel used for events concerning subscriptions.
-      Slanger::Redis.subscribe 'slanger:connection_notification'
-      Logger.debug log_message("Subscribed to Redis channel: slanger:connection_notification")
+      # Also subscribe the jagan daemon to a Redis channel used for events concerning subscriptions.
+      Jagan::Redis.subscribe 'jagan:connection_notification'
+      Logger.debug log_message("Subscribed to Redis channel: jagan:connection_notification")
     end
 
     def subscribe(msg, callback, &blk)
       channel_data = JSON.parse msg['data']['channel_data']
       public_subscription_id = SecureRandom.uuid
 
-      # Send event about the new subscription to the Redis slanger:connection_notification Channel.
+      # Send event about the new subscription to the Redis jagan:connection_notification Channel.
       publisher = publish_connection_notification app_id: application.id, subscription_id: public_subscription_id, online: true,
         channel_data: channel_data, channel: channel_id
 
@@ -84,7 +84,7 @@ module Slanger
       # Read subscription infos from Redis.
       Fiber.new do
         f = Fiber.current
-        Slanger::Redis.hgetall(application.id + ":" + channel_id).
+        Jagan::Redis.hgetall(application.id + ":" + channel_id).
           callback { |res| f.resume res }
         Fiber.yield
       end.resume
@@ -92,18 +92,18 @@ module Slanger
 
     def roster_add(key, value)
       # Add subscription info to Redis.
-      Slanger::Redis.hset(application.id + ":" + channel_id, key, value)
+      Jagan::Redis.hset(application.id + ":" + channel_id, key, value)
     end
 
     def roster_remove(key)
       # Remove subscription info from Redis.
-      Slanger::Redis.hdel(application.id + ":" + channel_id, key)
+      Jagan::Redis.hdel(application.id + ":" + channel_id, key)
     end
 
     def publish_connection_notification(payload, retry_count=0)
-      # Send a subscription notification to the global slanger:connection_notification
+      # Send a subscription notification to the global jagan:connection_notification
       # channel.
-      Slanger::Redis.publish('slanger:connection_notification', payload.to_json).
+      Jagan::Redis.publish('jagan:connection_notification', payload.to_json).
         tap { |r| r.errback { publish_connection_notification payload, retry_count.succ unless retry_count == 5 } }
     end
 

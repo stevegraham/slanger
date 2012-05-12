@@ -8,7 +8,7 @@ require 'rack'
 require 'fiber'
 require 'rack/fiber_pool'
 
-module Slanger
+module Jagan
   class ApiServer < Sinatra::Base
     use Rack::FiberPool
     use Rack::CommonLogger, ::Logger.new(Config.api_log_file)
@@ -38,7 +38,7 @@ module Slanger
       f = Fiber.current
       # Publish the event in Redis and translate the result into an HTTP
       # status to return to the client.
-      Slanger::Redis.publish(application.id + ":" + params[:channel_id], payload).tap do |r|
+      Jagan::Redis.publish(application.id + ":" + params[:channel_id], payload).tap do |r|
         r.callback { 
           Logger.debug log_message("Successfully published to Redis.")
           f.resume [202, {}, "202 ACCEPTED\n"] 

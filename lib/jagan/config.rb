@@ -1,7 +1,7 @@
 # Config singleton holding the configuration.
 require 'singleton'
 
-module Slanger
+module Jagan
   class ConfigSingleton
     include Singleton
     def load(opts={})

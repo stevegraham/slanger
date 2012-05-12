@@ -1,6 +1,6 @@
 require 'singleton'
 
-module Slanger
+module Jagan
   class LoggerSingleton
     extend Forwardable
     include Singleton
