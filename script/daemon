@@ -1,0 +1,6 @@
+#!/bin/sh
+
+#The daemon will listen for HTTP connections on port 6000, and websocket ones on port 6001.
+#The admin-http user and password are what you will configure into jagan-ui so it can use the jagan REST API to pull info about applications.
+
+./bin/jagan -a 1.0.0.0:6000 -w 0.0.0.0:6001 --id Jagan1 --statistics on --admin-http-user admin --admin-http-password Verysecret
