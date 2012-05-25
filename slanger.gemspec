@@ -28,10 +28,7 @@ Gem::Specification.new do |s|
   s.add_development_dependency    'haml',             '~> 3.1.2'
   s.add_development_dependency    'rake'
 
-  unless ENV['ignore_for_travis']
-    s.add_development_dependency    'debugger'
-    s.add_development_dependency    'simplecov'
-  end
+  s.add_development_dependency    'simplecov'
 
   s.files                       = Dir['README.md', 'lib/**/*', 'slanger.rb']
   s.require_path                = '.'

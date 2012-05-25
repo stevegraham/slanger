@@ -6,4 +6,3 @@ rvm:
 
 env:
   - DB=redis
-  - ignore_for_travis=true
