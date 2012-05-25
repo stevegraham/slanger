@@ -10,10 +10,6 @@ require 'slanger_helper_methods'
 require 'have_attributes'
 require 'openssl'
 require 'socket'
-require 'simplecov'
-
-SimpleCov.start
-
 
 def errback
   @errback ||= Proc.new { |e| fail 'cannot connect to slanger. your box might be too slow. try increasing sleep value in the before block' }
