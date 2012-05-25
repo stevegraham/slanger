@@ -1,7 +1,9 @@
 language: ruby
+
 rvm:
   - 1.9.2
   - 1.9.3
+
 env:
-- DB=redis
-- ignore_for_travis=true
+  - DB=redis
+  - ignore_for_travis=true
