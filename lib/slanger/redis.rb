@@ -31,11 +31,11 @@ module Slanger
     private
 
     def regular_connection
-      @regular_connection ||= new_connection
+      @regular_connection ||= new_master_connection
     end
 
     def publisher
-      @publisher ||= new_connection
+      @publisher ||= new_master_connection
     end
 
     def subscriber
@@ -44,6 +44,11 @@ module Slanger
 
     def new_connection
       EM::Hiredis.connect Slanger::Config.redis_address
+    end
+
+    def new_master_connection
+      # Redis connection for writes and publications.
+      EM::Hiredis.connect (Slanger::Config.redis_master_address || Slanger::Config.redis_address)
     end
 
     extend self

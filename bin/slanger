@@ -6,7 +6,7 @@ require 'eventmachine'
 
 options = {
   api_host: '0.0.0.0', api_port: '4567', websocket_host: '0.0.0.0',
-  websocket_port: '8080', debug: false, redis_address: 'redis://0.0.0.0:6379/0'
+  websocket_port: '8080', debug: false, redis_address: 'redis://127.0.0.1:6379/0'
   }
 
 opts_app_id = nil
@@ -33,6 +33,10 @@ OptionParser.new do |opts|
 
   opts.on '-r', '--redis_address URL', "Address to bind to (Default: redis://127.0.0.1:6379/0)" do |h|
     options[:redis_address] = h
+  end
+
+  opts.on '--redis_master_address URL', "Address to bind to for writes and publishes" do |h|
+    options[:redis_master_address] = h
   end
 
   opts.on '-a', '--api_host HOST', "API service address (Default: 0.0.0.0:4567)" do |p|
