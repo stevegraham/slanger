@@ -50,5 +50,15 @@ module Slanger
 
       error({ message: message})
     end
+
+    def log_message(msg)
+      peername = @connection.socket.get_peername
+      if peername.nil?
+        "socket_id: " + @connection.socket_id.to_s + " " + msg
+      else
+        port, ip = Socket.unpack_sockaddr_in(peername) 
+        "Peer: " + ip.to_s + ":" + port.to_s + " socket_id: " + @connection.socket_id.to_s + " " + msg.to_s
+      end
+    end
   end
 end

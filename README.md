@@ -87,7 +87,7 @@ Of course you could proxy all requests to `ws.example.com` to port 8080 of your 
 Slanger supports several configuration options, which can be supplied as command line arguments at invocation.
 
 <pre>
--i or --app_id This is the Pusher app id you want to use. Optional.
+--app_id This is the Pusher app id you want to use. Optional.
 
 -k or --app_key This is the Pusher app key you want to use. Optional.
 
@@ -100,6 +100,14 @@ Slanger supports several configuration options, which can be supplied as command
 -a or --api_host This is the address that Slanger will bind the HTTP REST API part of the service to. This is an optional argument and defaults to 0.0.0.0:4567
 
 -w or --websocket_host This is the address that Slanger will bind the WebSocket part of the service to. This is an optional argument and defaults to 0.0.0.0:8080
+
+-l or --log-level This is the log level. Optional. Accepted values: fatal, error, warn, info, debug. Default: warn.
+
+--log-file Log file. Optional. Default: STDOUT.
+
+--audit-log-file Audit log file. Optional. Default: STDOUT.
+
+--api-log-file API server log file. Optional. Default: STDOUT.
 
 -i or --require Require an additional file before starting Slanger to tune it to your needs. This is an optional argument
 

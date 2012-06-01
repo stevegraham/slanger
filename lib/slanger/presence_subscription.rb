@@ -1,9 +1,13 @@
 module Slanger
   class PresenceSubscription < Subscription
     def subscribe
-      return handle_invalid_signature if invalid_signature?
+      if invalid_signature?
+        Logger.error log_message("channel_id: " + channel_id.to_s + " Invalid signature.")
+        handle_invalid_signature
+      end
 
       unless channel_data?
+        Logger.error log_message("channel_id: " + channel_id.to_s + " Missing channel_data for subscription to the presence channel.")
         return connection.error({
           message: "presence-channel is a presence channel and subscription must include channel_data"
         })
@@ -27,6 +31,7 @@ module Slanger
             hash:  channel.subscribers
           }
         })
+        Logger.debug log_message("channel_id: " + channel_id.to_s + " Sent presence information.")
       }
     end
   end

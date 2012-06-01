@@ -3,10 +3,12 @@
 require 'optparse'
 require 'bundler/setup'
 require 'eventmachine'
+require 'logger'
 
 options = {
   api_host: '0.0.0.0', api_port: '4567', websocket_host: '0.0.0.0',
-  websocket_port: '8080', debug: false, redis_address: 'redis://127.0.0.1:6379/0'
+  websocket_port: '8080', debug: false, redis_address: 'redis://127.0.0.1:6379/0',
+  log_level: ::Logger::WARN, log_file: $stdout, audit_log_file: $stdout, api_log_file: $stdout
   }
 
 opts_app_id = nil
@@ -19,7 +21,7 @@ OptionParser.new do |opts|
     exit
   end
 
-  opts.on '-i', '--app_id APP_ID', Integer, "Pusher application id (integer)" do |k|
+  opts.on '--app_id APP_ID', Integer, "Pusher application id (integer)" do |k|
     opts_app_id = k.to_int
   end
 
@@ -62,6 +64,37 @@ OptionParser.new do |opts|
     options[:tls_options][:cert_chain_file] = p
   end
 
+  opts.on '-l', '--log-level LEVEL', "Log level (Default: warn)" do |p|
+    levels =  {
+      fatal: ::Logger::FATAL,
+      error: ::Logger::ERROR,
+      warn: ::Logger::WARN,
+      info: ::Logger::INFO,
+      debug: ::Logger::DEBUG
+    }
+    param_level = levels[p.to_sym]
+    raise RuntimeError.new "Log level unknown. Accepted values are: " + levels.keys.join(', ') if param_level.nil?
+    options[:log_level] = param_level
+  end
+
+  opts.on '--log-file FILE', "Log file" do |p|
+    tmpfile = File.new(p, "a")
+    tmpfile.sync = true
+    options[:log_file] = tmpfile
+  end
+
+  opts.on '--audit-log-file FILE', "Audit log file" do |p|
+    tmpfile = File.new(p, "a")
+    tmpfile.sync = true
+    options[:audit_log_file] = tmpfile
+  end
+
+  opts.on '--api-log-file FILE', "API log file" do |p|
+    tmpfile = File.new(p, "a")
+    tmpfile.sync = true
+    options[:api_log_file] = tmpfile
+  end
+
   opts.on "-v", "--[no-]verbose", "Run verbosely" do |v|
     options[:debug] = v
   end
@@ -85,6 +118,13 @@ end
 EM.epoll
 EM.kqueue
 
+# Set up configuration
+File.tap do |f|
+  require f.expand_path(f.join(f.dirname(__FILE__),'..', 'lib', 'slanger', 'handler.rb'))
+  require f.expand_path(f.join(f.dirname(__FILE__),'..', 'lib', 'slanger', 'config.rb'))
+end
+Slanger::Config.load options
+
 EM.run do
   File.tap { |f| require f.expand_path(f.join(f.dirname(__FILE__),'..', 'slanger.rb')) }
   unless opts_app_id.nil?
@@ -95,7 +135,6 @@ EM.run do
       secret: opts_secret
   })
   end
-  Slanger::Config.load options
   Slanger::Service.run
 
   puts "\x1b[2J\x1b[H"

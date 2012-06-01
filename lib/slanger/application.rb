@@ -12,6 +12,8 @@ module Slanger
           application: self,
           channel_id: channel_id
         })
+        Logger.debug("app_id: " + app_id.to_s + ". Created channel: " + channel_id.to_s)
+        Logger.audit("Created channel " + channel_id.to_s + " in app " + app_id.to_s)
       end
       channels[channel_id]
     end
@@ -21,7 +23,10 @@ module Slanger
         # Invalid arguments
         raise(ArgumentError, "Hash must contain only :app_id, :key and :secret. Hash was: " + attrs.to_s)
       end
-      ApplicationImpl.create(attrs)
+      app = ApplicationImpl.create(attrs)
+      Logger.info("Created application " + app.app_id.to_s)
+      Logger.audit("Created application " + app.app_id.to_s)
+      app
     end
 
     # Try calling missing methods on the implementation class
