@@ -9,18 +9,26 @@ options = {
   websocket_port: '8080', debug: false, redis_address: 'redis://0.0.0.0:6379/0'
   }
 
+opts_app_id = nil
+opts_app_key = nil
+opts_secret = nil 
+
 OptionParser.new do |opts|
   opts.on '-h', '--help', 'Display this screen' do
     puts opts
     exit
   end
 
+  opts.on '-i', '--app_id APP_ID', Integer, "Pusher application id (integer)" do |k|
+    opts_app_id = k.to_int
+  end
+
   opts.on '-k', '--app_key APP_KEY', "Pusher application key" do |k|
-    options[:app_key] = k
+    opts_app_key = k
   end
 
   opts.on '-s', '--secret SECRET', "Pusher application secret" do |k|
-    options[:secret] = k
+    opts_secret = k
   end
 
   opts.on '-r', '--redis_address URL', "Address to bind to (Default: redis://127.0.0.1:6379/0)" do |h|
@@ -55,8 +63,12 @@ OptionParser.new do |opts|
   end
 end.parse!
 
-%w<app_key secret>.each do |parameter|
-  raise RuntimeError.new "--#{parameter} STRING is a required argument. Use your Pusher #{parameter}." unless options[parameter.to_sym]
+# Are all application parameters missing ?
+if [opts_app_id, opts_app_key, opts_secret].any?{|item| not item.nil?}
+  # No, some were given, verify that all are present
+  %w<app_id app_key secret>.each do |parameter|
+    raise RuntimeError.new "--#{parameter} is a required argument. Use your Pusher #{parameter}." unless eval "opts_" + parameter
+  end
 end
 
 if options[:tls_options]
@@ -71,6 +83,14 @@ EM.kqueue
 
 EM.run do
   File.tap { |f| require f.expand_path(f.join(f.dirname(__FILE__),'..', 'slanger.rb')) }
+  unless opts_app_id.nil?
+    # Add the application that the user specified on the command line
+    Slanger::Application.create({
+      app_id: opts_app_id,
+      key: opts_app_key,
+      secret: opts_secret
+  })
+  end
   Slanger::Config.load options
   Slanger::Service.run
 

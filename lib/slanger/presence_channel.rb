@@ -36,7 +36,7 @@ module Slanger
       public_subscription_id = SecureRandom.uuid
 
       # Send event about the new subscription to the Redis slanger:connection_notification Channel.
-      publisher = publish_connection_notification subscription_id: public_subscription_id, online: true,
+      publisher = publish_connection_notification app_id: application.app_id, subscription_id: public_subscription_id, online: true,
         channel_data: channel_data, channel: channel_id
 
       # Associate the subscription data to the public id in Redis.
@@ -70,7 +70,7 @@ module Slanger
       # Remove subscription data from Redis
       roster_remove public_subscription_id
       # Notify all instances
-      publish_connection_notification subscription_id: public_subscription_id, online: false, channel: channel_id
+      publish_connection_notification app_id: application.app_id, subscription_id: public_subscription_id, online: false, channel: channel_id
     end
 
     private
@@ -79,7 +79,7 @@ module Slanger
       # Read subscription infos from Redis.
       Fiber.new do
         f = Fiber.current
-        Slanger::Redis.hgetall(channel_id).
+        Slanger::Redis.hgetall(redis_channel).
           callback { |res| f.resume res }
         Fiber.yield
       end.resume
@@ -87,12 +87,12 @@ module Slanger
 
     def roster_add(key, value)
       # Add subscription info to Redis.
-      Slanger::Redis.hset(channel_id, key, value)
+      Slanger::Redis.hset(redis_channel, key, value)
     end
 
     def roster_remove(key)
       # Remove subscription info from Redis.
-      Slanger::Redis.hdel(channel_id, key)
+      Slanger::Redis.hdel(redis_channel, key)
     end
 
     def publish_connection_notification(payload, retry_count=0)

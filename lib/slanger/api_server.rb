@@ -19,15 +19,19 @@ module Slanger
     error(Signature::AuthenticationError) { |c| halt 401, "401 UNAUTHORIZED\n" }
 
     post '/apps/:app_id/channels/:channel_id/events' do
+      # Retrieve application
+      application = Application.find_by_app_id(params[:app_id].to_i)
+      # Return a 404 error code if app is unknown
+      return [404, {}, "404 NOT FOUND\n"] if application.nil?
       # authenticate request. exclude 'channel_id' and 'app_id' included by sinatra but not sent by Pusher.
       # Raises Signature::AuthenticationError if request does not authenticate.
       Signature::Request.new('POST', env['PATH_INFO'], params.except('channel_id', 'app_id')).
-        authenticate { |key| Signature::Token.new key, Slanger::Config.secret }
+        authenticate { |key| Signature::Token.new key, application.secret }
 
       f = Fiber.current
       # Publish the event in Redis and translate the result into an HTTP
       # status to return to the client.
-      Slanger::Redis.publish(params[:channel_id], payload).tap do |r|
+      Slanger::Redis.publish(application.app_id.to_s + ":" + params[:channel_id], payload).tap do |r|
         r.callback { f.resume [202, {}, "202 ACCEPTED\n"] }
         r.errback  { f.resume [500, {}, "500 INTERNAL SERVER ERROR\n"] }
       end
@@ -39,7 +43,8 @@ module Slanger
         event:     params['name'],
         data:      request.body.read.tap{ |s| s.force_encoding('utf-8') },
         channel:   params[:channel_id],
-        socket_id: params[:socket_id]
+        socket_id: params[:socket_id],
+        app_id: params[:app_id]
       }
       Hash[payload.reject { |_,v| v.nil? }].to_json
     end

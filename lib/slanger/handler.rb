@@ -27,7 +27,8 @@ module Slanger
 
       if event =~ /^client-/
         msg['socket_id'] = connection.socket_id
-        Channel.send_client_message msg
+        channel = application.channel_from_id msg['channel']
+        channel.try :send_client_message, msg
       elsif respond_to? event, true
         send event, msg
       end
@@ -39,7 +40,11 @@ module Slanger
     end
 
     def onclose
-      @subscriptions.each { |c, s| Channel.unsubscribe c, s }
+      # Unsubscribe from channels
+      @subscriptions.each do |channel_id, subscription_id|
+        channel = application.channel_from_id channel_id
+        channel.try :unsubscribe, subscription_id
+      end
     end
 
     def authenticate
@@ -58,8 +63,7 @@ module Slanger
     def pusher_subscribe(msg)
       channel_id = msg['data']['channel']
       klass      = subscription_klass channel_id
-
-      @subscriptions[channel_id] = klass.new(connection.socket, connection.socket_id, msg).subscribe
+      @subscriptions[channel_id] = klass.new(application, connection.socket, connection.socket_id, msg).subscribe
     end
 
     private
@@ -68,8 +72,12 @@ module Slanger
       @socket.request['path'].split(/\W/)[2]
     end
 
+    def application
+      @application ||= Application.find_by_key(app_key)
+    end
+
     def valid_app_key? app_key
-      Slanger::Config.app_key == app_key
+      not application.nil?
     end
 
     def subscription_klass channel_id

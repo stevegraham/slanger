@@ -11,8 +11,16 @@ module Slanger
       # Dispatch messages received from Redis to their destination channel.
       base.on(:message) do |channel, message|
         message = JSON.parse message
-        c = Channel.from message['channel']
-        c.dispatch message, channel
+        app_id = message.delete('app_id').to_i
+        # Retrieve application
+        application = Application.find_by_app_id(app_id)
+        unless application.nil?
+          # Dispatch to application's destination channel
+          c = application.channel_from_id message['channel']
+          c.dispatch message, channel
+        else
+          raise "Application not found: " + channel.to_s + " " + message.to_s
+        end
       end
     end
 

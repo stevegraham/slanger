@@ -7,11 +7,19 @@ module SlangerHelperMethods
 
       opts = { host:             '0.0.0.0',
                api_port:         '4567',
-               websocket_port:   '8080',
-               app_key:          '765ec374ae0a69f4ce44',
-               secret:           'your-pusher-secret' }
+               websocket_port:   '8080' }
 
       Slanger::Config.load opts.merge(options)
+      Slanger::Application.create({
+        app_id: 1,
+        key: '765ec374ae0a69f4ce44',
+        secret: 'your-pusher-secret'
+      })
+      Slanger::Application.create({
+        app_id: 2,
+        key: '23deadbeef99abababab',
+        secret: 'your-pusher-secret'
+      })
 
       Slanger::Service.run
     end
@@ -92,5 +100,25 @@ module SlangerHelperMethods
                      data: { channel: 'private-channel',
                auth: auth } }.to_json)
 
+  end
+
+  def pusher_app1
+    Pusher.tap do |p|
+      p.host   = '0.0.0.0'
+      p.port   = 4567
+      p.app_id = '1'
+      p.secret = 'your-pusher-secret'
+      p.key    = '765ec374ae0a69f4ce44'
+    end
+  end
+ 
+  def pusher_app2
+    Pusher.tap do |p|
+      p.host   = '0.0.0.0'
+      p.port   = 4567
+      p.app_id = '2'
+      p.secret = 'your-pusher-secret'
+      p.key    = '23deadbeef99abababab'
+    end
   end
 end

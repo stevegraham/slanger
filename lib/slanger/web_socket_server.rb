@@ -11,8 +11,7 @@ module Slanger
         options = {
           host:    Slanger::Config[:websocket_host],
           port:    Slanger::Config[:websocket_port],
-          debug:   Slanger::Config[:debug],
-          app_key: Slanger::Config[:app_key]
+          debug:   Slanger::Config[:debug]
         }
 
         if Slanger::Config[:tls_options]

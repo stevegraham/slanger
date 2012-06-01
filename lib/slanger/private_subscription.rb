@@ -3,7 +3,7 @@ module Slanger
     def subscribe
       return handle_invalid_signature if auth && invalid_signature?
 
-      Subscription.new(connection.socket, connection.socket_id, @msg).subscribe
+      Subscription.new(@application, connection.socket, connection.socket_id, @msg).subscribe
     end
   end
 end

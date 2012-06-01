@@ -20,12 +20,6 @@ RSpec.configure do |config|
   config.fail_fast = true
   config.after(:each) { stop_slanger }
   config.before :all do
-    Pusher.tap do |p|
-      p.host   = '0.0.0.0'
-      p.port   = 4567
-      p.app_id = 'your-pusher-app-id'
-      p.secret = 'your-pusher-secret'
-      p.key    = '765ec374ae0a69f4ce44'
-    end
+    pusher_app1
   end
 end

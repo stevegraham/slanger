@@ -3,7 +3,8 @@ module Slanger
     attr_accessor :connection, :socket
     delegate :send_payload, :send_message, :error, :socket_id, to: :connection
 
-    def initialize socket, socket_id, msg
+    def initialize application, socket, socket_id, msg
+      @application = application
       @connection = Connection.new socket, socket_id
       @msg       = msg
     end
@@ -17,7 +18,7 @@ module Slanger
     private
 
     def channel
-      Channel.from channel_id
+      @application.channel_from_id channel_id
     end
 
     def channel_id
@@ -28,7 +29,7 @@ module Slanger
       to_sign = [socket_id, channel_id, params].compact.join ':'
 
       digest = OpenSSL::Digest::SHA256.new
-      OpenSSL::HMAC.hexdigest digest, Slanger::Config.secret, to_sign
+      OpenSSL::HMAC.hexdigest digest, @application.secret, to_sign
     end
 
     def invalid_signature?

@@ -16,24 +16,9 @@ module Slanger
 
     def_delegators :channel, :subscribe, :unsubscribe, :push
 
-    class << self
-      def from channel_id
-        klass = channel_id[/^presence-/] ? PresenceChannel : Channel
-        klass.find_or_create_by_channel_id channel_id
-      end
-
-      def unsubscribe channel_id, subscription_id
-        from(channel_id).try :unsubscribe, subscription_id
-      end
-
-      def send_client_message msg
-        from(msg['channel']).try :send_client_message, msg
-      end
-    end
-
     def initialize(attrs)
       super
-      Slanger::Redis.subscribe channel_id
+      Slanger::Redis.subscribe redis_channel
     end
 
     def channel
@@ -44,7 +29,8 @@ module Slanger
     # Only events to channels requiring authentication (private or presence)
     # are accepted. Public channels only get events from the API.
     def send_client_message(message)
-      Slanger::Redis.publish(message['channel'], message.to_json) if authenticated?
+      message['app_id'] = application.app_id
+      Slanger::Redis.publish(redis_channel, message.to_json) if authenticated?
     end
 
     # Send an event received from Redis to the EventMachine channel
@@ -55,6 +41,12 @@ module Slanger
 
     def authenticated?
       channel_id =~ /^private-/ || channel_id =~ /^presence-/
+    end
+
+    def redis_channel
+      # Prefixes the channel_id with the application id in Redis so that two
+      # applications don't get each other's messages.
+      application.app_id.to_s + ":" + channel_id
     end
   end
 end
