@@ -58,7 +58,7 @@ module Slanger
       else
         error({ code: 4001, message: "Could not find app by key #{app_key}" })
         @socket.close_websocket
-        Logger.error log_message("Application key not found: " + app_key._to_s)
+        Logger.error log_message("Application key not found: " + app_key.to_s)
       end
     end
 
