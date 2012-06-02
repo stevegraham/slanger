@@ -3,7 +3,7 @@ module Slanger
     def subscribe
       if invalid_signature?
         Logger.error log_message("channel_id: " + channel_id.to_s + " Invalid signature.")
-        handle_invalid_signature
+        return handle_invalid_signature
       end
 
       unless channel_data?
