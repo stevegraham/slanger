@@ -9,9 +9,14 @@ module Slanger
       Thin::Logging.silent = true
       Rack::Handler::Thin.run Slanger::ApiServer, Host: Slanger::Config.api_host, Port: Slanger::Config.api_port
       Slanger::WebSocketServer.run
+      # Enter cluster
+      Cluster.enter
     end
 
     def stop
+      # Leave the cluster
+      Cluster.leave
+      # Stop EM
       EM.stop if EM.reactor_running?
       Logger.info "Stopping."
     end

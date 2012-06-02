@@ -4,11 +4,13 @@ require 'optparse'
 require 'bundler/setup'
 require 'eventmachine'
 require 'logger'
+require 'securerandom'
 
 options = {
   api_host: '0.0.0.0', api_port: '4567', websocket_host: '0.0.0.0',
   websocket_port: '8080', debug: false, redis_address: 'redis://127.0.0.1:6379/0',
-  log_level: ::Logger::WARN, log_file: $stdout, audit_log_file: $stdout, api_log_file: $stdout
+  log_level: ::Logger::WARN, log_file: $stdout, audit_log_file: $stdout, api_log_file: $stdout,
+  slanger_id: SecureRandom.uuid
   }
 
 opts_app_id = nil
@@ -93,6 +95,10 @@ OptionParser.new do |opts|
     tmpfile = File.new(p, "a")
     tmpfile.sync = true
     options[:api_log_file] = tmpfile
+  end
+
+  opts.on '--id IDENTIFIER', 'Unique identified for the slanger daemon. Optional.' do |p|
+    options[:slanger_id] = p
   end
 
   opts.on "-v", "--[no-]verbose", "Run verbosely" do |v|

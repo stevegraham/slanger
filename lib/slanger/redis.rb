@@ -10,16 +10,21 @@ module Slanger
     def self.extended base
       # Dispatch messages received from Redis to their destination channel.
       base.on(:message) do |channel, message|
-        message = JSON.parse message
-        app_id = message.delete('app_id').to_i
-        # Retrieve application
-        application = Application.find_by_app_id(app_id)
-        unless application.nil?
-          # Dispatch to application's destination channel
-          c = application.channel_from_id message['channel']
-          c.dispatch message, channel
+        if channel == 'slanger:cluster'
+          # Process cluster message
+          Cluster.process_message(message)
         else
-          raise "Application not found: " + channel.to_s + " " + message.to_s
+          message = JSON.parse message
+          app_id = message.delete('app_id').to_i
+          # Retrieve application
+          application = Application.find_by_app_id(app_id)
+          unless application.nil?
+            # Dispatch to application's destination channel
+            c = application.channel_from_id message['channel']
+            c.dispatch message, channel
+          else
+            raise "Application not found: " + channel.to_s + " " + message.to_s
+          end
         end
       end
     end

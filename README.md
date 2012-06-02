@@ -116,6 +116,8 @@ Slanger supports several configuration options, which can be supplied as command
 -c or --cert_chain_file Certificate chain file for SSL support. This argument is optional, if given, SSL will be enabled
 
 -v or --[no-]verbose This makes Slanger run verbosely, meaning WebSocket frames will be echoed to STDOUT. Useful for debugging
+
+--id A unique identifier for this slanger daemon in a cluster. Optional.
 </pre>
 
 
