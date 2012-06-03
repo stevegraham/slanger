@@ -34,7 +34,7 @@ module Slanger
     def subscribe(msg, subscription_succeeded_callback, &blk)
       channel_data = JSON.parse msg['data']['channel_data']
 
-      publisher, public_subscription_id = redis_roster.subscribe channel_data
+      publisher, public_subscription_id = roster.subscribe channel_data
 
       # fuuuuuuuuuccccccck!
       publisher.callback do
@@ -42,7 +42,7 @@ module Slanger
           subscription_succeeded_callback.call
           internal_id = em_channel.subscribe &blk
 
-          redis_roster.update_internal_table public_subscription_id, internal_id
+          roster.update_internal_table public_subscription_id, internal_id
         end
       end
 
@@ -50,8 +50,8 @@ module Slanger
     end
 
     def unsubscribe(public_subscription_id)
-      em_channel.  unsubscribe public_subscription_id
-      redis_roster.unsubscribe public_subscription_id
+      em_channel.unsubscribe public_subscription_id
+      roster.    unsubscribe public_subscription_id
     end
 
     def ids
@@ -64,14 +64,14 @@ module Slanger
 
     private
 
-    def redis_roster
-      @redis_roster ||= RedisRoster.new channel_id
+    def roster
+      @roster ||= Roster.new channel_id
     end
 
     # This is the state of the presence channel across the system. kept in sync
-    # with redis pubsub
+    # with pubsub
     def subscriptions
-      @subscriptions ||= redis_roster.get || {}
+      @subscriptions ||= roster.get || {}
     end
 
     def update_subscribers(message)
