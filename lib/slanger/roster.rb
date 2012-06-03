@@ -45,10 +45,6 @@ class Roster
       channel: channel_id
   end
 
-  def update_internal_table public_subscription_id, internal_id
-    internal_subscription_table[public_subscription_id] = internal_id
-  end
-
   private
 
   def publish_connection_notification(payload, retry_count=0)
@@ -60,13 +56,6 @@ class Roster
 
   attr_reader :channel_id
 
-
-  # This is used map public subscription ids to em channel subscription ids.
-  # em channel subscription ids are incremented integers, so they cannot
-  # be used as keys in distributed system because they will not be unique
-  def internal_subscription_table
-    @internal_subscription_table ||= {}
-  end
 
   def fiber
     Fiber.new do

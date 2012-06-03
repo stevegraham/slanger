@@ -42,7 +42,7 @@ module Slanger
           subscription_succeeded_callback.call
           internal_id = em_channel.subscribe &blk
 
-          roster.update_internal_table public_subscription_id, internal_id
+          internal_subscription_table[public_subscription_id] = internal_id
         end
       end
 
@@ -63,6 +63,15 @@ module Slanger
     end
 
     private
+
+    # This is used map public subscription ids to em channel subscription ids.
+    # em channel subscription ids are incremented integers, so they cannot
+    # be used as keys in distributed system because they will not be unique
+    def internal_subscription_table
+      @internal_subscription_table ||= {}
+    end
+
+
 
     def roster
       @roster ||= Roster.new channel_id
