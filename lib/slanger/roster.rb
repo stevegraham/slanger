@@ -14,7 +14,6 @@ class Roster
 
   def unsubscribe public_subscription_id
     remove                             public_subscription_id
-    internal_subscription_table.delete public_subscription_id
     publish_disconnection              public_subscription_id
   end
 
