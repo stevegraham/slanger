@@ -7,14 +7,23 @@ class Roster
     public_subscription_id = SecureRandom.uuid
 
     add public_subscription_id, channel_data
-    publisher = publish_connection public_subscription_id, channel_data
+
+    publisher = publish_connection_notification(
+      subscription_id: public_subscription_id,
+      online: true,
+      channel_data: channel_data,
+      channel: channel_id)
 
     return publisher, public_subscription_id
   end
 
   def unsubscribe public_subscription_id
-    remove                             public_subscription_id
-    publish_disconnection              public_subscription_id
+    remove public_subscription_id
+
+    publish_connection_notification(
+      subscription_id: public_subscription_id,
+      online: false,
+      channel: channel_id)
   end
 
   def get
@@ -29,19 +38,6 @@ class Roster
 
   def remove public_subscription_id
     Slanger.delete(channel_id, public_subscription_id)
-  end
-
-  def publish_connection public_subscription_id, channel_data
-    publish_connection_notification subscription_id: public_subscription_id,
-      online: true,
-      channel_data: channel_data,
-      channel: channel_id
-  end
-
-  def publish_disconnection public_subscription_id
-    publish_connection_notification subscription_id: public_subscription_id,
-      online: false,
-      channel: channel_id
   end
 
   private
