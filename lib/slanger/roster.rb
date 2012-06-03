@@ -54,7 +54,7 @@ class Roster
   def publish_connection_notification(payload, retry_count=0)
     # Send a subscription notification to the global slanger:connection_notification
     # channel.
-    Slanger.storage.publish('slanger:connection_notification', payload.to_json).
+    Slanger.publish('slanger:connection_notification', payload.to_json).
       tap { |r| r.errback { publish_connection_notification payload, retry_count.succ unless retry_count == 5 } }
   end
 
