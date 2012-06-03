@@ -18,7 +18,7 @@ class RedisRoster
     publish_disconnection              public_subscription_id
   end
 
-    def get
+  def get
     fiber do |f|
       Slanger::Redis.hgetall(channel_id).callback { |res| f.resume res }
     end
@@ -74,9 +74,6 @@ class RedisRoster
       Fiber.yield
     end.resume
   end
-
-
-
 end
 
 
