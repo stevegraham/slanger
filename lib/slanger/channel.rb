@@ -14,7 +14,7 @@ module Slanger
     include Glamazon::Base
     extend  Forwardable
 
-    def_delegators :channel, :subscribe, :unsubscribe, :push
+    def_delegators :em_channel, :subscribe, :unsubscribe, :push
 
     class << self
       def from channel_id
@@ -33,24 +33,24 @@ module Slanger
 
     def initialize(attrs)
       super
-      Slanger::Redis.subscribe channel_id
+      Slanger.subscribe channel_id
     end
 
-    def channel
-      @channel ||= EM::Channel.new
+    def em_channel
+      @em_channel ||= EM::Channel.new
     end
 
     # Send a client event to the EventMachine channel.
     # Only events to channels requiring authentication (private or presence)
     # are accepted. Public channels only get events from the API.
     def send_client_message(message)
-      Slanger::Redis.publish(message['channel'], message.to_json) if authenticated?
+      Slanger.publish(message['channel'], message.to_json) if authenticated?
     end
 
     # Send an event received from Redis to the EventMachine channel
     # which will send it to subscribed clients.
-    def dispatch(message, channel)
-      push(message.to_json) unless channel =~ /^slanger:/
+    def dispatch(message, channel_id)
+      push(message.to_json) unless channel_id =~ /^slanger:/
     end
 
     def authenticated?

@@ -20,10 +20,14 @@ module SlangerHelperMethods
 
   alias start_slanger start_slanger_with_options
 
+  def errback
+    @errback ||= Proc.new { |e| fail 'cannot connect to slanger. your box might be too slow. try increasing sleep value in the before block' }
+  end
+
   def stop_slanger
     # Ensure Slanger is properly stopped. No orphaned processes allowed!
-     Process.kill 'SIGKILL', @server_pid
-     Process.wait @server_pid
+    Process.kill 'SIGKILL', @server_pid
+    Process.wait @server_pid
   end
 
   def wait_for_slanger opts = {}
@@ -83,14 +87,14 @@ module SlangerHelperMethods
   def send_subscribe options
     auth = auth_from options
     options[:user].send({event: 'pusher:subscribe',
-                  data: {channel: 'presence-channel'}.merge(auth)}.to_json)
+                         data: {channel: 'presence-channel'}.merge(auth)}.to_json)
   end
 
   def private_channel websocket, message
     auth = Pusher['private-channel'].authenticate(message['data']['socket_id'])[:auth]
     websocket.send({ event: 'pusher:subscribe',
                      data: { channel: 'private-channel',
-               auth: auth } }.to_json)
+                             auth: auth } }.to_json)
 
   end
 end

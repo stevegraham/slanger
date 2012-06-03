@@ -6,7 +6,8 @@ require 'em-hiredis'
 require 'rack'
 require 'active_support/core_ext/string'
 
-module Slanger; end
+module Slanger
+end
 
 EM.epoll
 EM.kqueue
@@ -18,3 +19,16 @@ EM.run do
     end
   end
 end
+
+module Slanger
+  extend Forwardable
+  extend self
+
+  def storage
+    @backend ||= Slanger::Redis.new
+  end
+
+  def_delegators :storage, :read_all, :delete, :set, :publish, :subscribe
+end
+
+

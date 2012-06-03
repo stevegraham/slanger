@@ -12,11 +12,11 @@ require 'fiber'
 
 module Slanger
   class PresenceChannel < Channel
-    def_delegators :channel, :push
+    def_delegators :em_channel, :push
 
     # Send an event received from Redis to the EventMachine channel
-    def dispatch(message, channel)
-      if channel =~ /^slanger:/
+    def dispatch(message, channel_id)
+      if channel_id =~ /^slanger:/
         # Messages received from the Redis channel slanger:*  carry info on
         # subscriptions. Update our subscribers accordingly.
         update_subscribers message
@@ -28,32 +28,30 @@ module Slanger
     def initialize(attrs)
       super
       # Also subscribe the slanger daemon to a Redis channel used for events concerning subscriptions.
-      Slanger::Redis.subscribe 'slanger:connection_notification'
+      Slanger.subscribe 'slanger:connection_notification'
     end
 
-    def subscribe(msg, callback, &blk)
+    def subscribe(msg, subscription_succeeded_callback, &blk)
       channel_data = JSON.parse msg['data']['channel_data']
-      public_subscription_id = SecureRandom.uuid
 
-      # Send event about the new subscription to the Redis slanger:connection_notification Channel.
-      publisher = publish_connection_notification subscription_id: public_subscription_id, online: true,
-        channel_data: channel_data, channel: channel_id
-
-      # Associate the subscription data to the public id in Redis.
-      roster_add public_subscription_id, channel_data
+      publisher, public_subscription_id = roster.subscribe channel_data
 
       # fuuuuuuuuuccccccck!
       publisher.callback do
         EM.next_tick do
-          # The Subscription event has been sent to Redis successfully.
-          # Call the provided callback.
-          callback.call
-          # Add the subscription to our table.
-          internal_subscription_table[public_subscription_id] = channel.subscribe &blk
+          subscription_succeeded_callback.call
+          internal_id = em_channel.subscribe &blk
+
+          internal_subscription_table[public_subscription_id] = internal_id
         end
       end
 
       public_subscription_id
+    end
+
+    def unsubscribe(public_subscription_id)
+      em_channel.unsubscribe public_subscription_id
+      roster.    unsubscribe public_subscription_id
     end
 
     def ids
@@ -64,55 +62,25 @@ module Slanger
       Hash[subscriptions.map { |_,v| [v['user_id'], v['user_info']] }]
     end
 
-    def unsubscribe(public_subscription_id)
-      # Unsubcribe from EM::Channel
-      channel.unsubscribe(internal_subscription_table.delete(public_subscription_id)) # if internal_subscription_table[public_subscription_id]
-      # Remove subscription data from Redis
-      roster_remove public_subscription_id
-      # Notify all instances
-      publish_connection_notification subscription_id: public_subscription_id, online: false, channel: channel_id
-    end
-
     private
-
-    def get_roster
-      # Read subscription infos from Redis.
-      Fiber.new do
-        f = Fiber.current
-        Slanger::Redis.hgetall(channel_id).
-          callback { |res| f.resume res }
-        Fiber.yield
-      end.resume
-    end
-
-    def roster_add(key, value)
-      # Add subscription info to Redis.
-      Slanger::Redis.hset(channel_id, key, value)
-    end
-
-    def roster_remove(key)
-      # Remove subscription info from Redis.
-      Slanger::Redis.hdel(channel_id, key)
-    end
-
-    def publish_connection_notification(payload, retry_count=0)
-      # Send a subscription notification to the global slanger:connection_notification
-      # channel.
-      Slanger::Redis.publish('slanger:connection_notification', payload.to_json).
-        tap { |r| r.errback { publish_connection_notification payload, retry_count.succ unless retry_count == 5 } }
-    end
-
-    # This is the state of the presence channel across the system. kept in sync
-    # with redis pubsub
-    def subscriptions
-      @subscriptions ||= get_roster || {}
-    end
 
     # This is used map public subscription ids to em channel subscription ids.
     # em channel subscription ids are incremented integers, so they cannot
     # be used as keys in distributed system because they will not be unique
     def internal_subscription_table
       @internal_subscription_table ||= {}
+    end
+
+
+
+    def roster
+      @roster ||= Roster.new channel_id
+    end
+
+    # This is the state of the presence channel across the system. kept in sync
+    # with pubsub
+    def subscriptions
+      @subscriptions ||= roster.get || {}
     end
 
     def update_subscribers(message)
