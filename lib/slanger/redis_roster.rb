@@ -18,13 +18,10 @@ class RedisRoster
     publish_disconnection              public_subscription_id
   end
 
-  def get
-    Fiber.new do
-      f = Fiber.current
-      Slanger::Redis.hgetall(channel_id).
-        callback { |res| f.resume res }
-      Fiber.yield
-    end.resume
+    def get
+    fiber do |f|
+      Slanger::Redis.hgetall(channel_id).callback { |res| f.resume res }
+    end
   end
 
   def add public_subscription_id, uuid
@@ -70,6 +67,14 @@ class RedisRoster
   def internal_subscription_table
     @internal_subscription_table ||= {}
   end
+
+  def fiber
+    Fiber.new do
+      yield Fiber.current
+      Fiber.yield
+    end.resume
+  end
+
 
 
 end
