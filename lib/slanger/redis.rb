@@ -4,21 +4,23 @@
 require 'forwardable'
 
 module Slanger
-  module Redis
+  class Redis < Slanger::Storage
     extend Forwardable
-
-    def self.extended base
-      # Dispatch messages received from Redis to their destination channel.
-      base.on(:message) do |channel, message|
-        message = JSON.parse message
-        c = Channel.from message['channel']
-        c.dispatch message, channel
-      end
-    end
 
     def_delegator  :publisher, :publish
     def_delegators :subscriber, :on, :subscribe
-    def_delegators :regular_connection, :hgetall, :hdel, :hset
+
+    def read_all *args
+      regular_connection.hgetall *args
+    end
+
+    def delete *args
+      regular_connection.hdel *args
+    end
+
+    def set *args
+      regular_connection.hset *args
+    end
 
     private
 
@@ -37,7 +39,5 @@ module Slanger
     def new_connection
       EM::Hiredis.connect Slanger::Config.redis_address
     end
-
-    extend self
   end
 end

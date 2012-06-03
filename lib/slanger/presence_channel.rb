@@ -28,7 +28,7 @@ module Slanger
     def initialize(attrs)
       super
       # Also subscribe the slanger daemon to a Redis channel used for events concerning subscriptions.
-      Slanger::Redis.subscribe 'slanger:connection_notification'
+      Slanger.subscribe 'slanger:connection_notification'
     end
 
     def subscribe(msg, subscription_succeeded_callback, &blk)

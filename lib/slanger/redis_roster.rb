@@ -20,16 +20,16 @@ class RedisRoster
 
   def get
     fiber do |f|
-      Slanger::Redis.hgetall(channel_id).callback { |res| f.resume res }
+      Slanger.read_all(channel_id).callback { |res| f.resume res }
     end
   end
 
   def add public_subscription_id, uuid
-    Slanger::Redis.hset(channel_id, public_subscription_id, uuid)
+    Slanger.set(channel_id, public_subscription_id, uuid)
   end
 
   def remove public_subscription_id
-    Slanger::Redis.hdel(channel_id, public_subscription_id)
+    Slanger.delete(channel_id, public_subscription_id)
   end
 
   def publish_connection public_subscription_id, channel_data
@@ -54,7 +54,7 @@ class RedisRoster
   def publish_connection_notification(payload, retry_count=0)
     # Send a subscription notification to the global slanger:connection_notification
     # channel.
-    Slanger::Redis.publish('slanger:connection_notification', payload.to_json).
+    Slanger.storage.publish('slanger:connection_notification', payload.to_json).
       tap { |r| r.errback { publish_connection_notification payload, retry_count.succ unless retry_count == 5 } }
   end
 

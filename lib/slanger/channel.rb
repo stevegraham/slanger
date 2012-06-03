@@ -33,7 +33,7 @@ module Slanger
 
     def initialize(attrs)
       super
-      Slanger::Redis.subscribe channel_id
+      Slanger.subscribe channel_id
     end
 
     def em_channel
@@ -44,7 +44,7 @@ module Slanger
     # Only events to channels requiring authentication (private or presence)
     # are accepted. Public channels only get events from the API.
     def send_client_message(message)
-      Slanger::Redis.publish(message['channel'], message.to_json) if authenticated?
+      Slanger.publish(message['channel'], message.to_json) if authenticated?
     end
 
     # Send an event received from Redis to the EventMachine channel
