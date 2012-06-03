@@ -29,7 +29,6 @@ module Slanger
 
       digest = OpenSSL::Digest::SHA256.new
       OpenSSL::HMAC.hexdigest(digest, Slanger::Config.secret, to_sign)
-
     end
 
     def invalid_signature?
