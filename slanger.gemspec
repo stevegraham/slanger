@@ -1,7 +1,7 @@
 Gem::Specification.new do |s|
   s.platform                    = Gem::Platform::RUBY
   s.name                        = 'slanger'
-  s.version                     = '0.2.2'
+  s.version                     = '0.2.3'
   s.summary                     = 'A websocket service compatible with Pusher libraries'
   s.description                 = 'A websocket service compatible with Pusher libraries'
 
@@ -24,12 +24,9 @@ Gem::Specification.new do |s|
   s.add_dependency                'em-http-request',  '~> 0.3.0'
 
   s.add_development_dependency    'rspec',            '~> 2.6.0'
-  s.add_development_dependency    'pusher',           '~> 0.8.2'
+  s.add_development_dependency    'pusher',           '~> 0.9.3'
   s.add_development_dependency    'haml',             '~> 3.1.2'
   s.add_development_dependency    'rake'
-  s.add_development_dependency    'debugger'
-  s.add_development_dependency    'simplecov'
-
 
   s.files                       = Dir['README.md', 'lib/**/*', 'slanger.rb']
   s.require_path                = '.'

@@ -26,8 +26,10 @@ module Slanger
 
     def token(channel_id, params=nil)
       to_sign = [socket_id, channel_id, params].compact.join ':'
+
       digest = OpenSSL::Digest::SHA256.new
       OpenSSL::HMAC.hexdigest(digest, Slanger::Config.secret, to_sign)
+
     end
 
     def invalid_signature?

@@ -6,7 +6,8 @@ require 'eventmachine'
 require 'em-http-request'
 require 'pusher'
 require 'thin'
-require 'event_machine_helper_methods'
+require 'slanger_helper_methods'
+require 'have_attributes'
 require 'openssl'
 require 'socket'
 require 'simplecov'
@@ -19,7 +20,7 @@ def errback
 end
 
 RSpec.configure do |config|
-  config.include EventMachineHelperMethods
+  config.include SlangerHelperMethods
   config.fail_fast = true
   config.after(:each) { stop_slanger }
   config.before :all do
