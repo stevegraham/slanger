@@ -3,8 +3,9 @@
 require 'glamazon'
 
 module Slanger
-  class ApplicationPoro < Application
+  class ApplicationPoro
     include Glamazon::Base
+    include Application::Methods
 
     def initialize(attrs)
       super(attrs)

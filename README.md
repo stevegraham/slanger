@@ -118,6 +118,14 @@ Slanger supports several configuration options, which can be supplied as command
 -v or --[no-]verbose This makes Slanger run verbosely, meaning WebSocket frames will be echoed to STDOUT. Useful for debugging
 
 --id A unique identifier for this slanger daemon in a cluster. Optional.
+
+--mongo on or off. Uses mongodb to store the applications.
+
+--mongo-host Mongodb host. Default: localhost
+
+--mongo-port Mongodb TCP port. Default: 27017
+
+--mongo-db Mongodb database name. Default: slanger.
 </pre>
 
 

@@ -10,7 +10,7 @@ options = {
   api_host: '0.0.0.0', api_port: '4567', websocket_host: '0.0.0.0',
   websocket_port: '8080', debug: false, redis_address: 'redis://127.0.0.1:6379/0',
   log_level: ::Logger::WARN, log_file: $stdout, audit_log_file: $stdout, api_log_file: $stdout,
-  slanger_id: SecureRandom.uuid
+  slanger_id: SecureRandom.uuid, mongo: false, mongo_host: 'localhost', mongo_port: '27017', mongo_db: 'slanger'
   }
 
 opts_app_id = nil
@@ -99,6 +99,28 @@ OptionParser.new do |opts|
 
   opts.on '--id IDENTIFIER', 'Unique identified for the slanger daemon. Optional.' do |p|
     options[:slanger_id] = p
+  end
+
+  opts.on '--mongo on/off', 'Use Mongodb' do |p|
+    values =  {
+      on: true,
+      off: false
+    }
+    param_mongo = values[p.to_sym]
+    raise RuntimeError.new "Mongo flag unknown. Accepted values are: " + values.keys.join(', ') if param_mongo.nil?
+    options[:mongo_host] = param_mongo
+  end
+
+  opts.on '--mongo-host', 'Mongodb host' do |p|
+    options[:mongo_host] = p
+  end
+
+  opts.on '--mongo-port', 'Mongodb port' do |p|
+    options[:mongo_port] = Integer(p)
+  end
+
+  opts.on '--mongo-db', 'Mongodb database' do |p|
+    options[:mongo_db] = p
   end
 
   opts.on "-v", "--[no-]verbose", "Run verbosely" do |v|

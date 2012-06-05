@@ -3,10 +3,9 @@ require 'spec/spec_helper'
 
 describe 'Integration:' do
 
-  before(:each) { start_slanger }
-
   describe 'applications' do
     it 'with channels with same names do not see each others messages' do
+      start_slanger
       client2_messages  = []
 
       # TODO: this doesn't work, it prevents further tests from completing.
@@ -38,6 +37,29 @@ describe 'Integration:' do
       #
       #client2_messages.should have_attributes last_event: 'an_event',
       #                                        last_data: { some: 'data' }.to_json
+    end
+  end
+
+  describe 'existing applications stored in mongodb' do
+    it 'should be retrieved and usable by Slanger' do
+      start_slanger mongo: true
+       
+      messages = em_stream do |websocket, messages|
+        case messages.length
+        when 1
+          if messages[0]['event'] == 'pusher:error'
+            EM.stop
+          end
+          websocket.callback { websocket.send({ event: 'pusher:subscribe', data: { channel: 'MY_CHANNEL'} }.to_json) }
+        when 2
+          Pusher['MY_CHANNEL'].trigger_async 'an_event', { some: "Mit Raben Und Wölfen" }
+        when 3
+          EM.stop
+        end
+     end
+
+      messages.should have_attributes connection_established: true, id_present: true,
+        last_event: 'an_event', last_data: { some: "Mit Raben Und Wölfen" }.to_json
     end
   end
 end

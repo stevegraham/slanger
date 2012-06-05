@@ -7,19 +7,29 @@ module SlangerHelperMethods
 
       opts = { host:             '0.0.0.0',
                api_port:         '4567',
-               websocket_port:   '8080' }
+               websocket_port:   '8080',
+               log_level:        ::Logger::DEBUG,
+               log_file:         File.new(IO::NULL, 'a'),
+               api_log_file:     File.new(IO::NULL, 'a'),
+               audit_log_file:   File.new(IO::NULL, 'a'),
+               mongo_host:       'localhost',
+               mongo_port:       '27017',
+               mongo_db:         'slanger',
+      }
 
       Slanger::Config.load opts.merge(options)
-      Slanger::Application.create({
-        app_id: 1,
-        key: '765ec374ae0a69f4ce44',
-        secret: 'your-pusher-secret'
-      })
-      Slanger::Application.create({
-        app_id: 2,
-        key: '23deadbeef99abababab',
-        secret: 'your-pusher-secret'
-      })
+      Fiber.new do
+        Slanger::Application.create({
+          app_id: 1,
+          key: '765ec374ae0a69f4ce44',
+          secret: 'your-pusher-secret'
+        })
+        Slanger::Application.create({
+          app_id: 2,
+          key: '23deadbeef99abababab',
+          secret: 'your-pusher-secret'
+        })
+      end.resume
 
       Slanger::Service.run
     end
