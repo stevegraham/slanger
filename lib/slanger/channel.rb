@@ -57,7 +57,7 @@ module Slanger
     end
 
     def log_message(msg)
-      msg + " app_id: " + application.id + " channel_id: " + channel_id
+      msg + " app_id: " + application.app_id.to_s + " channel_id: " + channel_id.to_s
     end
   end
 end
