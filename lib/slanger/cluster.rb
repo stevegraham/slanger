@@ -1,4 +1,5 @@
 require 'securerandom'
+require 'json'
 
 module Slanger
   module Cluster
