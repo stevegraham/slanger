@@ -7,7 +7,7 @@ module SlangerHelperMethods
       api_port:         '4567',
       websocket_port:   '8080',
       log_level:        ::Logger::DEBUG,
-      log_file:         'toto.txt', #File.new(IO::NULL, 'a'),
+      log_file:         File.new(IO::NULL, 'a'),
       api_log_file:     File.new(IO::NULL, 'a'),
       audit_log_file:   File.new(IO::NULL, 'a'),
       slanger_id:       'slanger1',
