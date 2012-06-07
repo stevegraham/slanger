@@ -112,6 +112,14 @@ OptionParser.new do |opts|
     options[:metrics] = param_metrics
   end
 
+  opts.on '--admin-http-user USER', 'HTTP user for statistics and REST API calls' do |p|
+    options[:admin_http_user] = p
+  end
+
+  opts.on '--admin-http-password PASSWORD', 'HTTP password for statistics and REST API calls' do |p|
+    options[:admin_http_password] = p
+  end
+
   opts.on '--mongo on/off', 'Use Mongodb' do |p|
     values =  {
       on: true,

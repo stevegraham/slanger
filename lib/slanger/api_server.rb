@@ -16,6 +16,10 @@ module Slanger
     set :raise_errors, lambda { false }
     set :show_exceptions, false
 
+    #################################
+    # Pusher API
+    #################################
+
     # Respond with HTTP 401 Unauthorized if request cannot be authenticated.
     error(Signature::AuthenticationError) { |c| halt 401, "401 UNAUTHORIZED\n" }
 
@@ -63,6 +67,73 @@ module Slanger
     def log_message(msg)
       msg + " app_id: " + params[:app_id].to_s + " channel_id: " + params[:channel_id].to_s
     end
+
+
+    #################################
+    # Application REST API
+    #################################
+    
+    # GET /applications - return all applications
+    get '/applications/?', :provides => :json do
+      content_type :json
+      protected!
+      apps = Application.all
+      return [404, {}, "404 NOT FOUND\n"] if apps.nil?
+      return [200, {}, apps.to_json]
+    end
+
+    # GET /applications/:app_id - return application with specified id
+    get '/applications/:app_id', :provides => :json do
+      content_type :json
+      protected!
+      app = Application.find_by_app_id(params[:app_id].to_i)
+      return [404, {}, "404 NOT FOUND\n"] if app.nil?
+      return [200, {}, app.to_json]
+    end
+
+    # POST /applications - create new application
+    post '/applications/?', :provides => :json  do
+      content_type :json
+      protected!
+      app = Application.create_new
+      headers["Location"] = "/applications/#{app.app_id}"
+      status 201
+      app.to_json
+    end
+
+    # POST /applications/:app_id/generate_new_token - generate new key and secret for application.
+    post '/applications/:app_id/generate_new_token', :provides => :json do
+      content_type :json
+      protected!
+      app = Application.find_by_app_id(params[:app_id].to_i)
+      return [404, {}, "404 NOT FOUND\n"] if app.nil?
+      app.generate_new_token!
+      app.save
+      app.to_json
+    end
+
+    # DELETE /applications/:app_id - delete application
+    delete '/applications/:app_id', :provides => :json do
+      content_type :json
+      protected!
+      app = Application.find_by_app_id(params[:app_id].to_i)
+      return [404, {}, "404 NOT FOUND\n"] if app.nil?
+      app.destroy
+      status 204
+    end
+
+    # Authenticate requests
+    def protected!
+      unless authorized?
+        response['WWW-Authenticate'] = %(Basic realm="Restricted Area")
+        throw(:halt, [401, "Not authorized\n"])
+      end
+    end
+
+    # authorise HTTP users for the API calls
+    def authorized?
+      @auth ||=  Rack::Auth::Basic::Request.new(request.env)
+      @auth.provided? && @auth.basic? && @auth.credentials && @auth.credentials == [Config.admin_http_user, Config.admin_http_password]
+    end
   end
 end
-

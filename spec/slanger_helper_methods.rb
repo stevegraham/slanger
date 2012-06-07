@@ -1,20 +1,23 @@
 require 'fiber'
 require 'mongo'
+require 'net/http'
 
 module SlangerHelperMethods
   def options()
-    { host:             '0.0.0.0',
-      api_port:         '4567',
-      websocket_port:   '8080',
-      log_level:        ::Logger::DEBUG,
-      log_file:         File.new(IO::NULL, 'a'),
-      api_log_file:     File.new(IO::NULL, 'a'),
-      audit_log_file:   File.new(IO::NULL, 'a'),
-      slanger_id:       'slanger1',
-      mongo_host:       'localhost',
-      mongo_port:       '27017',
-      mongo_db:         'slanger_test',
-      metrics:          true,
+    { host:                '127.0.0.1',
+      api_port:            '4567',
+      websocket_port:      '8080',
+      log_level:           ::Logger::DEBUG,
+      log_file:            File.new(IO::NULL, 'a'),
+      api_log_file:        File.new(IO::NULL, 'a'),
+      audit_log_file:      File.new(IO::NULL, 'a'),
+      slanger_id:          'slanger1',
+      mongo_host:          'localhost',
+      mongo_port:          '27017',
+      mongo_db:            'slanger_test',
+      metrics:             true,
+      admin_http_user:     'admin',
+      admin_http_password: 'secret',
     }
   end
 
@@ -137,7 +140,6 @@ module SlangerHelperMethods
   end
 
   def metrics_data
-    opts = options
     mongo.collection("slanger.metrics.data")
   end
 
@@ -163,6 +165,39 @@ module SlangerHelperMethods
     doc['nb_messages']
   end
 
+  def applications
+    mongo.collection("slanger.applications")
+  end
+
+  def cleanup_applications()
+    applications.drop()
+  end
+
+  def get_application(app_id)
+    applications.find_one({'_id' => app_id})
+  end
+
+  def rest_api_post(path, payload='')
+    opts = options
+    req = Net::HTTP::Post.new(path, initheader = {'Content-Type' =>'application/json'})
+    req.basic_auth opts[:admin_http_user] , opts[:admin_http_password]
+    req.body = payload
+    Net::HTTP.new(opts[:host], opts[:api_port]).start {|http| http.request(req) }
+  end
+
+  def rest_api_delete(path)
+    opts = options
+    req = Net::HTTP::Delete.new(path, initheader = {'Content-Type' =>'application/json'})
+    req.basic_auth opts[:admin_http_user] , opts[:admin_http_password]
+    Net::HTTP.new(opts[:host], opts[:api_port]).start {|http| http.request(req) }
+  end
+
+  def rest_api_get(path)
+    opts = options
+    req = Net::HTTP::Get.new(path, initheader = {'Content-Type' =>'application/json'})
+    req.basic_auth opts[:admin_http_user] , opts[:admin_http_password]
+    Net::HTTP.new(opts[:host], opts[:api_port]).start {|http| http.request(req) }
+  end
 
   def pusher_app1
     Pusher.tap do |p|

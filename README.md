@@ -128,6 +128,10 @@ Slanger supports several configuration options, which can be supplied as command
 --mongo-port Mongodb TCP port. Default: 27017
 
 --mongo-db Mongodb database name. Default: slanger.
+
+--admin-http-user HTTP user for accessing metrics and applications via the REST API.
+
+--admin-http-password HTTP password for accessing metrics and applications via the REST API.
 </pre>
 
 

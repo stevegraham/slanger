@@ -12,6 +12,10 @@ module Slanger
       app
     end
 
+    def self.all()
+      ApplicationImpl.all
+    end
+
     def self.find_by_app_id(id)
       ApplicationImpl.find_by_app_id(id)
     end
@@ -20,7 +24,23 @@ module Slanger
       ApplicationImpl.find_by_key(key)
     end
 
+    def self.create_new()
+      app_id = new_id
+      app = ApplicationImpl.new({app_id: app_id, key: nil, secret: nil})
+      app.generate_new_token!
+      app.save
+      app
+    end
+
+    def self.new_id()
+      ApplicationImpl.new_id()
+    end
+
     module Methods
+      def to_json(options=nil)
+        {app_id: app_id, key: key, secret: secret}.to_json(options)
+      end
+
       def channels
         @channels ||= {}
       end
@@ -36,6 +56,13 @@ module Slanger
           Logger.audit("Created channel " + channel_id.to_s + " in app " + app_id.to_s)
         end
         channels[channel_id]
+      end
+
+      def generate_new_token!()
+        # Generate key and secret
+        @key = SecureRandom.uuid
+        @secret = SecureRandom.uuid
+        self
       end
     end
   end
