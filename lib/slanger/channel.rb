@@ -43,6 +43,7 @@ module Slanger
         push(message.to_json)
         Logger.debug log_message("Message: " + message.to_s)
         Logger.audit log_message("Message: " + message.to_s)
+        Metrics.sent_message(application)
       end
     end
 

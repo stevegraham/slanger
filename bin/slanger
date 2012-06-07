@@ -10,7 +10,8 @@ options = {
   api_host: '0.0.0.0', api_port: '4567', websocket_host: '0.0.0.0',
   websocket_port: '8080', debug: false, redis_address: 'redis://127.0.0.1:6379/0',
   log_level: ::Logger::WARN, log_file: $stdout, audit_log_file: $stdout, api_log_file: $stdout,
-  slanger_id: SecureRandom.uuid, mongo: false, mongo_host: 'localhost', mongo_port: '27017', mongo_db: 'slanger'
+  slanger_id: nil, mongo: false, mongo_host: 'localhost', mongo_port: '27017', mongo_db: 'slanger',
+  metrics: false
   }
 
 opts_app_id = nil
@@ -101,6 +102,16 @@ OptionParser.new do |opts|
     options[:slanger_id] = p
   end
 
+  opts.on '--metrics on/off', 'Metrics flag' do |p|
+    values =  {
+      on: true,
+      off: false
+    }
+    param_metrics = values[p.to_sym]
+    raise RuntimeError.new "Statistics flag unknown. Accepted values are: " + values.keys.join(', ') if param_metrics.nil?
+    options[:metrics] = param_metrics
+  end
+
   opts.on '--mongo on/off', 'Use Mongodb' do |p|
     values =  {
       on: true,
@@ -108,7 +119,7 @@ OptionParser.new do |opts|
     }
     param_mongo = values[p.to_sym]
     raise RuntimeError.new "Mongo flag unknown. Accepted values are: " + values.keys.join(', ') if param_mongo.nil?
-    options[:mongo_host] = param_mongo
+    options[:mongo] = param_mongo
   end
 
   opts.on '--mongo-host', 'Mongodb host' do |p|
@@ -136,6 +147,11 @@ if [opts_app_id, opts_app_key, opts_secret].any?{|item| not item.nil?}
   end
 end
 
+# If we use metrics, --id is mandatory
+if options[:metrics] and options[:slanger_id].nil?
+  raise RuntimeError.new "--id is mandatory when using metrics."
+end
+
 if options[:tls_options]
   [:cert_chain_file, :private_key_file].each do |param|
     raise RuntimeError.new "--#{param} does not exist at `#{options[:tls_options][param]}`" unless File.exists? options[:tls_options][param]
@@ -157,11 +173,13 @@ EM.run do
   File.tap { |f| require f.expand_path(f.join(f.dirname(__FILE__),'..', 'slanger.rb')) }
   unless opts_app_id.nil?
     # Add the application that the user specified on the command line
-    Slanger::Application.create({
-      app_id: opts_app_id,
-      key: opts_app_key,
-      secret: opts_secret
-  })
+    Fiber.new do
+      Slanger::Application.create({
+        app_id: opts_app_id,
+        key: opts_app_key,
+        secret: opts_secret
+      })
+    end.resume
   end
   Slanger::Service.run
 

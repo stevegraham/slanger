@@ -50,6 +50,7 @@ module Slanger
     end
 
     def self.cache(app)
+      return if app.nil?
       application_cache[app.app_id] = app
       application_cache_by_key[app.key] = app
     end

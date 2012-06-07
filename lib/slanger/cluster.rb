@@ -4,12 +4,12 @@ module Slanger
   module Cluster
 
     def is_master?()
-      @master_id == id
+      @master_id == node_id
     end
 
     # Returns a unique identifier for this node
-    def id()
-      @id ||= SecureRandom.uuid
+    def node_id()
+      @node_id ||= Config.slanger_id || SecureRandom.uuid
     end
 
     # Enter the cluster 
@@ -37,27 +37,27 @@ module Slanger
         return        
       end
       sender = data['sender']
-      return if sender == id # Ignore own messages
+      return if sender == node_id # Ignore own messages
       destination = data['destination']
-      if (destination.nil? || destination == id)
+      if (destination.nil? || destination == node_id)
         # This is a broadcast, or a message to our node, we need to process it
         event = data['event'].to_sym
-        if event == :election_enquiry && is_master? && sender < id
-          # We are the master, and the enquirer doesn't have an id
+        if event == :election_enquiry && is_master? && sender < node_id
+          # We are the master, and the enquirer doesn't have an node_id
           # higher than us. Reply to this enquiry telling it we are the master.
           Logger.debug log_message"Sending master enquiry reply to: " + sender
           send_enquiry_reply(sender)
-        elsif event == :election_enquiry_reply && sender > id
+        elsif event == :election_enquiry_reply && sender > node_id
           # The master replied, accept it
           accept_master(sender)
-        elsif event == :election_victory && sender < id
-          # Some node claims to be the master, but its id is lower than ours ;
+        elsif event == :election_victory && sender < node_id
+          # Some node claims to be the master, but its node_id is lower than ours ;
           # Tell all nodes we are the real master.
           Logger.info log_message"Another node claimed to be the master: " + sender + ". Sending new victory message to correct it."
           send_victory
-        elsif event == :election_victory && sender > id && (sender > master_id || master_last_seen_unix_timestamp < Time.now.to_i - 60)
-          # Some node claims to be the master, and its id is greater than ours
-          # and its id is greater than the currently known master, or the master is
+        elsif event == :election_victory && sender > node_id && (sender > master_id || master_last_seen_unix_timestamp < Time.now.to_i - 60)
+          # Some node claims to be the master, and its node_id is greater than ours
+          # and its node_id is greater than the currently known master, or the master is
           # outdated. Accept the node as new master
           accept_master(sender)
         elsif event == :master_alive && sender == master_id 
@@ -70,14 +70,14 @@ module Slanger
 
     private
 
-    # The id of the current master
+    # The node_id of the current master
     def master_id()
       @master_id ||= ""
     end
 
     # Sends a cluster message
     def send_message(event, payload = nil, destination = nil)
-      Redis.publish('slanger:cluster', {sender: id, destination: destination, event: event, payload: payload}.to_json)
+      Redis.publish('slanger:cluster', {sender: node_id, destination: destination, event: event, payload: payload}.to_json)
     end
 
     # The last time a "election victory" occured. 
@@ -91,7 +91,7 @@ module Slanger
     # Master election messages, as described
     # in http://en.wikipedia.org/wiki/Bully_algorithm
     def send_enquiry()
-      # Send election enquiry message. The master will reply if its id is greater than this node's
+      # Send election enquiry message. The master will reply if its node_id is greater than this node's
       send_message(:election_enquiry)
       # Wait for the master's response for a few seconds
       @master_response_timeout = EM::Timer.new(5) do
@@ -114,7 +114,7 @@ module Slanger
     end
 
     def become_master()
-      @master_id = id
+      @master_id = node_id
       send_victory
       # Start sending "alive" messages so that other nodes can detect
       # when the master disapears
@@ -148,7 +148,7 @@ module Slanger
     end
 
     def log_message(message)
-      "Node " + id.to_s + ": " + message.to_s
+      "Node " + node_id.to_s + ": " + message.to_s
     end
 
     extend self

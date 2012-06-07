@@ -1,23 +1,30 @@
+require 'fiber'
+require 'mongo'
+
 module SlangerHelperMethods
-  def start_slanger_with_options options={}
+  def options()
+    { host:             '0.0.0.0',
+      api_port:         '4567',
+      websocket_port:   '8080',
+      log_level:        ::Logger::DEBUG,
+      log_file:         'toto.txt', #File.new(IO::NULL, 'a'),
+      api_log_file:     File.new(IO::NULL, 'a'),
+      audit_log_file:   File.new(IO::NULL, 'a'),
+      slanger_id:       'slanger1',
+      mongo_host:       'localhost',
+      mongo_port:       '27017',
+      mongo_db:         'slanger_test',
+      metrics:          true,
+    }
+  end
+
+  def start_slanger_with_options arg_options={}
     # Fork service. Our integration tests MUST block the main thread because we want to wait for i/o to finish.
     @server_pid = EM.fork_reactor do
       require File.expand_path(File.dirname(__FILE__) + '/../slanger.rb')
       Thin::Logging.silent = true
-
-      opts = { host:             '0.0.0.0',
-               api_port:         '4567',
-               websocket_port:   '8080',
-               log_level:        ::Logger::DEBUG,
-               log_file:         File.new(IO::NULL, 'a'),
-               api_log_file:     File.new(IO::NULL, 'a'),
-               audit_log_file:   File.new(IO::NULL, 'a'),
-               mongo_host:       'localhost',
-               mongo_port:       '27017',
-               mongo_db:         'slanger',
-      }
-
-      Slanger::Config.load opts.merge(options)
+      opts = options
+      Slanger::Config.load opts.merge(arg_options)
       Fiber.new do
         Slanger::Application.create({
           app_id: 1,
@@ -38,10 +45,18 @@ module SlangerHelperMethods
 
   alias start_slanger start_slanger_with_options
 
+  def kill_slanger()
+    # Kill slanger
+    Process.kill('INT', @server_pid)
+    Process.wait(@server_pid)
+    @server_pid = nil
+  end 
+
   def stop_slanger
     # Ensure Slanger is properly stopped. No orphaned processes allowed!
-     Process.kill 'SIGKILL', @server_pid
-     Process.wait @server_pid
+    return if @server_pid.nil?
+    Process.kill 'SIGKILL', @server_pid
+    Process.wait @server_pid
   end
 
   def wait_for_slanger opts = {}
@@ -111,6 +126,43 @@ module SlangerHelperMethods
                auth: auth } }.to_json)
 
   end
+
+  def mongo
+    opts = options
+    @mongo ||= Mongo::Connection.new(opts[:mongo_host], opts[:mongo_port]).db(opts[:mongo_db])
+  end
+
+  def metrics_work_data
+    mongo.collection("slanger.metrics.work_data")
+  end
+
+  def metrics_data
+    opts = options
+    mongo.collection("slanger.metrics.data")
+  end
+
+  def cleanup_metrics()
+    metrics_work_data.drop()
+    metrics_data.drop()
+  end
+
+  def insert_stale_metrics()
+    cleanup_metrics()
+    metrics_work_data.insert(
+      {app_id: 1, connections: [{slanger_id: 'slanger1', peer: 'stale peer'}] }
+    )
+  end
+
+  def get_number_of_connections()
+    doc = metrics_work_data.find_one({app_id: 1})
+    doc['connections'].count
+  end
+
+  def get_number_of_messages()
+    doc = metrics_work_data.find_one({app_id: 1})
+    doc['nb_messages']
+  end
+
 
   def pusher_app1
     Pusher.tap do |p|

@@ -10,10 +10,12 @@ module Slanger
   class Handler
 
     attr_accessor :connection
+    attr_reader :socket
     delegate :error, :send_payload, to: :connection
 
     def initialize(socket)
       @socket        = socket
+      @peername      = socket.get_peername
       @connection    = Connection.new(@socket)
       @subscriptions = {}
       authenticate
@@ -49,11 +51,13 @@ module Slanger
         channel.try :unsubscribe, subscription_id
       end
       Logger.debug log_message("Closed connection.")
+      Metrics.connection_closed(self)
     end
 
     def authenticate
       if valid_app_key? app_key
         Logger.debug log_message("Connection established.")
+        Metrics.new_connection(self)
         return connection.establish
       else
         error({ code: 4001, message: "Could not find app by key #{app_key}" })
@@ -80,14 +84,23 @@ module Slanger
       Logger.audit log_message("Subscribed to channel: " + channel_id.to_s + " subscriptions id: " + subscription_id.to_s)
     end
 
+    def application
+      @application ||= Application.find_by_key(app_key)
+    end
+
+    def peer_ip_port()
+      if @peername.nil?
+        nil
+      else
+        port, ip = Socket.unpack_sockaddr_in(@peername)
+        "" + ip.to_s + ":" + port.to_s
+      end
+    end
+ 
     private
 
     def app_key
       @socket.request['path'].split(/\W/)[2]
-    end
-
-    def application
-      @application ||= Application.find_by_key(app_key)
     end
 
     def valid_app_key? app_key

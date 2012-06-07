@@ -22,6 +22,7 @@ Gem::Specification.new do |s|
   s.add_dependency                'sinatra',          '~> 1.2.6'
   s.add_dependency                'thin',             '~> 1.2.11'
   s.add_dependency                'em-http-request',  '~> 0.3.0'
+  s.add_dependency                'mongo',            '~> 1.6.1'
   s.add_dependency                'em-mongo',         '~> 0.4.2'
   s.add_dependency                'bson_ext',         '~> 1.6.1'
 

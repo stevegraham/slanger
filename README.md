@@ -119,6 +119,8 @@ Slanger supports several configuration options, which can be supplied as command
 
 --id A unique identifier for this slanger daemon in a cluster. Optional.
 
+--metrics Metrics, on or off. Default: off. Metrics will be collected for each application.
+
 --mongo on or off. Uses mongodb to store the applications.
 
 --mongo-host Mongodb host. Default: localhost
