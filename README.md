@@ -129,9 +129,11 @@ Slanger supports several configuration options, which can be supplied as command
 
 --mongo-db Mongodb database name. Default: slanger.
 
---admin-http-user HTTP user for accessing metrics and applications via the REST API.
+--admin-http-user HTTP user for accessing metrics and applications via the REST API. Optional.
 
---admin-http-password HTTP password for accessing metrics and applications via the REST API.
+--admin-http-password HTTP password for accessing metrics and applications via the REST API. Optional.
+
+--pid_file The path to a file you want slanger to write it's PID to. Optional.
 </pre>
 
 
@@ -153,6 +155,10 @@ Pusher is an awesome service, very reasonably priced, and run by an awesome crew
 # Author
 
 - Stevie Graham
+
+# Author for Mongo database support, application metrics and REST API:
+
+- Gilbert Roulot for Tech-Angels
 
 # Core Team
 

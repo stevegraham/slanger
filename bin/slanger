@@ -24,6 +24,10 @@ OptionParser.new do |opts|
     exit
   end
 
+  opts.on '--pid_file PIDFILE', "File containing the PID of the slanger daemon" do |k|
+    options[:pid_file] = k
+  end
+
   opts.on '--app_id APP_ID', Integer, "Pusher application id (integer)" do |k|
     opts_app_id = k.to_int
   end
@@ -177,6 +181,14 @@ File.tap do |f|
 end
 Slanger::Config.load options
 
+unless options[:pid_file].nil?
+  # Write PID to file
+  pid = Process.pid.to_s
+  f = File.new(options[:pid_file], 'w')
+  f.write(pid)
+  f.close()
+end
+
 EM.run do
   File.tap { |f| require f.expand_path(f.join(f.dirname(__FILE__),'..', 'slanger.rb')) }
   unless opts_app_id.nil?
@@ -191,7 +203,7 @@ EM.run do
   end
   Slanger::Service.run
 
-  puts "\x1b[2J\x1b[H"
+#  puts "\x1b[2J\x1b[H"
   puts "\n"
   puts "    .d8888b.  888                                               "
   puts "   d88P  Y88b 888                                               "
