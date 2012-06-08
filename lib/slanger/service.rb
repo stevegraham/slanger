@@ -12,7 +12,14 @@ module Slanger
       Metrics
       # Start network services
       Thin::Logging.silent = true
-      Rack::Handler::Thin.run Slanger::ApiServer, Host: Slanger::Config.api_host, Port: Slanger::Config.api_port
+      api_app = Rack::Chunked.new(Rack::ContentLength.new(Slanger::ApiServer))
+      thin_server = ::Thin::Server.new(Slanger::Config.api_host, Slanger::Config.api_port, api_app)
+      if Slanger::Config[:tls_options]
+        # Set up SLL for the API server
+        thin_server.ssl = true
+        thin_server.ssl_options = Slanger::Config[:tls_options]
+      end
+      thin_server.start
       Slanger::WebSocketServer.run
 
       # em-websocket installs its own trap handler which stop eventmachine
