@@ -15,6 +15,9 @@ describe 'Integration:' do
       # Retrieve app in mongo db to check that it actually was created
       mongo_app = get_application(returned_app['app_id'])
       response.code.should eq('201')
+      returned_app['app_id'].should_not be_nil
+      returned_app['key'].should_not be_nil
+      returned_app['secret'].should_not be_nil
       mongo_app.should_not be_nil
       mongo_app['_id'].should eq(returned_app['app_id'])
       mongo_app['key'].should eq(returned_app['key'])

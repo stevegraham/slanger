@@ -5,8 +5,8 @@ module Slanger
     include Application::Methods
 
     attr_reader :app_id
-    attr_reader :key
-    attr_reader :secret
+    attr_accessor :key
+    attr_accessor :secret
 
     def initialize(attrs)
       @app_id = attrs[:app_id]
