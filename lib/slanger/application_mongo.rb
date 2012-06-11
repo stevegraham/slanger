@@ -38,6 +38,8 @@ module Slanger
         # Error during removal
         Logger.error "Error when destroying application " + app_id.to_s + " in database: " + err.to_s
       end
+      Logger.info "Destroyed application " + app_id.to_s
+      Logger.audit "Destroyed application " + app_id.to_s
       self.class.delete_from_cache(self)
     end
 
