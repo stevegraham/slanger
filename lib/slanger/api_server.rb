@@ -74,52 +74,56 @@ module Slanger
     #################################
     
     # GET /applications - return all applications
-    get '/applications/?', :provides => :json do
+    get '/applications.json', :provides => :json do
       content_type :json
       protected!
       apps = Application.all
       return [404, {}, "404 NOT FOUND\n"] if apps.nil?
-      return [200, {}, apps.to_json]
+      return [200, {}, apps.collect do |app| map_id(app) end.to_json]
     end
 
-    # GET /applications/:app_id - return application with specified id
-    get '/applications/:app_id', :provides => :json do
+    # GET /applications/:app_id.json - return application with specified id
+    get '/applications/:app_id.json', :provides => :json do
       content_type :json
       protected!
       app = Application.find_by_app_id(params[:app_id].to_i)
       return [404, {}, "404 NOT FOUND\n"] if app.nil?
-      return [200, {}, app.to_json]
+      return [200, {}, map_id(app).to_json]
     end
 
-    # POST /applications - create new application
-    post '/applications/?', :provides => :json  do
+    # POST /applications.json - create new application
+    post '/applications.json', :provides => :json  do
       content_type :json
       protected!
       app = Application.create_new
       headers["Location"] = "/applications/#{app.app_id}"
       status 201
-      app.to_json
+      map_id(app).to_json
     end
 
-    # POST /applications/:app_id/generate_new_token - generate new key and secret for application.
-    post '/applications/:app_id/generate_new_token', :provides => :json do
+    # PUT /applications/:app_id/generate_new_token.json - generate new key and secret for application.
+    put '/applications/:app_id/generate_new_token.json', :provides => :json do
       content_type :json
       protected!
       app = Application.find_by_app_id(params[:app_id].to_i)
       return [404, {}, "404 NOT FOUND\n"] if app.nil?
       app.generate_new_token!
-      app.save
-      app.to_json
+      map_id(app).to_json
     end
 
-    # DELETE /applications/:app_id - delete application
-    delete '/applications/:app_id', :provides => :json do
+    # DELETE /applications/:app_id.json - delete application
+    delete '/applications/:app_id.json', :provides => :json do
       content_type :json
       protected!
       app = Application.find_by_app_id(params[:app_id].to_i)
       return [404, {}, "404 NOT FOUND\n"] if app.nil?
       app.destroy
       status 204
+    end
+
+    # Change app_id into id in REST results to play well with Activeresource
+    def map_id(app)
+      {id: app.app_id, key: app.key, secret: app.secret}
     end
 
     # Authenticate requests

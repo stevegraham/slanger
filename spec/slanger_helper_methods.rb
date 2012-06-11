@@ -185,6 +185,14 @@ module SlangerHelperMethods
     Net::HTTP.new(opts[:host], opts[:api_port]).start {|http| http.request(req) }
   end
 
+  def rest_api_put(path, payload='')
+    opts = options
+    req = Net::HTTP::Put.new(path, initheader = {'Content-Type' =>'application/json'})
+    req.basic_auth opts[:admin_http_user] , opts[:admin_http_password]
+    req.body = payload
+    Net::HTTP.new(opts[:host], opts[:api_port]).start {|http| http.request(req) }
+  end
+
   def rest_api_delete(path)
     opts = options
     req = Net::HTTP::Delete.new(path, initheader = {'Content-Type' =>'application/json'})
