@@ -60,8 +60,8 @@ module Slanger
 
       def generate_new_token!()
         # Generate key and secret
-        self.key = SecureRandom.uuid
-        self.secret = SecureRandom.uuid
+        self.key = SecureRandom.uuid.gsub('-', '')
+        self.secret = SecureRandom.uuid.gsub('-', '')
         self
       end
     end
