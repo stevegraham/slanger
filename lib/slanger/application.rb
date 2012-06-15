@@ -28,8 +28,8 @@ module Slanger
       app_id = new_id
       app = ApplicationImpl.new({app_id: app_id, key: nil, secret: nil})
       app.generate_new_token!
-      Logger.info "Created new application: " + app.to_s
-      Logger.audit "Created new application: " + app.to_s
+      Logger.info "Created new application: " + app.app_id.to_s
+      Logger.audit "Created new application: " + app.app_id.to_s
       app
     end
 
@@ -64,8 +64,8 @@ module Slanger
         self.key = SecureRandom.uuid.gsub('-', '')
         self.secret = SecureRandom.uuid.gsub('-', '')
         self.save
-        Logger.debug "Generated new token for app: " + self.to_s
-        Logger.audit "Generated new token for app: " + self.to_s
+        Logger.debug "Generated new token for app: " + self.app_id.to_s
+        Logger.audit "Generated new token for app: " + self.app_id.to_s
         self
       end
     end
