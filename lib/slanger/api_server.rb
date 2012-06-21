@@ -31,9 +31,6 @@ module Slanger
       # authenticate request. exclude 'channel_id' and 'app_id' included by sinatra but not sent by Pusher.
       # Raises Signature::AuthenticationError if request does not authenticate.
       begin
-puts ""
-puts "params: " + params.to_s
-puts "signature for:" + 'POST' + ' ' + env['PATH_INFO'] + ' ' + params.except('channel_id', 'app_id').to_s
         Signature::Request.new('POST', env['PATH_INFO'], params.except('channel_id', 'app_id')).
           authenticate { |key| Signature::Token.new key, application.secret }
       rescue Signature::AuthenticationError
@@ -71,12 +68,36 @@ puts "signature for:" + 'POST' + ' ' + env['PATH_INFO'] + ' ' + params.except('c
       msg + " app_id: " + params[:app_id].to_s + " channel_id: " + params[:channel_id].to_s
     end
 
+    #################################
+    # Metrics
+    #################################
+    # GET /applications/metrics.json - return all application metrics
+    get '/applications/metrics.json', :provides => :json do
+      content_type :json
+      protected!
+      # Retrieve all the application metrics
+      metrics = Metrics.get_all_metrics()
+
+      return [404, {}, "404 NOT FOUND\n"] if metrics.nil?
+      return [200, {}, metrics.to_json]
+    end
+
+    # GET /applications/metrics/:app_id.json - return application metrics for app with specified id
+    get '/applications/metrics/:app_id.json', :provides => :json do
+      content_type :json
+      protected!
+      # Retrieve the application metrics
+      metrics = Metrics.get_metrics_for(params[:app_id].to_i)
+
+      return [404, {}, "404 NOT FOUND\n"] if metrics.nil?
+      return [200, {}, metrics['value'].to_json]
+    end
 
     #################################
     # Application REST API
     #################################
     
-    # GET /applications - return all applications
+    # GET /applications.json- return all applications
     get '/applications.json', :provides => :json do
       content_type :json
       protected!

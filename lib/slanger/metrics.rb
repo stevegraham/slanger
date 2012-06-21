@@ -78,19 +78,40 @@ module Slanger
         )
       end
     end
+
+    # Return the metrics for one application
+    def get_metrics_for(app_id)
+      f = Fiber.current
+      resp = metrics.find_one('_id' => app_id)
+      resp.callback do |doc|
+        f.resume doc
+      end
+      resp.errback do |err|
+        raise *err
+      end
+      doc = Fiber.yield
+      # convert id to int
+      doc['_id'] = doc['_id'].to_i unless doc.nil?
+      doc
+    end
+ 
+    # Return the metrics for all applications
+    def get_all_metrics()
+      f = Fiber.current
+      resp = metrics.find().defer_as_a
+      resp.callback do |doc|
+        f.resume doc
+      end
+      resp.errback do |err|
+        raise *err
+      end
+      docs = Fiber.yield
+      # convert ids to int
+      docs.collect{|doc| doc['_id'] = doc['_id'].to_i ; doc }
+    end
  
     private 
   
-    #def get_socket_ip_port(socket)
-    #  slanger_id = socket.get_sockname
-    #  if slanger_id.nil?
-    #    nil
-    #  else
-    #    port, ip = Socket.unpack_sockaddr_in(slanger_id) 
-    #    "" + ip + ":" + port.to_s
-    #  end
-    #end
-   
     # Run a MapReduce query to fill the slanger metrics collection from data
     def refresh_metrics()
       # Only run this on the master
@@ -142,7 +163,7 @@ module Slanger
 
     # Metrics collection in Mongodb
     def metrics
-      @metrics ||= Mongo.collection("slanger.metrics")
+      @metrics ||= Mongo.collection("slanger.metrics.data")
     end
   
     # Mongodb Map Reduce query to build metrics
