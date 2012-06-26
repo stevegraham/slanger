@@ -156,10 +156,6 @@ Pusher is an awesome service, very reasonably priced, and run by an awesome crew
 
 - Stevie Graham
 
-# Author for Mongo database support, application metrics and REST API:
-
-- Gilbert Roulot for Tech-Angels
-
 # Core Team
 
 - Stevie Graham
@@ -171,6 +167,10 @@ Pusher is an awesome service, very reasonably priced, and run by an awesome crew
 - Mark Burns
 - Florian Gilcher
 - Claudio Poli
+
+Mongodb and metrics support:
+- Tech-Angels (Gilbert Roulot)
+
 
 &copy; 2011 a Stevie Graham joint.
 
