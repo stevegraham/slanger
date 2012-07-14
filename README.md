@@ -1,5 +1,4 @@
 # Slanger
-[![Build Status](https://secure.travis-ci.org/stevegraham/slanger.png?branch=master)](http://travis-ci.org/stevegraham/slanger)
 
 Slanger is an open source server implementation of the Pusher protocol written in Ruby. It is designed to scale horizontally across N nodes and to be agnostic as to which Slanger node a subscriber is connected to, i.e subscribers to the same channel are NOT required to be connected to the same Slanger node. Multiple Slanger nodes can sit behind a load balancer with no special configuration. In essence it was designed to be very easy to scale.
 
