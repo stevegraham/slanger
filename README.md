@@ -138,6 +138,6 @@ Pusher is an awesome service, very reasonably priced, and run by an awesome crew
 - Florian Gilcher
 - Claudio Poli
 
-&copy; 2011 a Stevie Graham joint
+&copy; 2011 a Stevie Graham joint.
 
  
