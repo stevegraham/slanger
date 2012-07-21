@@ -58,14 +58,19 @@ OptionParser.new do |opts|
   opts.on "-v", "--[no-]verbose", "Run verbosely" do |v|
     options[:debug] = v
   end
-  
+
+  opts.parse!
+
   %w<app_key secret>.each do |parameter|
-    puts "--#{parameter} STRING is a required argument. Use your Pusher #{parameter}.\n" unless options[parameter.to_sym]
-    puts opts
-    exit
+    unless options[parameter.to_sym]
+      puts options.inspect
+      puts "--#{parameter} STRING is a required argument. Use your Pusher #{parameter}.\n"
+      puts opts
+      exit
+    end
   end
 
-end.parse!
+end
 
 
 
