@@ -59,7 +59,11 @@ module Slanger
       channel_id = msg['data']['channel']
       klass      = subscription_klass channel_id
 
-      @subscriptions[channel_id] = klass.new(connection.socket, connection.socket_id, msg).subscribe
+      if @subscriptions[channel_id]
+        error({ code: nil, message: "Existing subscription to #{channel_id}" })
+      else
+        @subscriptions[channel_id] = klass.new(connection.socket, connection.socket_id, msg).subscribe
+      end
     end
 
     private

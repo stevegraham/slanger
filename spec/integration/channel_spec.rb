@@ -22,6 +22,21 @@ describe 'Integration:' do
         last_event: 'an_event', last_data: { some: "Mit Raben Und Wölfen" }.to_json
     end
 
+    it 'enforces one subcription per channel, per socket' do
+      messages = em_stream do |websocket, messages|
+        case messages.length
+        when 1
+          websocket.callback { websocket.send({ event: 'pusher:subscribe', data: { channel: 'MY_CHANNEL'} }.to_json) }
+        when 2
+          websocket.send({ event: 'pusher:subscribe', data: { channel: 'MY_CHANNEL'} }.to_json)
+        when 3
+          EM.stop
+        end
+     end
+
+      messages.last.should == {"event"=>"pusher:error", "data"=>{"code"=>nil, "message"=>"Existing subscription to MY_CHANNEL"}}
+    end
+
     it 'avoids sending duplicate events' do
       client2_messages  = []
 
