@@ -37,8 +37,34 @@ describe 'Integration:' do
       messages.last.should == {"event"=>"pusher:error", "data"=>{"code"=>nil, "message"=>"Existing subscription to MY_CHANNEL"}}
     end
 
+    it 'supports unsubscribing to channels without closing the socket' do
+      client2_messages = nil
+
+      messages = em_stream do |client, messages|
+        case messages.length
+        when 1
+          client.callback { client.send({ event: 'pusher:subscribe', data: { channel: 'MY_CHANNEL'} }.to_json) }
+        when 2
+          client.send({ event: 'pusher:unsubscribe', data: { channel: 'MY_CHANNEL'} }.to_json)
+
+          client2_messages = em_stream do |client2, client2_messages|
+            case client2_messages.length
+              when 1
+                client2.callback { client2.send({ event: 'pusher:subscribe', data: { channel: 'MY_CHANNEL'} }.to_json) }
+              when 2
+                Pusher['MY_CHANNEL'].trigger 'an_event', { some: 'data' }
+                EM.next_tick { EM.stop }
+            end
+          end
+        end
+      end
+
+      messages.should have_attributes connection_established: true, id_present: true,
+        last_event: 'pusher_internal:subscription_succeeded', count: 2
+    end
+
     it 'avoids sending duplicate events' do
-      client2_messages  = []
+      client2_messages = nil
 
       client1_messages = em_stream do |client1, client1_messages|
         # if this is the first message to client 1 set up another connection from the same client

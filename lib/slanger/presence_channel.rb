@@ -128,9 +128,7 @@ module Slanger
         # still remains in the subscriptions hash, i.e. multiple browser windows open.
         subscriber = subscriptions.delete message['subscription_id']
         unless subscriptions.has_value? subscriber
-          push payload('pusher_internal:member_removed', {
-            user_id: subscriber['user_id']
-          })
+          push payload('pusher_internal:member_removed', { user_id: subscriber['user_id'] })
         end
       end
     end

@@ -9,7 +9,7 @@ module Slanger
         })
       end
 
-      channel.subscribe(@msg, callback) { |m| connection.send_message m }
+      channel.subscribe(@msg, callback) { |m| send_message m }
     end
 
     private

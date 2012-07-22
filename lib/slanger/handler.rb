@@ -39,7 +39,7 @@ module Slanger
     end
 
     def onclose
-      @subscriptions.each { |c, s| Channel.unsubscribe c, s }
+      @subscriptions.each { |channel_id, subscription_id| Channel.unsubscribe channel_id, subscription_id }
     end
 
     def authenticate
@@ -64,6 +64,13 @@ module Slanger
       else
         @subscriptions[channel_id] = klass.new(connection.socket, connection.socket_id, msg).subscribe
       end
+    end
+
+    def pusher_unsubscribe(msg)
+      channel_id      = msg['data']['channel']
+      subscription_id = @subscriptions.delete(channel_id)
+
+      Channel.unsubscribe channel_id, subscription_id
     end
 
     private
