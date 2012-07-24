@@ -1,7 +1,7 @@
 Gem::Specification.new do |s|
   s.platform                    = Gem::Platform::RUBY
   s.name                        = 'slanger'
-  s.version                     = '0.3.2'
+  s.version                     = '0.3.3'
   s.summary                     = 'A websocket service compatible with Pusher libraries'
   s.description                 = 'A websocket service compatible with Pusher libraries'
 
