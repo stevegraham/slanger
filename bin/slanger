@@ -17,6 +17,7 @@ options = {
 opts_app_id = nil
 opts_app_key = nil
 opts_secret = nil 
+opts_webhook_url = nil 
 
 OptionParser.new do |opts|
   opts.on '-h', '--help', 'Display this screen' do
@@ -64,6 +65,10 @@ OptionParser.new do |opts|
   opts.on '-p', '--private_key_file FILE', "Private key file for SSL transport" do |p|
     options[:tls_options] ||= {}
     options[:tls_options][:private_key_file] = p
+  end
+
+  opts.on '-b', '--webhook_url URL', "Callback URL for webhooks" do |p|
+    opts_webhook_url = p
   end
 
   opts.on '-c', '--cert_chain_file FILE', "Certificate chain file for SSL transport" do |p|
@@ -197,13 +202,14 @@ EM.run do
       Slanger::Application.create({
         app_id: opts_app_id,
         key: opts_app_key,
-        secret: opts_secret
+        secret: opts_secret,
+        webhook_url: opts_webhook_url,
       })
     end.resume
   end
   Slanger::Service.run
 
-#  puts "\x1b[2J\x1b[H"
+  puts "\n"
   puts "\n"
   puts "    .d8888b.  888                                               "
   puts "   d88P  Y88b 888                                               "

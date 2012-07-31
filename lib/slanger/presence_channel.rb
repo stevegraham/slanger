@@ -85,7 +85,7 @@ module Slanger
       # Read subscription infos from Redis.
       Fiber.new do
         f = Fiber.current
-        Slanger::Redis.hgetall(redis_channel).
+        Slanger::Redis.hgetall(redis_channel + ':roster').
           callback { |res| f.resume res }
         Fiber.yield
       end.resume
@@ -93,7 +93,7 @@ module Slanger
 
     def roster_add(key, value)
       # Add subscription info to Redis.
-      Slanger::Redis.hset(redis_channel, key, value)
+      Slanger::Redis.hset(redis_channel + ':roster', key, value)
     end
 
     def roster_remove(key)

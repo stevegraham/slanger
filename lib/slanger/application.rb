@@ -68,6 +68,28 @@ module Slanger
         Logger.audit "Generated new token for app: " + self.app_id.to_s
         self
       end
+
+      def post_to_webhook payload
+        # Posts event to configured webhook url, if any.
+        return unless webhook_url
+
+        payload = {
+          time_ms: Time.now.strftime('%s%L'), events: [payload]
+        }.to_json
+
+        digest   = OpenSSL::Digest::SHA256.new
+        hmac     = OpenSSL::HMAC.hexdigest(digest, secret, payload)
+
+        Fiber.new do
+          f = Fiber.current
+        
+          EM::HttpRequest.new(webhook_url).
+            post(body: payload, head: { "X-Pusher-Key" => app_key, "X-Pusher-Secret" => hmac }).
+            callback { f.resume }
+            # TODO: Exponentially backed off retries for errors
+          Fiber.yield
+        end.resume
+      end
     end
   end
 end
