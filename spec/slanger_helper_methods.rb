@@ -1,6 +1,7 @@
 require 'fiber'
 require 'mongo'
 require 'net/http'
+require File.expand_path(File.dirname(__FILE__) + '/../slanger.rb')
 
 module SlangerHelperMethods
   def options()
@@ -24,10 +25,10 @@ module SlangerHelperMethods
   def start_slanger_with_options arg_options={}
     # Fork service. Our integration tests MUST block the main thread because we want to wait for i/o to finish.
     @server_pid = EM.fork_reactor do
-      require File.expand_path(File.dirname(__FILE__) + '/../slanger.rb')
       Thin::Logging.silent = true
       opts = options
       Slanger::Config.load opts.merge(arg_options)
+      # Fill with applications
       Fiber.new do
         Slanger::Application.create({
           app_id: 1,
@@ -39,11 +40,14 @@ module SlangerHelperMethods
           key: '23deadbeef99abababab',
           secret: 'your-pusher-secret'
         })
-      end.resume
-
+      end.resume 
       Slanger::Service.run
     end
     wait_for_slanger
+  end
+
+  def start_slanger_with_mongo
+    start_slanger_with_options mongo: true
   end
 
   alias start_slanger start_slanger_with_options
@@ -143,21 +147,17 @@ module SlangerHelperMethods
     mongo.collection("slanger.metrics.data")
   end
 
-  def cleanup_metrics()
-    metrics_work_data.drop()
-    metrics_data.drop()
-  end
-
-  def insert_stale_metrics()
-    cleanup_metrics()
-    metrics_work_data.insert(
-      {app_id: 1, connections: [{slanger_id: 'slanger1', peer: 'stale peer'}] }
-    )
+  def cleanup_db
+    mongo.collections.each do |collection|
+      unless collection.name =~ /^system\./
+        collection.remove
+      end
+    end
   end
 
   def get_number_of_connections()
     doc = metrics_work_data.find_one({app_id: 1})
-    doc['connections'].count
+    if doc then doc['connections'].count else nil end
   end
 
   def get_number_of_messages()
@@ -167,10 +167,6 @@ module SlangerHelperMethods
 
   def applications
     mongo.collection("slanger.applications")
-  end
-
-  def cleanup_applications()
-    applications.drop()
   end
 
   def get_application(app_id)
@@ -227,3 +223,39 @@ module SlangerHelperMethods
     end
   end
 end
+
+def with_mongo_slanger(&block)
+  context "with Slanger using MongoDB, " do
+    before :each do
+      start_slanger_with_mongo
+    end
+
+    instance_eval &block
+  end
+end
+
+def with_poro_slanger(&block)
+  context "with Slanger using PORO, " do
+    before :each do
+      start_slanger
+    end
+
+    instance_eval &block
+  end
+end
+
+def with_stale_metrics(&block)
+  context "with stale metrics, " do
+    before :each do
+      metrics_work_data.update(
+        {app_id: 1},
+        {app_id: 1, connections: [{slanger_id: options['slanger_id'], peer: 'stale peer'}] },
+        upsert: true
+      )
+    end
+
+    instance_eval &block
+  end
+end
+
+

@@ -8,6 +8,7 @@ require 'em-hiredis'
 require 'rack'
 require 'fiber'
 require 'rack/fiber_pool'
+require 'uri'
 
 module Slanger
   class ApiServer < Sinatra::Base
@@ -71,6 +72,7 @@ module Slanger
     #################################
     # Metrics
     #################################
+
     # GET /applications/metrics.json - return all application metrics
     get '/applications/metrics.json', :provides => :json do
       content_type :json
@@ -135,6 +137,28 @@ module Slanger
       map_id(app).to_json
     end
 
+    # PUT /applications/:app_id.json - modify app
+    put '/applications/:app_id.json', :provides => :json do
+      content_type :json
+      protected!
+      app = Application.find_by_app_id(params[:app_id].to_i)
+      return [404, {}, "404 NOT FOUND\n"] if app.nil?
+      begin
+        data = JSON.parse(request.body.string)
+        # Disallows changing the key
+        return [403, {}, "Modification of the key is forbidden\n"] if data['key'] != app.key
+        return [403, {}, "Modification of the secret is forbidden\n"] if data['secret'] != app.secret
+        if data['webhook_url'] != app.webhook_url
+          # Modify the webhook URL
+          app.webhook_url = data['webhook_url']
+        end
+      rescue JSON::ParserError
+        return [400, {}, "Invalid JSON data\n"]        
+      end
+      app.save
+      status 204
+    end
+
     # DELETE /applications/:app_id.json - delete application
     delete '/applications/:app_id.json', :provides => :json do
       content_type :json
@@ -147,7 +171,7 @@ module Slanger
 
     # Change app_id into id in REST results to play well with Activeresource
     def map_id(app)
-      {id: app.app_id, key: app.key, secret: app.secret}
+      {id: app.app_id, key: app.key, secret: app.secret, webhook_url: app.webhook_url}
     end
 
     # Authenticate requests

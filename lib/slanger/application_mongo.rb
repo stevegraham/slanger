@@ -7,18 +7,20 @@ module Slanger
     attr_reader :app_id
     attr_accessor :key
     attr_accessor :secret
+    attr_accessor :webhook_url
 
     def initialize(attrs)
       @app_id = attrs[:app_id]
       @key = attrs[:key]
       @secret = attrs[:secret]
+      @webhook_url = attrs[:webhook_url]
     end
 
     def save()
       f = Fiber.current
       resp = self.class.applications.safe_update(
         {'_id' => app_id},
-        {'_id' => app_id, key: key, secret: secret},
+        {'_id' => app_id, key: key, secret: secret, webhook_url: webhook_url},
         {upsert: true}
       )
       resp.callback do |doc|
@@ -121,7 +123,8 @@ module Slanger
       app = doc && ApplicationMongo.new({
         app_id: doc['_id'],
         key:    doc['key'],
-        secret: doc['secret']
+        secret: doc['secret'],
+        webhook_url: doc['webhook_url']
       })
       self.cache(app)
       app
@@ -145,7 +148,8 @@ module Slanger
         ApplicationMongo.new({
           app_id: doc['_id'],
           key:    doc['key'],
-          secret: doc['secret']
+          secret: doc['secret'],
+          webhook_url: doc['webhook_url']
         })
       end
     end
@@ -161,5 +165,3 @@ module Slanger
     end
   end
 end
-
-ApplicationImpl = Slanger::ApplicationMongo

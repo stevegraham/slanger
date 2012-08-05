@@ -42,7 +42,7 @@ describe 'Integration:' do
 
   describe 'existing applications stored in mongodb' do
     it 'should be retrieved and usable by Slanger' do
-      start_slanger mongo: true
+      start_slanger_with_mongo
        
       messages = em_stream do |websocket, messages|
         case messages.length

@@ -19,5 +19,3 @@ module Slanger
     end
   end
 end
-
-ApplicationImpl = Slanger::ApplicationPoro
