@@ -13,6 +13,6 @@ EM.kqueue
 
 File.tap do |f|
   Dir[f.expand_path(f.join(f.dirname(__FILE__),'lib', 'slanger', '*.rb'))].each do |file|
-    Slanger.autoload File.basename(file, '.rb').classify, file
+    Slanger.autoload File.basename(file, '.rb').camelize, file
   end
 end
