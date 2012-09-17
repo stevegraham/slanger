@@ -1,4 +1,4 @@
-require 'spec/spec_helper'
+require 'spec_helper'
 require 'lib/slanger/handler.rb'
 
 class ReplacedHandler < Slanger::Handler

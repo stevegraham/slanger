@@ -1,4 +1,4 @@
-require 'spec/spec_helper'
+require 'spec_helper'
 
 describe 'Integration' do
   describe 'Slanger when configured to use SSL' do
