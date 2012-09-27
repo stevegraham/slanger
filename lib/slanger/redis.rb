@@ -7,15 +7,6 @@ module Slanger
   module Redis
     extend Forwardable
 
-    def self.extended base
-      # Dispatch messages received from Redis to their destination channel.
-      base.on(:message) do |channel, message|
-        message = JSON.parse message
-        c = Channel.from message['channel']
-        c.dispatch message, channel
-      end
-    end
-
     def_delegator  :publisher, :publish
     def_delegators :subscriber, :on, :subscribe
     def_delegators :regular_connection, :hgetall, :hdel, :hset, :hincrby
@@ -39,5 +30,12 @@ module Slanger
     end
 
     extend self
+
+    # Dispatch messages received from Redis to their destination channel.
+    on(:message) do |channel, message|
+      message = JSON.parse message
+      c = Channel.from message['channel']
+      c.dispatch message, channel
+    end
   end
 end
