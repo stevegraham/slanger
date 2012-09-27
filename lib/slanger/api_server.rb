@@ -40,7 +40,7 @@ module Slanger
         data:      request.body.read.tap{ |s| s.force_encoding('utf-8') },
         channel:   params[:channel_id],
         socket_id: params[:socket_id]
-      }.reject { |_,v| v.nil? }.to_json
+      }.select { |_,v| v }.to_json
     end
   end
 end
