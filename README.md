@@ -1,12 +1,47 @@
 # Slanger
+##Typical usage
 
-Slanger is an open source server implementation of the Pusher protocol written in Ruby. It is designed to scale horizontally across N nodes and to be agnostic as to which Slanger node a subscriber is connected to, i.e subscribers to the same channel are NOT required to be connected to the same Slanger node. Multiple Slanger nodes can sit behind a load balancer with no special configuration. In essence it was designed to be very easy to scale.
+Slanger is a standalone server ruby implementation of the Pusher protocol.  It
+is not designed to run inside a Rails or sinatra app, but it can be easily
+installed as a gem.
 
-Presence channel state is shared using Redis. Channels are lazily instantiated internally within a given Slanger node when the first subscriber connects. When a presence channel is instantiated within a Slanger node, it queries Redis for the global state across all nodes within the system for that channel, and then copies that state internally. Afterwards, when subscribers connect or disconnect the node publishes a presence message to all interested nodes, i.e. all nodes with at least one subscriber interested in the given channel.
+```
+#see the section further down for How To Use It
+gem install slanger
+```
 
-Slanger is smart enough to know if a new channel subscription belongs to the same user. It will not send presence messages to subscribers in this case. This happens when the user has multiple browser tabs open for example. Using a chat room backed by presence channels as a real example, one would not want "Barrington" to show up N times in the presence roster because Barrington is a retard and has the chat room open in N browser tabs.
+##You probably don't mean this:
 
-Slanger was designed to be highly available and partition tolerant with eventual consistency, which in practise is instantaneous.
+Gemfile
+```
+gem 'slanger'
+```
+
+##About
+Slanger is an open source server implementation of the Pusher protocol written
+in Ruby. It is designed to scale horizontally across N nodes and to be agnostic
+as to which Slanger node a subscriber is connected to, i.e subscribers to the
+same channel are NOT required to be connected to the same Slanger node.
+Multiple Slanger nodes can sit behind a load balancer with no special
+configuration. In essence it was designed to be very easy to scale.
+
+Presence channel state is shared using Redis. Channels are lazily instantiated
+internally within a given Slanger node when the first subscriber connects. When
+a presence channel is instantiated within a Slanger node, it queries Redis for
+the global state across all nodes within the system for that channel, and then
+copies that state internally. Afterwards, when subscribers connect or
+disconnect the node publishes a presence message to all interested nodes, i.e.
+all nodes with at least one subscriber interested in the given channel.
+
+Slanger is smart enough to know if a new channel subscription belongs to the
+same user. It will not send presence messages to subscribers in this case. This
+happens when the user has multiple browser tabs open for example. Using a chat
+room backed by presence channels as a real example, one would not want
+"Barrington" to show up N times in the presence roster because Barrington is a
+retard and has the chat room open in N browser tabs.
+
+Slanger was designed to be highly available and partition tolerant with
+eventual consistency, which in practise is instantaneous.
 
 # How to use it
 
