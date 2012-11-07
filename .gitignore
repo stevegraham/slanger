@@ -1,4 +1,5 @@
 .DS_Store
+.rvmrc
 *.swp
 *.swn
 *.swo
@@ -7,3 +8,4 @@
 *.swl
 .rbx/
 *.rdb
+*.lock
