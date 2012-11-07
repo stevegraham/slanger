@@ -19,7 +19,7 @@ Gem::Specification.new do |s|
   s.add_dependency                'signature',        '~> 0.1.3'
   s.add_dependency                'activesupport',    '~> 3.1'
   s.add_dependency                'glamazon',         '~> 0.3.1'
-  s.add_dependency                'sinatra',          '~> 1.2.6'
+  s.add_dependency                'sinatra',          '~> 1.3.3'
   s.add_dependency                'thin',             '~> 1.2.11'
   s.add_dependency                'em-http-request',  '~> 0.3.0'
 
