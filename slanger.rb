@@ -16,3 +16,6 @@ File.tap do |f|
     Slanger.autoload File.basename(file, '.rb').camelize, file
   end
 end
+
+# For synching output with foreman
+$stdout.sync = true
