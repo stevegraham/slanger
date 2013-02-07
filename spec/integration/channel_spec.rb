@@ -12,7 +12,7 @@ describe 'Integration:' do
         when 1
           websocket.callback { websocket.send({ event: 'pusher:subscribe', data: { channel: 'MY_CHANNEL'} }.to_json) }
         when 2
-          Pusher['MY_CHANNEL'].trigger_async 'an_event', { some: "Mit Raben Und Wölfen" }
+          Pusher['MY_CHANNEL'].trigger 'an_event', some: "Mit Raben Und Wölfen"
         when 3
           EM.stop
         end
@@ -79,7 +79,7 @@ describe 'Integration:' do
               client2.callback { client2.send({ event: 'pusher:subscribe', data: { channel: 'MY_CHANNEL'} }.to_json) }
             when 2
               socket_id = client1_messages.first['data']['socket_id']
-              Pusher['MY_CHANNEL'].trigger_async 'an_event', { some: 'data' }, socket_id
+              Pusher['MY_CHANNEL'].trigger 'an_event', { some: 'data' }, socket_id
             when 3
               EM.stop
             end
