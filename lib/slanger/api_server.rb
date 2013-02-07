@@ -18,29 +18,41 @@ module Slanger
     # Respond with HTTP 401 Unauthorized if request cannot be authenticated.
     error(Signature::AuthenticationError) { |c| halt 401, "401 UNAUTHORIZED\n" }
 
-    post '/apps/:app_id/channels/:channel_id/events' do
+    post '/apps/:app_id/events' do
       # authenticate request. exclude 'channel_id' and 'app_id' included by sinatra but not sent by Pusher.
       # Raises Signature::AuthenticationError if request does not authenticate.
       Signature::Request.new('POST', env['PATH_INFO'], params.except('channel_id', 'app_id')).
         authenticate { |key| Signature::Token.new key, Slanger::Config.secret }
 
       f = Fiber.current
-      # Publish the event in Redis and translate the result into an HTTP
-      # status to return to the client.
-      Slanger::Redis.publish(params[:channel_id], payload).tap do |r|
-        r.callback { f.resume [202, {}, "202 ACCEPTED\n"] }
-        r.errback  { f.resume [500, {}, "500 INTERNAL SERVER ERROR\n"] }
-      end
+
+      # Event and channel data are now serialized in the JSON data
+      # So, extract and use it
+      data = JSON.parse(request.body.read.tap{ |s| s.force_encoding('utf-8')})
+
+      # Send event to each channel
+      data["channels"].each { |channel|
+        
+        # Publish the event in Redis and translate the result into an HTTP
+        # status to return to the client.
+        Slanger::Redis.publish(channel, payload(channel, data)).tap do |r|
+          r.callback { f.resume [202, {}, "202 ACCEPTED\n"] }
+          r.errback  { f.resume [500, {}, "500 INTERNAL SERVER ERROR\n"] }
+        end
+      }
+      
       Fiber.yield
     end
 
-    def payload
-      {
-        event:     params['name'],
-        data:      request.body.read.tap{ |s| s.force_encoding('utf-8') },
-        channel:   params[:channel_id],
+    def payload(channel, data)
+      payload = {
+        event:     data['name'],
+        data:      data['data'],
+        channel:   channel,
         socket_id: params[:socket_id]
-      }.select { |_,v| v }.to_json
+      }
+
+      Hash[payload.reject { |_,v| v.nil? }].to_json
     end
   end
 end
