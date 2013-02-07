@@ -27,15 +27,18 @@ module Slanger
 
       # Send event to each channel
       data["channels"].each { |channel| publish(channel, data['name'], data['data']) }
-      
+
+      return {}.to_json
     end
 
     post '/apps/:app_id/channels/:channel_id/events' do
       authenticate
-      
+
       publish(params[:channel_id], params['name'],  request.body.read.tap{ |s| s.force_encoding('utf-8') })
+
+      return {}.to_json
     end
-    
+
     def payload(channel, event, data)
       {
         event:     event,
@@ -51,7 +54,7 @@ module Slanger
       Signature::Request.new('POST', env['PATH_INFO'], params.except('channel_id', 'app_id')).
         authenticate { |key| Signature::Token.new key, Slanger::Config.secret }
     end
-  
+
     def publish(channel, event, data)
       f = Fiber.current
 
