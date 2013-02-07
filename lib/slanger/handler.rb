@@ -39,7 +39,10 @@ module Slanger
     end
 
     def onclose
-      @subscriptions.each { |channel_id, subscription_id| Channel.unsubscribe channel_id, subscription_id }
+      @subscriptions.select { |k,v| k && v }.
+        each do |channel_id, subscription_id|
+          Channel.unsubscribe channel_id, subscription_id
+        end
     end
 
     def authenticate
