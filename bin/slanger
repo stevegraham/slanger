@@ -63,7 +63,6 @@ OptionParser.new do |opts|
 
   %w<app_key secret>.each do |parameter|
     unless options[parameter.to_sym]
-      puts options.inspect
       puts "--#{parameter} STRING is a required argument. Use your Pusher #{parameter}.\n"
       puts opts
       exit
@@ -103,6 +102,9 @@ EM.run do
   puts "                                    Y8b d88P                    "
   puts '                                    "Y88P"                      '
   puts "\n" * 2
+
+  puts "Running Slanger v.#{Slanger::VERSION}"
+  puts "\n"
 
   puts "Slanger API server listening on port #{options[:api_port]}"
   puts "Slanger WebSocket server listening on port #{options[:websocket_port]}"
