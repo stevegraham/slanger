@@ -23,6 +23,8 @@ def errback
 end
 
 RSpec.configure do |config|
+  config.formatter = 'documentation'
+  config.color = true
   config.mock_framework = :mocha
   config.include SlangerHelperMethods
   config.fail_fast = true
