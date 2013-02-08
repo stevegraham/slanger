@@ -9,6 +9,7 @@ describe 'Slanger::Webhook' do
     WebMock.enable!
     Timecop.freeze(Time.now) { example.run }
     WebMock.disable!
+    Slanger::Config.load webhook_url: nil
   end
 
   describe '.post' do
@@ -26,7 +27,7 @@ describe 'Slanger::Webhook' do
             "X-Pusher-Key"    => Slanger::Config.app_key,
             "X-Pusher-Secret" => hmac
         }).
-        to_return(:status => 200, :body => "", :headers => {})
+        to_return(:status => 200, :body => {}.to_json, :headers => {})
 
       Slanger::Webhook.post name: 'channel_occupied', channel: 'test channel'
 
