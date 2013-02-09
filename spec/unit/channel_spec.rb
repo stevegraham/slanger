@@ -1,7 +1,7 @@
 require 'spec_helper'
 require 'slanger'
 
-describe 'Slanger::Webhook' do
+describe 'Slanger::Webhook', defer: true do
   let(:channel) { Slanger::Channel.create channel_id: 'test' }
 
   before(:all) do
