@@ -10,6 +10,3 @@ env:
 services:
   - redis-server
 
-script:
-  - bundle exec rspec spec --tag ~@defer --order random
-  - bundle exec rspec spec --tag  @defer --order random

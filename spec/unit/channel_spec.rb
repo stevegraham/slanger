@@ -1,14 +1,22 @@
 require 'spec_helper'
 require 'slanger'
 
-describe 'Slanger::Webhook', defer: true do
+def clear_redis_connections
+  Slanger::Redis.instance_variables.each do |ivar|
+    Slanger::Redis.send :remove_instance_variable, ivar
+  end
+end
+
+describe 'Slanger::Channel' do
   let(:channel) { Slanger::Channel.create channel_id: 'test' }
 
-  before(:all) do
+  before(:each) do
     EM::Hiredis.stubs(:connect).returns stub_everything('redis')
+    clear_redis_connections
   end
 
-  after(:all) do
+  after(:each) do
+    clear_redis_connections
     EM::Hiredis.unstub(:connect)
   end
 
