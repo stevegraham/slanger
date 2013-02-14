@@ -6,7 +6,9 @@ require 'em-hiredis'
 require 'rack'
 require 'active_support/core_ext/string'
 
-module Slanger; end
+module Slanger
+  VERSION = '0.3.7'
+end
 
 EM.epoll
 EM.kqueue
