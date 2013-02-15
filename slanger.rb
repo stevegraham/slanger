@@ -5,10 +5,9 @@ require 'eventmachine'
 require 'em-hiredis'
 require 'rack'
 require 'active_support/core_ext/string'
+require './lib/slanger/version'
 
-module Slanger
-  VERSION = '0.3.7'
-end
+module Slanger; end
 
 EM.epoll
 EM.kqueue
