@@ -65,7 +65,7 @@ I did:
 ```ruby
 sudo gem install rack
 sudo gem install slanger
-gem uninstall rack # only select 1.5.2 (the required dependencey)
+gem uninstall rack # only select 1.5.2 (the required dependency)
 ```
 
 From there, I had to then go into the specifications file for Slanger and do: 
