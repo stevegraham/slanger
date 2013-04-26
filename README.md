@@ -50,6 +50,45 @@ Slanger API server listening on port 4567
 Slanger WebSocket server listening on port 8080
 
 </pre>
+## Ubuntu Installation Instructions
+
+If you run into an issue with installing slanger on an Ubuntu 12.04 installation, here is a workaround that has worked for me - michaeltrimm/slanger. This issue may arise from installing both gitlab/gitlab and stevegraham/slanger on the same Ubuntu box.
+
+```ruby
+webmaster@gitlab:~$ gem install slanger
+ERROR:  While executing gem ... (Gem::DependencyError)
+    Unable to resolve dependencies: slanger requires rack (~> 1.5)
+```
+
+I did: 
+
+```ruby
+sudo gem install rack
+sudo gem install slanger
+gem uninstall rack # only select 1.5.2 (the required dependencey)
+```
+
+From there, I had to then go into the specifications file for Slanger and do: 
+
+```ruby
+sudo vi /usr/local/lib/ruby/gems/1.9.1/specifications/slanger-0.3.7.gemspec
+```
+
+And changed the 3 occurances of: 
+
+```ruby
+s.add_dependency(%q<rack>, ["~> 1.5"])
+```
+
+to this: 
+
+```ruby
+s.add_dependency(%q<rack>, ["~> 1.4"])
+```
+
+I have been using Slanger consistantly without any issues by downgrading this dependency. 
+
+
 
 ## Modifying your application code to use the Slanger service
 
