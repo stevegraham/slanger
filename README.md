@@ -17,7 +17,13 @@ slanger --app_key 765ec374ae0a69f4ce44 --secret your-pusher-secret
 ```
 
 If you submit a pull request, please don't be these people:
- #109, #108, #83, #81, #72, #4
+[#109](https://github.com/stevegraham/slanger/pull/109)
+[#108](https://github.com/stevegraham/slanger/pull/108)
+[#83](https://github.com/stevegraham/slanger/pull/83)
+[#81](https://github.com/stevegraham/slanger/pull/81)
+[#72](https://github.com/stevegraham/slanger/pull/72)
+[#4](https://github.com/stevegraham/slanger/pull/4)
+
 I'll try to politely close any new ones, but there's been [RUBY_DRAMA](https://github.com/stevegraham/slanger/pull/81#issuecomment-10176961) about this issue, 
 but basically,
 
