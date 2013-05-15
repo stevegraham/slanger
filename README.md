@@ -15,6 +15,7 @@ redis-server &> /dev/null &
 
 slanger --app_key 765ec374ae0a69f4ce44 --secret your-pusher-secret
 ```
+![happy snake](/happy_snake.jpg)
 
 If you submit a pull request, please don't be these people:
 [#109](https://github.com/stevegraham/slanger/pull/109)
