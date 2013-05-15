@@ -1,5 +1,5 @@
 # Slanger
-![stop](/stop_icon.png)
+![stop](/stop.png)
 Don't do this
 ==============
 ```
