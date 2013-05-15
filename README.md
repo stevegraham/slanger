@@ -1,21 +1,35 @@
 # Slanger
+![stop](/stop_icon.png)
+Don't do this
+==============
+```
+gem 'slanger'
+```
+
+Do this:
+--------
+
+```
+gem install slanger
+redis-server &> /dev/null &
+
+slanger --app_key 765ec374ae0a69f4ce44 --secret your-pusher-secret
+```
+
+If you submit a pull request, please don't be these people:
+#109, #108, #83, #81, #72, #4
+I'll try to politely close any new ones, but there's been [RUBY_DRAMA](https://github.com/stevegraham/slanger/pull/81#issuecomment-10176961) about this issue, 
+but basically,
+
+Slanger is intended as a server that is easy to install, not a gem inside Rails or Sinatra.
+
 ##Typical usage
 
 Slanger is a standalone server ruby implementation of the Pusher protocol.  It
 is not designed to run inside a Rails or sinatra app, but it can be easily
-installed as a gem.
+installed as a gem. 
 
-```
-#see the section further down for How To Use It
-gem install slanger
-```
-
-##You probably don't mean this:
-
-Gemfile
-```
-gem 'slanger'
-```
+Bundler has multiple purposes, one of those which is useful for installation is
 
 ##About
 Slanger is an open source server implementation of the Pusher protocol written
@@ -176,5 +190,6 @@ Pusher is an awesome service, very reasonably priced, and run by an awesome crew
 - Claudio Poli
 
 &copy; 2011 a Stevie Graham joint.
+
 
 
