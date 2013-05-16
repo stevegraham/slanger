@@ -8,3 +8,4 @@
 .rbx/
 *.rdb
 .idea
+.rbenv-gemsets
