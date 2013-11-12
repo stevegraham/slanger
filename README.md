@@ -36,7 +36,7 @@ Slanger is a standalone server ruby implementation of the Pusher protocol.  It
 is not designed to run inside a Rails or sinatra app, but it can be easily
 installed as a gem. 
 
-Bundler has multiple purposes, one of those which is useful for installation is
+Bundler has multiple purposes, one of which is useful for installation.
 
 ##About
 Slanger is an open source server implementation of the Pusher protocol written
