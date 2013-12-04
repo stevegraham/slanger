@@ -53,7 +53,7 @@ module Slanger
     end
 
     def pusher_ping(msg)
-      send_payload nil, 'pusher:ping'
+      send_payload nil, 'pusher:pong'
     end
 
     def pusher_pong msg; end
