@@ -25,14 +25,11 @@ module Slanger
       msg   = JSON.parse msg
       event = msg['event'].gsub(/^pusher:/, 'pusher_')
 
-      case event
-        when /^client-/
-          msg['socket_id'] = connection.socket_id
-          Channel.send_client_message msg
-        when /pusher_ping/
-          pusher_pong
-        else
-          send(event, msg) if respond_to?(event, true)
+      if event =~ /^client-/
+        msg['socket_id'] = connection.socket_id
+        Channel.send_client_message msg
+      elsif respond_to? event, true
+        send event, msg
       end
 
     rescue JSON::ParserError
@@ -59,9 +56,7 @@ module Slanger
       send_payload nil, 'pusher:ping'
     end
 
-    def pusher_pong
-      send_payload nil, 'pusher:pong'
-    end
+    def pusher_pong msg; end
 
     def pusher_subscribe(msg)
       channel_id = msg['data']['channel']
