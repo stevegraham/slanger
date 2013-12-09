@@ -43,9 +43,8 @@
       pusher.bind('pusher:error', function(data) { alert(data['message']) })
       var myChannel = pusher.subscribe('#{@channel}');
       myChannel.bind('an_event', function(data) {
-        alert(data);
-        //document.body.setAttribute('style', 'background-color: ' + data['color'] + ';' )
-        //count++
+        document.body.setAttribute('style', 'background-color: ' + data['color'] + ';' );
+        count++;
       })
       window.setInterval(function() {
         document.getElementById('count').innerHTML = count

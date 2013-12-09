@@ -17,13 +17,11 @@ Pusher.app_id = 'your-pusher-app-id'
 Pusher.secret = 'your-pusher-secret'
 Pusher.key    = '765ec374ae0a69f4ce44'
 
-=begin
 Thread.new do
   loop do
     Pusher.trigger 'MY_CHANNEL', 'an_event', { color: "##{rand(16777216).to_s 16}"}
   end
 end
-=end
 
 get '/' do
   @channel = "MY_CHANNEL"
