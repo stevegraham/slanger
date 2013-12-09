@@ -32,7 +32,7 @@ module Slanger
     end
 
     def new_connection
-      EM::Hiredis.connect Slanger::Config.redis_address
+      EM::Hiredis.connect(Slanger::Config.redis_address).pubsub
     end
 
     extend self
