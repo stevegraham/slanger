@@ -52,7 +52,6 @@ module Slanger
       # authenticate request. exclude 'channel_id' and 'app_id' included by sinatra but not sent by Pusher.
       # Raises Signature::AuthenticationError if request does not authenticate.
 
-      #Signature::Request.new('POST', env['PATH_INFO'], params.except('channel_id', 'app_id')).
       Signature::Request.new('POST', env['PATH_INFO'], params.except('captures', 'splat' , 'channel_id', 'app_id')).
         authenticate { |key| Signature::Token.new key, Slanger::Config.secret }
     end

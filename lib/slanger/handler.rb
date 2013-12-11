@@ -81,7 +81,6 @@ module Slanger
 
     def app_key
       @handshake.path.split('/')[2]
-      #@socket.request['path'].split(/\W/)[2]
     end
 
     def valid_app_key? app_key

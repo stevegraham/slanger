@@ -38,7 +38,7 @@ module SlangerHelperMethods
 
   def new_websocket opts = {}
     opts = { key: Pusher.key }.update opts
-    uri = "ws://0.0.0.0:8080/app/#{opts[:key]}?client=js&version=1.8.5"
+    uri = "ws://0.0.0.0:8080/app/#{opts[:key]}?client=js&version=2.1.4"
 
     EM::HttpRequest.new(uri).get.tap { |ws| ws.errback &errback }
   end
