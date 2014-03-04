@@ -2,7 +2,6 @@ module SlangerHelperMethods
   def start_slanger_with_options options={}
     # Fork service. Our integration tests MUST block the main thread because we want to wait for i/o to finish.
     @server_pid = EM.fork_reactor do
-      require File.expand_path(File.dirname(__FILE__) + '/../slanger.rb')
       Thin::Logging.silent = true
 
       opts = { host:             '0.0.0.0',
