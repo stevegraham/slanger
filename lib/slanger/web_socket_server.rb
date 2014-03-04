@@ -22,11 +22,11 @@ module Slanger
 
         EM::WebSocket.start options do |ws|
           # Keep track of handler instance in instance of EM::Connection to ensure a unique handler instance is used per connection.
-          ws.class_eval    { attr_accessor :connection_handler }
+          ws.class_eval { attr_accessor :connection_handler }
           # Delegate connection management to handler instance.
-          ws.onopen        { ws.connection_handler = Slanger::Config.socket_handler.new ws }
-          ws.onmessage     { |msg| ws.connection_handler.onmessage msg }
-          ws.onclose       { ws.connection_handler.onclose }
+          ws.onopen     { |handshake| ws.connection_handler = Slanger::Config.socket_handler.new(ws, handshake) }
+          ws.onmessage  { |msg| ws.connection_handler.onmessage msg }
+          ws.onclose    { ws.connection_handler.onclose }
         end
       end
     end

@@ -39,12 +39,12 @@
       Pusher.log = function(data) {
         console.log('\t\t', data);
       };
-      var pusher = new Pusher('#{Pusher.key}');
+      var pusher = new Pusher('#{Pusher.key}', {disableStats: true});
       pusher.bind('pusher:error', function(data) { alert(data['message']) })
       var myChannel = pusher.subscribe('#{@channel}');
       myChannel.bind('an_event', function(data) {
-        document.body.setAttribute('style', 'background-color: ' + data['color'] + ';' )
-        count++
+        document.body.setAttribute('style', 'background-color: ' + data['color'] + ';' );
+        count++;
       })
       window.setInterval(function() {
         document.getElementById('count').innerHTML = count
