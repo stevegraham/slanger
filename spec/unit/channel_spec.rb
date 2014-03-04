@@ -11,7 +11,7 @@ describe 'Slanger::Channel' do
   let(:channel) { Slanger::Channel.create channel_id: 'test' }
 
   before(:each) do
-    EM::Hiredis.stubs(:connect).returns stub_everything('redis')
+    EM::Hiredis.stubs(:connect).returns stub_everything('redis', :pubsub => stub_everything('redis'))
     clear_redis_connections
   end
 
@@ -67,4 +67,3 @@ describe 'Slanger::Channel' do
     end
   end
 end
-
