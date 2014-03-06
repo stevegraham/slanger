@@ -26,6 +26,33 @@ describe 'Integration' do
     end
   end
 
+  context "connect with valid protocol version" do
+    it "should connect successfuly" do
+      messages = em_stream do |websocket, messages|
+        websocket.callback { EM.stop }
+      end
+      messages.should have_attributes connection_established: true, id_present: true
+    end
+  end
+
+  context "connect with invalid protocol version" do
+    it "should not connect successfuly with version bigger than supported" do
+      messages = em_stream(protocol: "20") do |websocket, messages|
+        websocket.callback { EM.stop }
+      end
+      messages.should have_attributes connection_established: false, id_present: false,
+        last_event: 'pusher:error'
+    end
+
+    it "should not connect successfuly without specified version" do
+      messages = em_stream(protocol: nil) do |websocket, messages|
+        websocket.callback { EM.stop }
+      end
+      messages.should have_attributes connection_established: false, id_present: false,
+        last_event: 'pusher:error'
+    end
+  end
+
   context "given invalid JSON as input" do
     it 'should not crash' do
       messages  = em_stream do |websocket, messages|
