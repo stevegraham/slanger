@@ -16,6 +16,16 @@ describe 'Integration' do
     end
   end
 
+  context "connecting with valid credentials" do
+    it "should succeed and include activity_timeout value in handshake" do
+      messages = em_stream do |websocket, messages|
+        websocket.callback { EM.stop }
+      end
+      messages.should have_attributes activity_timeout: Slanger::Config.activity_timeout,
+        connection_established: true, id_present: true
+    end
+  end
+
   context "given invalid JSON as input" do
     it 'should not crash' do
       messages  = em_stream do |websocket, messages|

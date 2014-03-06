@@ -8,7 +8,9 @@ module SlangerHelperMethods
                api_port:         '4567',
                websocket_port:   '8080',
                app_key:          '765ec374ae0a69f4ce44',
-               secret:           'your-pusher-secret' }
+               secret:           'your-pusher-secret',
+               activity_timeout: 100
+             }
 
       Slanger::Config.load opts.merge(options)
 
