@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    slanger (0.3.8)
+    slanger (0.3.9)
       activesupport (~> 3.1)
       em-hiredis (~> 0.2.0)
       em-http-request (~> 0.3.0)
@@ -36,13 +36,16 @@ GEM
       http_parser.rb (~> 0.5.3)
     escape_utils (1.0.1)
     eventmachine (1.0.3)
+    eventmachine (1.0.3-java)
     glamazon (0.3.1)
       activesupport (>= 3.1.0)
       i18n (~> 0.6.0)
       yajl-ruby (>= 0.7.7)
     haml (3.1.8)
     hiredis (0.4.5)
+    hiredis (0.4.5-java)
     http_parser.rb (0.5.3)
+    http_parser.rb (0.5.3-java)
     httpclient (2.3.4.1)
     i18n (0.6.9)
     metaclass (0.0.4)
