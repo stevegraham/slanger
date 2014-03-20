@@ -12,7 +12,7 @@ require 'openssl'
 require 'socket'
 require 'timecop'
 require 'webmock/rspec'
-#require 'em-rspec'
+require 'slanger'
 
 WebMock.disable!
 

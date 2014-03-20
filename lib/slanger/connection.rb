@@ -22,7 +22,10 @@ module Slanger
 
     def establish
       @socket_id = SecureRandom.uuid
-      send_payload nil, 'pusher:connection_established', { socket_id: @socket_id }
+      send_payload nil, 'pusher:connection_established', {
+          socket_id: @socket_id,
+          activity_timeout: Slanger::Config.activity_timeout
+        }
     end
 
     private

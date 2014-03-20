@@ -59,6 +59,10 @@ OptionParser.new do |opts|
     options[:debug] = v
   end
 
+  opts.on "-t" "--activity_timeout", "Activity (ping-pong) Timeout" do |t|
+    options[:activity_timeout] = t
+  end
+
   opts.parse!
 
   %w<app_key secret>.each do |parameter|
