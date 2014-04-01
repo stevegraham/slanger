@@ -1,13 +1,8 @@
 # Slanger
 
-Don't do this
-==============
-```
-gem 'slanger'
-```
+**Important! Slanger is not supposed to be included in your Gemfile. RubyGems is used as a distribution mechanism. If you include it in your app, you will likely get dependency conflicts. PRs updating dependencies for compatibility with your app will be closed. Thank you for reading and enjoy Slanger!**
 
-Do this:
---------
+##Typical usage
 
 ```
 gem install slanger
@@ -15,20 +10,6 @@ redis-server &> /dev/null &
 
 slanger --app_key 765ec374ae0a69f4ce44 --secret your-pusher-secret
 ```
-
-If you submit a pull request, please don't be these people:
-[#109](https://github.com/stevegraham/slanger/pull/109)
-[#108](https://github.com/stevegraham/slanger/pull/108)
-[#83](https://github.com/stevegraham/slanger/pull/83)
-[#81](https://github.com/stevegraham/slanger/pull/81)
-[#72](https://github.com/stevegraham/slanger/pull/72)
-[#4](https://github.com/stevegraham/slanger/pull/4)
-
-I'll try to politely close any new ones but basically,
-
-Slanger is intended as a server that is easy to install, not a gem inside Rails or Sinatra.
-
-##Typical usage
 
 Slanger is a standalone server ruby implementation of the Pusher protocol.  It
 is not designed to run inside a Rails or sinatra app, but it can be easily
