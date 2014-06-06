@@ -6,8 +6,7 @@ Don't do this
 gem 'slanger'
 ```
 
-For Rails4:
---------
+#For Rails4:
 
 ```
 gem install slanger
@@ -16,11 +15,12 @@ redis-server &> /dev/null &
 slanger --app_key 765ec374ae0a69f4ce44 --secret your-pusher-secret
 ```
 
-# For Rails3:
+#For Rails3:
 
 Create a new directory called 'slanger' on your root, add a `Gemfile` and then add `slanger` gem to it.
 
-![happy snake](/happy_snake.jpg)
+
+# To Contribute:
 
 If you submit a pull request, please don't be these people:
 [#109](https://github.com/stevegraham/slanger/pull/109)
