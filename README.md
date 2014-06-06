@@ -6,7 +6,7 @@ Don't do this
 gem 'slanger'
 ```
 
-For rails4:
+For Rails4:
 --------
 
 ```
