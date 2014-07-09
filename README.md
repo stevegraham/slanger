@@ -18,6 +18,7 @@ installed as a gem.
 Bundler has multiple purposes, one of which is useful for installation.
 
 ##About
+
 Slanger is an open source server implementation of the Pusher protocol written
 in Ruby. It is designed to scale horizontally across N nodes and to be agnostic
 as to which Slanger node a subscriber is connected to, i.e subscribers to the
@@ -37,11 +38,11 @@ Slanger is smart enough to know if a new channel subscription belongs to the
 same user. It will not send presence messages to subscribers in this case. This
 happens when the user has multiple browser tabs open for example. Using a chat
 room backed by presence channels as a real example, one would not want
-"Barrington" to show up N times in the presence roster because Barrington is a
-retard and has the chat room open in N browser tabs.
+"Barrington" to show up N times in the presence roster because Barrington
+has the chat room open in N browser tabs.
 
 Slanger was designed to be highly available and partition tolerant with
-eventual consistency, which in practise is instantaneous.
+eventual consistency, which in practice is instantaneous.
 
 # How to use it
 
