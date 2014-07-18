@@ -5,6 +5,7 @@ require 'active_support/core_ext/hash'
 require 'securerandom'
 require 'signature'
 require 'fiber'
+require 'rack'
 
 module Slanger
   class Handler
@@ -47,10 +48,19 @@ module Slanger
     end
 
     def authenticate
-      return connection.establish if valid_app_key? app_key
+      if !valid_app_key? app_key
+        error({ code: 4001, message: "Could not find app by key #{app_key}" })
+        @socket.close_websocket
+      elsif !valid_protocol_version?
+        error({ code: 4007, message: "Unsupported protocol version" })
+        @socket.close_websocket
+      else
+        return connection.establish
+      end
+    end
 
-      error({ code: 4001, message: "Could not find app by key #{app_key}" })
-      @socket.close_websocket
+    def valid_protocol_version?
+      protocol_version.between?(3, 7)
     end
 
     def pusher_ping(msg)
@@ -81,6 +91,11 @@ module Slanger
 
     def app_key
       @handshake.path.split(/\W/)[2]
+    end
+
+    def protocol_version
+      @query_string ||= Rack::Utils.parse_nested_query(@handshake.query_string)
+      @query_string["protocol"].to_i || -1
     end
 
     def valid_app_key? app_key
