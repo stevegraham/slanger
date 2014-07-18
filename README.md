@@ -140,8 +140,9 @@ Slanger supports several configuration options, which can be supplied as command
 -c or --cert_file Certificate file for SSL support. This argument is optional, if given, SSL will be enabled
 
 -v or --[no-]verbose This makes Slanger run verbosely, meaning WebSocket frames will be echoed to STDOUT. Useful for debugging
-```
 
+--pid_file  The path to a file you want slanger to write it's PID to. Optional.
+```
 
 # Why use Slanger instead of Pusher?
 

@@ -64,6 +64,10 @@ OptionParser.new do |opts|
     options[:activity_timeout] = t
   end
 
+  opts.on '--pid_file PIDFILE', "The Slanger process ID file name." do |k|
+    options[:pid_file] = k
+  end
+
   opts.parse!
 
   %w<app_key secret>.each do |parameter|
@@ -91,6 +95,12 @@ EM.kqueue
 EM.run do
   File.tap { |f| require f.expand_path(f.join(f.dirname(__FILE__),'..', 'slanger.rb')) }
   Slanger::Config.load options
+
+  # Write PID to file
+  unless options[:pid_file].nil?
+    File.open(options[:pid_file], 'w') { |f| f.puts Process.pid }
+  end
+
   Slanger::Service.run
 
   puts "\n"
