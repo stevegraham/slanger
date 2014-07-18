@@ -25,7 +25,8 @@ describe 'Slanger::Webhook' do
       stub_request(:post, Slanger::Config.webhook_url).
         with(body: payload, headers: {
             "X-Pusher-Key"    => Slanger::Config.app_key,
-            "X-Pusher-Secret" => hmac
+            "X-Pusher-Signature" => hmac,
+            "Content-Type" => 'application/json'
         }).
         to_return(:status => 200, :body => {}.to_json, :headers => {})
 
@@ -34,7 +35,8 @@ describe 'Slanger::Webhook' do
       WebMock.should have_requested(:post, Slanger::Config.webhook_url).
         with(body: payload, headers: {
             "X-Pusher-Key"    => Slanger::Config.app_key,
-            "X-Pusher-Secret" => hmac
+            "X-Pusher-Signature" => hmac,
+            "Content-Type" => 'application/json'
         })
     end
   end
