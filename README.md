@@ -1,5 +1,7 @@
 # Slanger
 
+[![Build Status](https://travis-ci.org/stevegraham/slanger.svg?branch=master)](https://travis-ci.org/stevegraham/slanger)
+
 **Important! Slanger is not supposed to be included in your Gemfile. RubyGems is used as a distribution mechanism. If you include it in your app, you will likely get dependency conflicts. PRs updating dependencies for compatibility with your app will be closed. Thank you for reading and enjoy Slanger!**
 
 ##Typical usage
@@ -37,8 +39,8 @@ Slanger is smart enough to know if a new channel subscription belongs to the
 same user. It will not send presence messages to subscribers in this case. This
 happens when the user has multiple browser tabs open for example. Using a chat
 room backed by presence channels as a real example, one would not want
-"Barrington" to show up N times in the presence roster because Barrington is a
-retard and has the chat room open in N browser tabs.
+"Barrington" to show up N times in the presence roster because Barrington
+has the chat room open in N browser tabs.
 
 Slanger was designed to be highly available and partition tolerant with
 eventual consistency, which in practise is instantaneous.
@@ -47,7 +49,7 @@ eventual consistency, which in practise is instantaneous.
 
 ## Requirements
 
-- Ruby 1.9.2-p290 or greater
+- Ruby 2.1.2 or greater
 - Redis
 
 ## Starting the service
@@ -173,6 +175,3 @@ Pusher is an awesome service, very reasonably priced, and run by an awesome crew
 - Claudio Poli
 
 &copy; 2011 a Stevie Graham joint.
-
-
-
