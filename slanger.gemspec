@@ -7,7 +7,7 @@ Gem::Specification.new do |s|
   s.summary                     = 'A websocket service compatible with Pusher libraries'
   s.description                 = 'A websocket service compatible with Pusher libraries'
 
-  s.required_ruby_version       = '>= 2.1.2'
+  s.required_ruby_version       = '>= 2.0.0'
 
   s.author                      = 'Stevie Graham'
   s.email                       = 'sjtgraham@mac.com'

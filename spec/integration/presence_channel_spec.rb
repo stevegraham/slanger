@@ -93,10 +93,12 @@ describe 'Integration' do
               when 2
                 new_websocket.tap do |u|
                   u.stream do |message|
-                    send_subscribe({user: u,
-                      user_id: '37960509766262569d504f02a0ee986d',
-                      name: 'CHROME',
-                      message: JSON.parse(message)})
+                    message = JSON.parse(message)
+                    if message['event'] == 'pusher:connection_established'
+                      send_subscribe \
+                        user: u, user_id: '37960509766262569d504f02a0ee986d',
+                        name: 'CHROME', message: message
+                    end
                   end
                 end
               else
