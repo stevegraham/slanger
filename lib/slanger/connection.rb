@@ -25,7 +25,7 @@ module Slanger
       send_payload nil, 'pusher:connection_established', {
           socket_id: @socket_id,
           activity_timeout: Slanger::Config.activity_timeout
-        }
+        }.to_json
     end
 
     private
