@@ -1,0 +1,2 @@
+defmodule Slanger do
+end
