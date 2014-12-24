@@ -1,5 +1,7 @@
 # Slanger
 
+[![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/stevegraham/slanger?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 [![Build Status](https://travis-ci.org/stevegraham/slanger.svg?branch=master)](https://travis-ci.org/stevegraham/slanger)
 
 **Important! Slanger is not supposed to be included in your Gemfile. RubyGems is used as a distribution mechanism. If you include it in your app, you will likely get dependency conflicts. PRs updating dependencies for compatibility with your app will be closed. Thank you for reading and enjoy Slanger!**
