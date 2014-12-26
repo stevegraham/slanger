@@ -103,12 +103,14 @@ Pusher.port   = 4567
 
 You will also need to do the same to the Pusher JavaScript client in your client side JavaScript, e.g
 
-```javascript
+```html
 <script type="text/javascript">
-  ...
-
-  Pusher.host    = 'slanger.example.com'
-  Pusher.ws_port = 8080
+  var pusher = new Pusher('#{Pusher.key}', {
+    wsHost: "0.0.0.0",
+    wsPort: "8080",
+    wssPort: "8080",
+    enabledTransports: ['ws', 'flash']
+  });
 </script>
 ```
 
