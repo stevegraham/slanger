@@ -39,7 +39,7 @@ end
 
 post '/chat' do
   if session[:current_user]
-    Pusher['presence-channel'].trigger_async('chat_message', {
+    Pusher['presence-channel'].trigger('chat_message', {
       sender: session[:current_user], body: params['message']
     })
     request.xhr? ? status(201) : redirect('/chat')

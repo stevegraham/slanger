@@ -24,7 +24,10 @@ module Slanger
     # Dispatches message handling to method with same name as
     # the event name
     def onmessage(msg)
-      msg   = JSON.parse msg
+      msg = JSON.parse(msg)
+
+      msg['data'] = JSON.parse(msg['data']) if msg['data'].is_a? String
+
       event = msg['event'].gsub(/^pusher:/, 'pusher_')
 
       if event =~ /^client-/

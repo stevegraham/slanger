@@ -39,11 +39,10 @@ describe 'Integration' do
 
         messages.should have_attributes connection_established: true, count: 2, id_present: true, last_event:
           'pusher:error'
-        messages.last['data']['message'].=~(/^Invalid signature: Expected HMAC SHA256 hex digest of/).should be_true
+
+        expect(JSON.parse(messages.last['data'])['message']).to match /^Invalid signature: Expected HMAC SHA256 hex digest of/
       end
     end
-
-
 
     describe 'client events' do
       it "sends event to other channel subscribers" do

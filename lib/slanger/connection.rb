@@ -23,15 +23,15 @@ module Slanger
     def establish
       @socket_id = SecureRandom.uuid
       send_payload nil, 'pusher:connection_established', {
-          socket_id: @socket_id,
-          activity_timeout: Slanger::Config.activity_timeout
-        }
+        socket_id: @socket_id,
+        activity_timeout: Slanger::Config.activity_timeout
+      }
     end
 
     private
 
     def format(channel_id, event_name, payload = {})
-      body = { event: event_name, data: payload }
+      body = { event: event_name, data: payload.to_json }
       body[:channel] = channel_id if channel_id
       body.to_json
     end

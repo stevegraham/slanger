@@ -30,16 +30,20 @@
         %span#count
           0
         Messages/Second!!!1
-    %script{src: "/pusher.min.js"}
+    %script{ src: "//js.pusher.com/2.2/pusher.min.js" }
     :javascript
       var count = 0
-      Pusher.host    = "0.0.0.0"
-      Pusher.ws_port = "8080"
-      Pusher.wss_port = "8080"
-      Pusher.log = function(data) {
-        console.log('\t\t', data);
-      };
-      var pusher = new Pusher('#{Pusher.key}');
+
+      var pusher = new Pusher('#{Pusher.key}', {
+        wsHost: "0.0.0.0",
+        wsPort: "8080",
+        wssPort: "8080",
+        enabledTransports: ['ws'],
+        log: function(data) {
+          console.log('\t\t', data)
+        }
+      });
+
       pusher.bind('pusher:error', function(data) { alert(data['message']) })
       var myChannel = pusher.subscribe('#{@channel}');
       myChannel.bind('an_event', function(data) {

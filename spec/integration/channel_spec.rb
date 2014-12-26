@@ -34,7 +34,7 @@ describe 'Integration:' do
         end
      end
 
-      messages.last.should == {"event"=>"pusher:error", "data"=>{"code"=>nil, "message"=>"Existing subscription to MY_CHANNEL"}}
+      messages.last.should == {"event"=>"pusher:error", "data"=>"{\"code\":null,\"message\":\"Existing subscription to MY_CHANNEL\"}"}
     end
 
     it 'supports unsubscribing to channels without closing the socket' do

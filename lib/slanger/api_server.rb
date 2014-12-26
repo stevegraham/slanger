@@ -28,6 +28,7 @@ module Slanger
       # Send event to each channel
       data["channels"].each { |channel| publish(channel, data['name'], data['data']) }
 
+      status 202
       return {}.to_json
     end
 
@@ -36,6 +37,7 @@ module Slanger
 
       publish(params[:channel_id], params['name'],  request.body.read.tap{ |s| s.force_encoding('utf-8') })
 
+      status 202
       return {}.to_json
     end
 
@@ -70,4 +72,3 @@ module Slanger
 
   end
 end
-
