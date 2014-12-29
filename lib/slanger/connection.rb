@@ -17,7 +17,11 @@ module Slanger
     end
 
     def error e
-      send_payload nil, 'pusher:error', e
+      begin
+        send_payload nil, 'pusher:error', e
+      rescue EventMachine::WebSocket::WebSocketError
+        # Raised if connecection already closed. Only seen with Thor load testing tool
+      end
     end
 
     def establish
