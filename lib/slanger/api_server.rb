@@ -58,17 +58,7 @@ module Slanger
     end
 
     def publish(channel, event, data)
-      f = Fiber.current
-
-      # Publish the event in Redis and translate the result into an HTTP
-      # status to return to the client.
-      Slanger::Redis.publish(channel, payload(channel, event, data)).tap do |r|
-        r.callback { f.resume [202, {}, "202 ACCEPTED\n"] }
-        r.errback  { f.resume [500, {}, "500 INTERNAL SERVER ERROR\n"] }
-      end
-
-      Fiber.yield
+      Slanger::Redis.publish(channel, payload(channel, event, data))
     end
-
   end
 end
