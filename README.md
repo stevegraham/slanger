@@ -109,8 +109,6 @@ You will also need to do the same to the Pusher JavaScript client in your client
 
   Pusher.host    = 'slanger.example.com'
   Pusher.ws_port = 8080
-  Pusher.wss_port = 8080
-
 </script>
 ```
 
