@@ -3,9 +3,12 @@ language: ruby
 rvm:
   - 2.0.0
   - 2.1.2
+  - 2.1.5
 
 env:
   - DB=redis
 
 services:
   - redis-server
+
+sudo: false

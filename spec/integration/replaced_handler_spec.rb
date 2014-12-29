@@ -18,6 +18,6 @@ describe 'Replacable handler' do
       end
     end
 
-    msgs.last.should == { "event" => "pusher:info", "data" => { "message" => "Welcome!" } }
+    msgs.last.should == { "event" => "pusher:info", "data" =>"{\"message\":\"Welcome!\"}" }
   end
 end

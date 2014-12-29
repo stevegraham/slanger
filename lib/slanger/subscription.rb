@@ -5,7 +5,7 @@ module Slanger
 
     def initialize socket, socket_id, msg
       @connection = Connection.new socket, socket_id
-      @msg       = msg
+      @msg        = msg
     end
 
     def subscribe
