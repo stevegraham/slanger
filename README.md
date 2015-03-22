@@ -52,6 +52,23 @@ eventual consistency, which in practise is instantaneous.
 - Ruby 2.1.2 or greater
 - Redis
 
+## Server setup
+Most linux distributions have by defualt a very low open files limit. In order to sustain more than 1024 ( default ) connections, you need to apply the following changes to your system:
+Add to `/etc/sysctl.conf`:
+```
+fs.file-max = 50000
+```
+Add to `/etc/security/limits.conf`:
+```
+* - nofile 50000
+* - nproc 50000
+```
+
+## Cluster load-balancing setup with Haproxy
+If you want to run multiple slanger instances in a cluster, one option will be to balance the connections with Haproxy.
+A basic config can be found in the folder `examples`
+
+
 ## Starting the service
 
 Slanger is packaged as a Rubygem. Installing the gem makes the 'slanger' executable available. The `slanger` executable takes arguments, of which two are mandatory: `--app_key` and `--secret`. These can but do not have to be the same as the credentials you use for Pusher. They are required because Slanger performs the same HMAC signing of API requests that Pusher does.
