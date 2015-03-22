@@ -1,0 +1,1 @@
+bundle exec bin/slanger --app_key d4590800e2c6ae299652 --secret your-pusher-secret --api_host 0.0.0.0:4568 --websocket_host 0.0.0.0:8081
