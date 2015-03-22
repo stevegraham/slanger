@@ -66,7 +66,8 @@ Add to `/etc/security/limits.conf`:
 
 ## Cluster load-balancing setup with Haproxy
 If you want to run multiple slanger instances in a cluster, one option will be to balance the connections with Haproxy.
-A basic config can be found in the folder `examples`
+A basic config can be found in the folder `examples`.
+Haproxy can be also used for SSL termination, leaving slanger to not have to deal with SSL checks and so on, making it lighter.
 
 
 ## Starting the service
