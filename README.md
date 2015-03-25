@@ -53,6 +53,7 @@ eventual consistency, which in practise is instantaneous.
 - Redis
 
 ## Server setup
+
 Most linux distributions have by defualt a very low open files limit. In order to sustain more than 1024 ( default ) connections, you need to apply the following changes to your system:
 Add to `/etc/sysctl.conf`:
 ```
@@ -60,11 +61,14 @@ fs.file-max = 50000
 ```
 Add to `/etc/security/limits.conf`:
 ```
-* - nofile 50000
-* - nproc 50000
+* hard nofile 50000
+* soft nofile 50000
+* hard nproc 50000
+* soft nproc 50000
 ```
 
 ## Cluster load-balancing setup with Haproxy
+
 If you want to run multiple slanger instances in a cluster, one option will be to balance the connections with Haproxy.
 A basic config can be found in the folder `examples`.
 Haproxy can be also used for SSL termination, leaving slanger to not have to deal with SSL checks and so on, making it lighter.
@@ -104,6 +108,27 @@ If all went to plan you should see the following output to STDOUT
 Slanger API server listening on port 4567
 Slanger WebSocket server listening on port 8080
 ```
+
+## Ubuntu upstart script
+
+If you're using Ubuntu, you might find this upscript very helpful. The steps bellow will create an init script that will make slanger run at boot and restart if it fails.
+Open `/etc/init/slanger` and add:
+```
+start on started networking and runlevel [2345]
+stop on runlevel [016]
+respawn
+script
+    LANG=en_US.UTF-8 /usr/local/rvm/gems/ruby-RUBY_VERISON/wrappers/slanger --app_key KEY --secret SECRET --redis_address redis://REDIS_IP:REDIS_PORT/REDIS_DB
+end script
+```
+This example assumes you're using rvm and a custom redis configuration
+
+Then, to start / stop the service, just do
+```
+service slanger start
+service slanger stop
+```
+
 
 ## Modifying your application code to use the Slanger service
 
