@@ -19,7 +19,7 @@ Gem::Specification.new do |s|
   s.add_dependency                'rack',             '~> 1.4.5'
   s.add_dependency                'rack-fiber_pool',  '~> 0.9.2'
   s.add_dependency                'signature',        '~> 0.1.6'
-  s.add_dependency                'activesupport',    '~> 3.1'
+  s.add_dependency                'activesupport',    '~> 4.1.10'
   s.add_dependency                'glamazon',         '~> 0.3.1'
   s.add_dependency                'sinatra',          '~> 1.4.4'
   s.add_dependency                'thin',             '~> 1.6.0'
