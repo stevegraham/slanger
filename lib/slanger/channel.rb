@@ -5,21 +5,33 @@
 # EM channel.
 #
 
-require 'glamazon'
 require 'eventmachine'
 require 'forwardable'
 
 module Slanger
   class Channel
-    include Glamazon::Base
     extend  Forwardable
 
     def_delegators :channel, :push
+    attr_reader :channel_id
 
     class << self
       def from channel_id
         klass = channel_id[/^presence-/] ? PresenceChannel : Channel
-        klass.find_or_create_by_channel_id channel_id
+
+        klass.lookup(channel_id) || klass.create(channel_id: channel_id)
+      end
+
+      def lookup(channel_id)
+        all.detect { |o| o.channel_id == channel_id }
+      end
+
+      def create(params = {})
+        new(params).tap { |r| all << r }
+      end
+
+      def all
+        @all ||= []
       end
 
       def unsubscribe channel_id, subscription_id
@@ -32,7 +44,7 @@ module Slanger
     end
 
     def initialize(attrs)
-      super
+      @channel_id = attrs.with_indifferent_access[:channel_id]
       Slanger::Redis.subscribe channel_id
     end
 
