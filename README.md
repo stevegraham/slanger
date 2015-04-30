@@ -111,7 +111,7 @@ Slanger WebSocket server listening on port 8080
 
 ## Ubuntu upstart script
 
-If you're using Ubuntu, you might find this upscript very helpful. The steps bellow will create an init script that will make slanger run at boot and restart if it fails.
+If you're using Ubuntu, you might find this upscript very helpful. The steps below will create an init script that will make slanger run at boot and restart if it fails.
 Open `/etc/init/slanger` and add:
 ```
 start on started networking and runlevel [2345]
