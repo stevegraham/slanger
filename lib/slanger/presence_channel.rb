@@ -5,7 +5,6 @@
 # EM channel. Keeps data on the subscribers to send it to clients.
 #
 
-require 'glamazon'
 require 'eventmachine'
 require 'forwardable'
 require 'fiber'
