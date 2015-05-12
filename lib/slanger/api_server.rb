@@ -26,7 +26,7 @@ module Slanger
       data = JSON.parse(request.body.read.tap{ |s| s.force_encoding('utf-8')})
 
       # Send event to each channel
-      data["channels"].each { |channel| publish(channel, data['name'], data['data']) }
+      data["channels"].each { |channel| publish(channel, data['name'], data['data'], data['socket_id']) }
 
       status 202
       return {}.to_json
@@ -41,12 +41,12 @@ module Slanger
       return {}.to_json
     end
 
-    def payload(channel, event, data)
+    def payload(channel, event, data, socket_id)
       {
         event:     event,
         data:      data,
         channel:   channel,
-        socket_id: params[:socket_id]
+        socket_id: socket_id
       }.select { |_,v| v }.to_json
     end
 
@@ -57,8 +57,8 @@ module Slanger
         authenticate { |key| Signature::Token.new key, Slanger::Config.secret }
     end
 
-    def publish(channel, event, data)
-      Slanger::Redis.publish(channel, payload(channel, event, data))
+    def publish(channel, event, data, socket_id)
+      Slanger::Redis.publish(channel, payload(channel, event, data, socket_id))
     end
   end
 end
