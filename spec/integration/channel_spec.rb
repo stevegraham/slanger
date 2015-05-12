@@ -22,6 +22,24 @@ describe 'Integration:' do
         last_event: 'an_event', last_data: { some: "Mit Raben Und Wölfen" }.to_json
     end
 
+    it 'does not send message to excluded sockets' do
+      messages = em_stream do |websocket, messages|
+        case messages.length
+        when 1
+          websocket.callback { websocket.send({ event: 'pusher:subscribe', data: { channel: 'MY_CHANNEL'} }.to_json) }
+        when 2
+          socket_id = JSON.parse(messages.first["data"])["socket_id"]
+          Pusher['MY_CHANNEL'].trigger 'not_excluded_socket_event', { some: "Mit Raben Und Wölfen" }
+          Pusher['MY_CHANNEL'].trigger 'excluded_socket_event', { some: "Mit Raben Und Wölfen" }, socket_id
+        when 3
+          EM.stop
+        end
+     end
+
+      messages.should have_attributes connection_established: true, id_present: true,
+        last_event: 'not_excluded_socket_event', last_data: { some: "Mit Raben Und Wölfen" }.to_json
+    end
+
     it 'enforces one subcription per channel, per socket' do
       messages = em_stream do |websocket, messages|
         case messages.length
