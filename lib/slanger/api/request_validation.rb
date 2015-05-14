@@ -6,6 +6,17 @@ module Slanger
 
         validate!
         authenticate!
+        parse_body!
+      end
+
+      def body
+        @body ||= parse_body!
+      end
+
+      def parse_body!
+        JSON.parse(raw_body)
+      rescue
+        raise Signature::AuthenticationError.new("Invalid request body: #{raw_body}")
       end
 
       def authenticate!
