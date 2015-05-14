@@ -39,14 +39,10 @@ module Slanger
       post '/apps/:app_id/channels/:channel_id/events' do
         params = validated_request.params
 
-        publish(params[:channel_id], params['name'],  body)
+        publish(params[:channel_id], params['name'],  request_body)
 
         status 202
         return {}.to_json
-      end
-
-      def body
-        @body ||= request.body.read.tap{|s| s.force_encoding("utf-8")}
       end
 
       def validate_request!
@@ -54,7 +50,11 @@ module Slanger
       end
 
       def validated_request
-        @validated_reqest ||= RequestValidation.new(body, params, env["PATH_INFO"])
+        @validated_reqest ||= RequestValidation.new(request_body, params, env["PATH_INFO"])
+      end
+
+      def request_body
+        @request_body ||= request.body.read.tap{|s| s.force_encoding("utf-8")}
       end
 
       def payload(channel, event, data, socket_id)

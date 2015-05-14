@@ -1,7 +1,7 @@
 #encoding: utf-8
 require 'spec_helper'
 
-describe Slanger::RequestValidation do
+describe Slanger::Api::RequestValidation do
   describe '#socket_id' do
     it 'validation' do
       socket_id = "POST\n/apps/99759/events\nauth_key=840543d97de9803651b1&auth_timestamp=123&auth_version=1.0&body_md5=some_md5&dummy="
@@ -20,7 +20,7 @@ describe Slanger::RequestValidation do
   end
 
   def validate(socket_id)
-    Slanger::RequestValidation.new(body(socket_id)).socket_id
+    Slanger::Api::RequestValidation.new(body(socket_id)).socket_id
   end
 
   def body(socket_id)
