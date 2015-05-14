@@ -16,21 +16,23 @@ module Slanger
     set :show_exceptions, false
 
     # Respond with HTTP 401 Unauthorized if request cannot be authenticated.
-    error(Signature::AuthenticationError) { |c| halt 401, "401 UNAUTHORIZED\n" }
+    error(Signature::AuthenticationError) { |e| halt 401, "401 UNAUTHORIZED\n#{e}" }
 
     post '/apps/:app_id/events' do
       authenticate
-
       # Event and channel data are now serialized in the JSON data
       # So, extract and use it
-      data = JSON.parse(request.body.read.tap{ |s| s.force_encoding('utf-8')})
+      rv = RequestValidation.new(request.body.read)
+      socket_id = rv.socket_id
+      data = rv.data
 
       # Send event to each channel
-      data["channels"].each { |channel| publish(channel, data['name'], data['data'], data['socket_id']) }
+      data["channels"].each { |channel| publish(channel, data['name'], data['data'], socket_id) }
 
       status 202
       return {}.to_json
     end
+
 
     post '/apps/:app_id/channels/:channel_id/events' do
       authenticate
