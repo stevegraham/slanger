@@ -14,9 +14,13 @@ module Slanger
       end
 
       def parse_body!
-        JSON.parse(raw_body)
-      rescue
-        raise Signature::AuthenticationError.new("Invalid request body: #{raw_body}")
+        assert_valid_json!(raw_body)
+      end
+
+      def assert_valid_json!(string)
+        yield JSON.parse(string)
+      rescue JSON::ParserError
+        raise Slanger::InvalidRequest.new("Invalid request body: #{raw_body}")
       end
 
       def authenticate!
@@ -31,6 +35,7 @@ module Slanger
 
       def validate!
         determine_valid_socket_id
+        determine_valid_channel_id
       end
 
       def socket_id
@@ -42,14 +47,14 @@ module Slanger
       end
 
       def data
-        @data ||= JSON.parse(raw_body.tap{ |s| s.force_encoding('utf-8')})
+        @data ||= assert_valid_json!(raw_body.tap{ |s| s.force_encoding('utf-8')})
       end
 
       private
 
       def determine_valid_socket_id
-        return validate_socket_id!(data["socket_id"]) if data["socket_id"]
-        return validate_socket_id!(params["socket_id"]) if params["socket_id"]
+        return Slanger::Validate.socket_id!(data["socket_id"])   if data["socket_id"]
+        return Slanger::Validate.socket_id!(params["socket_id"]) if params["socket_id"]
       end
 
       def validate_raw_params!
@@ -58,7 +63,7 @@ module Slanger
         invalid_keys = restricted.keys - user_params.keys
 
         if invalid_keys.any?
-          raise Signature::AuthenticationError.new "Invalid params: #{invalid_keys}"
+          raise Slanger::InvalidRequest.new "Invalid params: #{invalid_keys}"
         end
 
         restricted
@@ -66,18 +71,6 @@ module Slanger
 
       def user_params
         raw_params.reject{|k,_| %w(splat captures).include?(k)}
-      end
-
-      def validate_socket_id!(socket_id)
-        unless valid_socket_id?(socket_id)
-          raise Signature::AuthenticationError.new("Invalid socket_id: #{socket_id}")
-        end
-
-        socket_id
-      end
-
-      def valid_socket_id?(socket_id)
-        socket_id =~ /\A[\da-fA-F]{8}\-[\da-fA-F]{4}-[\da-fA-F]{4}-[\da-fA-F]{4}-[\da-fA-F]{12}\z/
       end
     end
   end

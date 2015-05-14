@@ -17,6 +17,7 @@ module Slanger
 
     # Respond with HTTP 401 Unauthorized if request cannot be authenticated.
     error(Signature::AuthenticationError) { |e| halt 401, "401 UNAUTHORIZED\n#{e}" }
+    error(Slanger::InvalidRequest) { |c| halt 400, "Bad Request\n" }
 
     post '/apps/:app_id/events' do
       authenticate
@@ -60,6 +61,8 @@ module Slanger
     end
 
     def publish(channel, event, data, socket_id)
+      Slanger::Validate.channel_name(channel)
+      Slanger::Validate.socket_id(socket_id) if socket_id
       Slanger::Redis.publish(channel, payload(channel, event, data, socket_id))
     end
   end
