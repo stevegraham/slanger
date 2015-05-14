@@ -9,3 +9,5 @@
 *.rdb
 .idea
 .rbenv-gemsets
+coverage/
+tmp/
