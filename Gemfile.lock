@@ -55,7 +55,7 @@ GEM
       coderay (~> 1.1.0)
       method_source (~> 0.8.1)
       slop (~> 3.4)
-    pusher (0.14.4)
+    pusher (0.14.5)
       httpclient (~> 2.5)
       multi_json (~> 1.0)
       signature (~> 0.1.8)
@@ -99,7 +99,7 @@ DEPENDENCIES
   haml (~> 3.1.2)
   mocha (~> 0.13.2)
   pry (~> 0.10.1)
-  pusher (~> 0.14.2)
+  pusher (~> 0.14.5)
   rake
   rspec (~> 2.12.0)
   slanger!

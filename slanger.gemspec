@@ -25,7 +25,7 @@ Gem::Specification.new do |s|
   s.add_dependency                'em-http-request',  '~> 0.3.0'
 
   s.add_development_dependency    'rspec',            '~> 2.12.0'
-  s.add_development_dependency    'pusher',           '~> 0.14.2'
+  s.add_development_dependency    'pusher',           '~> 0.14.5'
   s.add_development_dependency    'haml',             '~> 3.1.2'
   s.add_development_dependency    'rake'
   s.add_development_dependency    'timecop',          '~> 0.3.5'
