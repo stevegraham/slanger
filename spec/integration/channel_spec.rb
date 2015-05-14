@@ -96,7 +96,7 @@ describe 'Integration:' do
             when 1
               client2.callback { client2.send({ event: 'pusher:subscribe', data: { channel: 'MY_CHANNEL'} }.to_json) }
             when 2
-              socket_id = client1_messages.first['data']['socket_id']
+              socket_id = JSON.parse(client1_messages.first['data'])['socket_id']
               Pusher['MY_CHANNEL'].trigger 'an_event', { some: 'data' }, socket_id
             when 3
               EM.stop

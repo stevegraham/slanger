@@ -1,7 +1,7 @@
 module Slanger
   class RequestValidation < Struct.new :body
     def socket_id
-      validate_socket_id!(data["socket_id"])
+      validate_socket_id!(data["socket_id"]) if data["socket_id"]
     end
 
     def data

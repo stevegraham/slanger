@@ -16,7 +16,7 @@ module Slanger
     set :show_exceptions, false
 
     # Respond with HTTP 401 Unauthorized if request cannot be authenticated.
-    error(Signature::AuthenticationError) { |e| halt 401, "401 UNAUTHORIZED\n#{e}" }
+    error(Signature::AuthenticationError) { |e| halt 401, "401 UNAUTHORIZED: #{e}" }
 
     post '/apps/:app_id/events' do
       authenticate
