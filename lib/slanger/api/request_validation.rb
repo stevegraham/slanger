@@ -1,8 +1,29 @@
 module Slanger
-  class RequestValidation < Struct.new :raw_body, :raw_params
+  class RequestValidation < Struct.new :raw_body, :raw_params, :path_info
+    def initialize(*args)
+      super(*args)
+
+      validate!
+      authenticate!
+    end
+
+    def authenticate!
+      # Raises Signature::AuthenticationError if request does not authenticate.
+      byebug
+      Signature::Request.new('POST', path_info, auth_params).
+        authenticate { |key| Signature::Token.new key, Slanger::Config.secret }
+    end
+
+    def auth_params
+      params.except('channel_id', 'app_id')
+    end
+
+    def validate!
+      determine_valid_socket_id
+    end
+
     def socket_id
-      return validate_socket_id!(data["socket_id"]) if data["socket_id"]
-      return validate_socket_id!(params["socket_id"]) if params["socket_id"]
+      @socket_id ||= determine_valid_socket_id
     end
 
     def params
@@ -14,6 +35,11 @@ module Slanger
     end
 
     private
+
+    def determine_valid_socket_id
+      return validate_socket_id!(data["socket_id"]) if data["socket_id"]
+      return validate_socket_id!(params["socket_id"]) if params["socket_id"]
+    end
 
     def validate_raw_params!
       restricted =  user_params.slice "body_md5", "auth_version", "auth_key", "auth_timestamp", "auth_signature", "app_id"
