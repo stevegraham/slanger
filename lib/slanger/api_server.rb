@@ -19,13 +19,13 @@ module Slanger
     error(Signature::AuthenticationError) { |e| halt 401, "401 UNAUTHORIZED: #{e}" }
 
     post '/apps/:app_id/events' do
-      authenticate
-      # Event and channel data are now serialized in the JSON data
-      # So, extract and use it
-      rv = RequestValidation.new(request.body.read)
+      rv = RequestValidation.new(body, params)
       socket_id = rv.socket_id
       data = rv.data
 
+      authenticate
+      # Event and channel data are now serialized in the JSON data
+      # So, extract and use it
       # Send event to each channel
       data["channels"].each { |channel| publish(channel, data['name'], data['data'], socket_id) }
 
@@ -33,11 +33,20 @@ module Slanger
       return {}.to_json
     end
 
+    def body
+      @body ||= request.body.read.tap{|s| s.force_encoding("utf-8")}
+    end
 
     post '/apps/:app_id/channels/:channel_id/events' do
-      authenticate
+      rv = RequestValidation.new(body)
+      socket_id = rv.socket_id
+      data = rv.data
 
-      publish(params[:channel_id], params['name'],  request.body.read.tap{ |s| s.force_encoding('utf-8') })
+
+      authenticate
+      params = rv.user_params
+
+      publish(params[:channel_id], params['name'],  body)
 
       status 202
       return {}.to_json
