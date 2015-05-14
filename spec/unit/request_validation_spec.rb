@@ -26,6 +26,5 @@ describe Slanger::Api::RequestValidation do
   def body(socket_id)
     {socket_id: socket_id}.to_json
   end
-
 end
 
