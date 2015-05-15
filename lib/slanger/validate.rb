@@ -1,7 +1,7 @@
 module Slanger
-  module Validate
-    InvalidRequest = Class.new ArgumentError
+  InvalidRequest = Class.new ArgumentError
 
+  module Validate
     def socket_id(socket_id)
       if socket_id !~ /\A\d+\.\d+\z/
         raise InvalidRequest, "Invalid socket_id #{socket_id.inspect}"

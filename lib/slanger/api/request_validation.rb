@@ -18,7 +18,7 @@ module Slanger
       end
 
       def assert_valid_json!(string)
-        yield JSON.parse(string)
+        JSON.parse(string)
       rescue JSON::ParserError
         raise Slanger::InvalidRequest.new("Invalid request body: #{raw_body}")
       end
@@ -35,7 +35,6 @@ module Slanger
 
       def validate!
         determine_valid_socket_id
-        determine_valid_channel_id
       end
 
       def socket_id
@@ -53,8 +52,8 @@ module Slanger
       private
 
       def determine_valid_socket_id
-        return Slanger::Validate.socket_id!(data["socket_id"])   if data["socket_id"]
-        return Slanger::Validate.socket_id!(params["socket_id"]) if params["socket_id"]
+        return Slanger::Validate.socket_id(data["socket_id"])   if data["socket_id"]
+        return Slanger::Validate.socket_id(params["socket_id"]) if params["socket_id"]
       end
 
       def validate_raw_params!
