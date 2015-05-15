@@ -4,7 +4,6 @@ module Slanger
     delegate :send_payload, :send_message, :error, :socket_id, to: :connection
 
     def initialize socket, socket_id, msg
-      Slanger::Validate.socket_id socket_id
       @connection = Connection.new socket, socket_id
       @msg        = msg
     end
