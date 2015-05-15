@@ -11,17 +11,17 @@ require 'rack/fiber_pool'
 
 module Slanger
   module Api
+
     class Server < Sinatra::Base
       use Rack::FiberPool
       set :raise_errors, lambda { false }
       set :show_exceptions, false
 
 
-      Slanger::Validate#force autoload
 
       # Respond with HTTP 401 Unauthorized if request cannot be authenticated.
       error(Signature::AuthenticationError) { |e| halt 401, "401 UNAUTHORIZED\n#{e}" }
-      error(Slanger::InvalidRequest) { |c| halt 400, "Bad Request\n" }
+      error(Slanger::Api::InvalidRequest) { |c| halt 400, "Bad Request\n" }
 
 
       before do

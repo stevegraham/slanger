@@ -51,9 +51,25 @@ module Slanger
 
       private
 
+      def validate_socket_id!(socket_id)
+        validate_with_regex!(/\A\d+\.\d+\z/, socket_id, "socket_id")
+
+        socket_id
+      end
+
+      def validate_channel_id!(channel_id)
+        validate_with_regex!(/\A[\w@\-;]+\z/, channel_id, "channel_id")
+
+        channel_id
+      end
+
+      def validate_with_regex!(value, regex, name)
+        raise InvalidRequest, "Invalid #{name} #{value.inspect}" unless value =~ regex
+      end
+
       def determine_valid_socket_id
-        return Slanger::Validate.socket_id(data["socket_id"])   if data["socket_id"]
-        return Slanger::Validate.socket_id(params["socket_id"]) if params["socket_id"]
+        return validate_socket_id!(data["socket_id"])   if data["socket_id"]
+        return validate_socket_id!(params["socket_id"]) if params["socket_id"]
       end
 
       def validate_raw_params!
