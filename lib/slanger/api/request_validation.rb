@@ -3,13 +3,14 @@ module Slanger
     class RequestValidation < Struct.new :raw_body, :raw_params, :path_info
       def initialize(*args)
         super(*args)
-                validate!
+
+        validate!
         authenticate!
         parse_body!
       end
 
       def body
-        @body ||= parse_body!
+        @body ||= validate_body!
       end
 
       def auth_params
@@ -24,11 +25,15 @@ module Slanger
         @params ||= validate_raw_params!
       end
 
-      def data
-        @data ||= assert_valid_json!(raw_body.tap{ |s| s.force_encoding('utf-8')})
+      def channels
+        @channels ||= Array(body["channels"] || params["channels"])
       end
 
       private
+
+      def validate_body!
+        @body ||= assert_valid_json!(raw_body.tap{ |s| s.force_encoding('utf-8')})
+      end
 
       def validate!
         raise InvalidRequest.new "no body"        unless raw_body.present?
@@ -36,6 +41,7 @@ module Slanger
         raise InvalidRequest.new "invalid path"   unless path_info.is_a? String
 
         determine_valid_socket_id
+        channels.each{|id| validate_channel_id!(id)}
       end
 
       def validate_socket_id!(socket_id)
@@ -81,7 +87,7 @@ module Slanger
       end
 
       def determine_valid_socket_id
-        return validate_socket_id!(data["socket_id"])   if data["socket_id"]
+        return validate_socket_id!(body["socket_id"])   if body["socket_id"]
         return validate_socket_id!(params["socket_id"]) if params["socket_id"]
       end
 

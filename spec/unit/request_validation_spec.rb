@@ -24,6 +24,28 @@ describe Slanger::Api::RequestValidation do
     Signature::Request.expects(:new).times(0..2).returns request
   end
 
+  describe "#channels" do
+    let(:body) { {socket_id: "1234.5678", channels: channels}.to_json }
+
+    context "with valid channels" do
+      let(:channels) { ["MY_CHANNEL", "presence-abcd"] }
+
+      it "returns an array of valid channel_id values" do
+        rv = Slanger::Api::RequestValidation.new(body, {}, "")
+
+        expect(rv.channels).to eq ["MY_CHANNEL", "presence-abcd"]
+      end
+    end
+
+    context "with invalid channels" do
+      let(:channels) { ["MY_CHANNEL:presence-abcd", "presence-abcd"] }
+
+      it "rejects invalid channels" do
+        expect{ Slanger::Api::RequestValidation.new(body, {}, "")}.to raise_error Slanger::Api::InvalidRequest
+      end
+    end
+  end
+
   describe "#socket_id" do
     it do
       rv = Slanger::Api::RequestValidation.new(body("1234.5678"), {}, "")
