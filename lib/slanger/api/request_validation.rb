@@ -10,7 +10,7 @@ module Slanger
       end
 
       def data
-        @data ||= body["data"] || params["data"]
+        @data ||= JSON.parse(body["data"] || params["data"])
       end
 
       def body
