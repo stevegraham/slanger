@@ -25,7 +25,8 @@ module Slanger
     end
 
     def establish
-      @socket_id = SecureRandom.uuid
+      @socket_id = "%d.%d" % [Process.pid, SecureRandom.random_number(10 ** 6)]
+
       send_payload nil, 'pusher:connection_established', {
         socket_id: @socket_id,
         activity_timeout: Slanger::Config.activity_timeout

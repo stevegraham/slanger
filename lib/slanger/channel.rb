@@ -17,7 +17,7 @@ module Slanger
 
     class << self
       def from channel_id
-        klass = channel_id[/^presence-/] ? PresenceChannel : Channel
+        klass = channel_id[/\Apresence-/] ? PresenceChannel : Channel
 
         klass.lookup(channel_id) || klass.create(channel_id: channel_id)
       end
@@ -81,11 +81,11 @@ module Slanger
     # Send an event received from Redis to the EventMachine channel
     # which will send it to subscribed clients.
     def dispatch(message, channel)
-      push(message.to_json) unless channel =~ /^slanger:/
+      push(message.to_json) unless channel =~ /\Aslanger:/
     end
 
     def authenticated?
-      channel_id =~ /^private-/ || channel_id =~ /^presence-/
+      channel_id =~ /\Aprivate-/ || channel_id =~ /\Apresence-/
     end
   end
 end

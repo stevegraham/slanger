@@ -16,4 +16,8 @@ File.tap do |f|
   Dir[f.expand_path(f.join(f.dirname(__FILE__),'lib', 'slanger', '*.rb'))].each do |file|
     Slanger.autoload File.basename(file, '.rb').camelize, file
   end
+
+  Dir[f.expand_path(f.join(f.dirname(__FILE__),'lib', 'slanger', 'api', '*.rb'))].each do |file|
+    Slanger::Api.autoload File.basename(file, '.rb').camelize, file
+  end
 end

@@ -15,7 +15,7 @@ module Slanger
 
     # Send an event received from Redis to the EventMachine channel
     def dispatch(message, channel)
-      if channel =~ /^slanger:/
+      if channel =~ /\Aslanger:/
         # Messages received from the Redis channel slanger:*  carry info on
         # subscriptions. Update our subscribers accordingly.
         update_subscribers message
