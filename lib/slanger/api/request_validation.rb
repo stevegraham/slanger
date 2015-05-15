@@ -9,6 +9,10 @@ module Slanger
         parse_body!
       end
 
+      def data
+        @data ||= body["data"] || params["data"]
+      end
+
       def body
         @body ||= validate_body!
       end

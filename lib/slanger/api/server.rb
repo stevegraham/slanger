@@ -25,10 +25,10 @@ module Slanger
 
       post '/apps/:app_id/events' do
         socket_id = valid_request.socket_id
-        data = valid_request.data
+        body = valid_request.body
 
-        event = Slanger::Api::Event.new(data["name"], data["data"], socket_id)
-        EventPublisher.publish(data["channels"], event)
+        event = Slanger::Api::Event.new(body["name"], body["data"], socket_id)
+        EventPublisher.publish(valid_request.channels, event)
 
         status 202
         return {}.to_json
@@ -38,7 +38,7 @@ module Slanger
         params = valid_request.params
 
         event = Event.new(params["name"], valid_request.body, valid_request.socket_id)
-        EventPublisher.publish(valid_request.data["channels"], event)
+        EventPublisher.publish(valid_request.channels, event)
 
         status 202
         return {}.to_json
