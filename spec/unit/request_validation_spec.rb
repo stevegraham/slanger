@@ -20,8 +20,21 @@ describe Slanger::Api::RequestValidation do
     end
   end
 
+  before do
+    request = mock("request")
+    request.expects(:authenticate).times(0..2)
+    Signature::Request.expects(:new).times(0..2).returns request
+  end
+
+  describe "#socket_id" do
+    it do
+      rv = Slanger::Api::RequestValidation.new(body("1234.5678"), {}, "")
+      expect(rv.socket_id).to eq "1234.5678"
+    end
+  end
+
   def validate(socket_id)
-    Slanger::Api::RequestValidation.new(body(socket_id)).socket_id
+    Slanger::Api::RequestValidation.new(body(socket_id), {}, "").socket_id
   end
 
   def body(socket_id)

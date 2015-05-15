@@ -3,8 +3,7 @@ module Slanger
     class RequestValidation < Struct.new :raw_body, :raw_params, :path_info
       def initialize(*args)
         super(*args)
-
-        validate!
+                validate!
         authenticate!
         parse_body!
       end
@@ -13,28 +12,8 @@ module Slanger
         @body ||= parse_body!
       end
 
-      def parse_body!
-        assert_valid_json!(raw_body)
-      end
-
-      def assert_valid_json!(string)
-        JSON.parse(string)
-      rescue JSON::ParserError
-        raise Slanger::InvalidRequest.new("Invalid request body: #{raw_body}")
-      end
-
-      def authenticate!
-        # Raises Signature::AuthenticationError if request does not authenticate.
-        Signature::Request.new('POST', path_info, auth_params).
-          authenticate { |key| Signature::Token.new key, Slanger::Config.secret }
-      end
-
       def auth_params
         params.except('channel_id', 'app_id')
-      end
-
-      def validate!
-        determine_valid_socket_id
       end
 
       def socket_id
@@ -51,25 +30,26 @@ module Slanger
 
       private
 
+      def validate!
+        raise InvalidRequest.new "no body"        unless raw_body.present?
+        raise InvalidRequest.new "invalid params" unless raw_params.is_a? Hash
+        raise InvalidRequest.new "invalid path"   unless path_info.is_a? String
+
+        determine_valid_socket_id
+      end
+
       def validate_socket_id!(socket_id)
         validate_with_regex!(/\A\d+\.\d+\z/, socket_id, "socket_id")
-
-        socket_id
       end
 
       def validate_channel_id!(channel_id)
         validate_with_regex!(/\A[\w@\-;]+\z/, channel_id, "channel_id")
-
-        channel_id
       end
 
-      def validate_with_regex!(value, regex, name)
+      def validate_with_regex!(regex, value, name)
         raise InvalidRequest, "Invalid #{name} #{value.inspect}" unless value =~ regex
-      end
 
-      def determine_valid_socket_id
-        return validate_socket_id!(data["socket_id"])   if data["socket_id"]
-        return validate_socket_id!(params["socket_id"]) if params["socket_id"]
+        value
       end
 
       def validate_raw_params!
@@ -82,6 +62,27 @@ module Slanger
         end
 
         restricted
+      end
+
+      def authenticate!
+        # Raises Signature::AuthenticationError if request does not authenticate.
+        Signature::Request.new('POST', path_info, auth_params).
+          authenticate { |key| Signature::Token.new key, Slanger::Config.secret }
+      end
+
+      def parse_body!
+        assert_valid_json!(raw_body)
+      end
+
+      def assert_valid_json!(string)
+        JSON.parse(string)
+      rescue JSON::ParserError
+        raise Slanger::InvalidRequest.new("Invalid request body: #{raw_body}")
+      end
+
+      def determine_valid_socket_id
+        return validate_socket_id!(data["socket_id"])   if data["socket_id"]
+        return validate_socket_id!(params["socket_id"]) if params["socket_id"]
       end
 
       def user_params

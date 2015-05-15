@@ -11,26 +11,21 @@ require 'rack/fiber_pool'
 
 module Slanger
   module Api
-
     class Server < Sinatra::Base
       use Rack::FiberPool
       set :raise_errors, lambda { false }
       set :show_exceptions, false
 
-
-
-      # Respond with HTTP 401 Unauthorized if request cannot be authenticated.
-      error(Signature::AuthenticationError) { |e| halt 401, "401 UNAUTHORIZED\n#{e}" }
-      error(Slanger::Api::InvalidRequest) { |c| halt 400, "Bad Request\n" }
-
+      error(Signature::AuthenticationError) { |e| halt 401, "401 UNAUTHORIZED" }
+      error(Slanger::Api::InvalidRequest)   { |c| halt 400, "400 Bad Request" }
 
       before do
-        validate_request!
+        valid_request
       end
 
       post '/apps/:app_id/events' do
-        socket_id = validated_request.socket_id
-        data = validated_request.data
+        socket_id = valid_request.socket_id
+        data = valid_request.data
 
         event = Slanger::Api::Event.new(data["name"], data["data"], socket_id)
         EventPublisher.publish(data["channels"], event)
@@ -40,25 +35,21 @@ module Slanger
       end
 
       post '/apps/:app_id/channels/:channel_id/events' do
-        params = validated_request.params
+        params = valid_request.params
 
-        event = Event.new(params["name"], validated_request.body, validated_request.socket_id)
-        EventPublisher.publish(validated_request.data["channels"], event)
+        event = Event.new(params["name"], valid_request.body, valid_request.socket_id)
+        EventPublisher.publish(valid_request.data["channels"], event)
 
         status 202
         return {}.to_json
       end
 
-      def validate_request!
-        validated_request
-      end
-
-      def validated_request
-        @validated_reqest ||= RequestValidation.new(request_body, params, env["PATH_INFO"])
-      end
-
-      def request_body
-        @request_body ||= request.body.read.tap{|s| s.force_encoding("utf-8")}
+      def valid_request
+        @valid_request ||=
+          begin
+            request_body ||= request.body.read.tap{|s| s.force_encoding("utf-8")}
+            RequestValidation.new(request_body, params, env["PATH_INFO"])
+          end
       end
     end
   end
