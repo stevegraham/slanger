@@ -3,8 +3,6 @@ require 'spec_helper'
 
 describe Slanger::Api::RequestValidation do
   describe '#socket_id' do
-    Slanger::Validate #force autoload
-
     it 'validation' do
       socket_id = "POST\n/apps/99759/events\nauth_key=840543d97de9803651b1&auth_timestamp=123&auth_version=1.0&body_md5=some_md5&dummy="
 
