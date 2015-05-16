@@ -11,3 +11,4 @@
 .rbenv-gemsets
 coverage/
 tmp/
+pkg
