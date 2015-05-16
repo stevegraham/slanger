@@ -111,7 +111,7 @@ DEPENDENCIES
   pry (~> 0.10.1)
   pry-byebug (~> 2.0.0)
   pusher (~> 0.14.2)
-  rake
+  rake (~> 10.4.2)
   rspec (~> 2.12.0)
   slanger!
   timecop (~> 0.3.5)
