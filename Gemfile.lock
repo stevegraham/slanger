@@ -105,6 +105,7 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
+  bundler (~> 1.5)
   haml (~> 3.1.2)
   mocha (~> 0.13.2)
   pry (~> 0.10.1)
