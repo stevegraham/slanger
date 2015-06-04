@@ -28,12 +28,12 @@ describe Slanger::Api::RequestValidation do
     let(:body) { {socket_id: "1234.5678", channels: channels}.to_json }
 
     context "with valid channels" do
-      let(:channels) { ["MY_CHANNEL", "presence-abcd"] }
+      let(:channels) { ["MY_CHANNEL", "presence-abcd", "foo-bar_1234@=,.;"] }
 
       it "returns an array of valid channel_id values" do
         rv = Slanger::Api::RequestValidation.new(body, {}, "")
 
-        expect(rv.channels).to eq ["MY_CHANNEL", "presence-abcd"]
+        expect(rv.channels).to eq ["MY_CHANNEL", "presence-abcd", "foo-bar_1234@=,.;"]
       end
     end
 
