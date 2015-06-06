@@ -28,19 +28,27 @@ describe Slanger::Api::RequestValidation do
     let(:body) { {socket_id: "1234.5678", channels: channels}.to_json }
 
     context "with valid channels" do
-      let(:channels) { ["MY_CHANNEL", "presence-abcd"] }
+      let(:channels) { ["MY_CHANNEL", "presence-abcd", "foo-bar_1234@=,.;", "a"*164] }
 
       it "returns an array of valid channel_id values" do
         rv = Slanger::Api::RequestValidation.new(body, {}, "")
 
-        expect(rv.channels).to eq ["MY_CHANNEL", "presence-abcd"]
+        expect(rv.channels).to eq ["MY_CHANNEL", "presence-abcd", "foo-bar_1234@=,.;", "a"*164]
       end
     end
 
-    context "with invalid channels" do
+    context "with invalid characters" do
       let(:channels) { ["MY_CHANNEL:presence-abcd", "presence-abcd"] }
 
       it "rejects invalid channels" do
+        expect{ Slanger::Api::RequestValidation.new(body, {}, "")}.to raise_error Slanger::Api::InvalidRequest
+      end
+    end
+
+    context "with invalid channel length" do
+      let(:channels) { ["a"*165] }
+
+      it "rejects names longer than 164 characters" do
         expect{ Slanger::Api::RequestValidation.new(body, {}, "")}.to raise_error Slanger::Api::InvalidRequest
       end
     end

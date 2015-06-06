@@ -53,7 +53,7 @@ module Slanger
       end
 
       def validate_channel_id!(channel_id)
-        validate_with_regex!(/\A[\w@\-;]+\z/, channel_id, "channel_id")
+        validate_with_regex!(/\A[\w@\-;_.=,]{1,164}\z/, channel_id, "channel_id")
       end
 
       def validate_with_regex!(regex, value, name)
