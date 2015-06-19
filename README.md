@@ -161,12 +161,14 @@ Of course you could proxy all requests to `ws.example.com` to port 8080 of your 
 
 # Configuration Options
 
-Slanger supports several configuration options, which can be supplied as command line arguments at invocation.
+Slanger supports several configuration options, which can be supplied as command line arguments at invocation. You can also supply a yaml file containing config options. If you use the config file in combination with other configuration options, the values passed on the command line will win. Allows running multiple instances with only a few differences easy.
 
 ```
 -k or --app_key This is the Pusher app key you want to use. This is a required argument
 
 -s or --secret This is your Pusher secret. This is a required argument
+
+-C or --config_file Path to Yaml file that contains any desired configuration options
 
 -r or --redis_address An address where there is a Redis server running. This is an optional argument and defaults to redis://127.0.0.1:6379/0
 

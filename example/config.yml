@@ -1,0 +1,10 @@
+# Basic config file example for use as command line option
+# Can set any options in here and pass file as option
+# Command line flags will override these settings if you need granularity
+activity_timeout: 150
+api_port: 1234
+app_key: my_pusher_key
+secret: my_pusher_secret
+tls_options:
+  cert_chain_file: 'mycert.cer'
+  private_key_file: 'my.key'
