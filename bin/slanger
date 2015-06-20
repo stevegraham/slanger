@@ -7,9 +7,7 @@ require 'eventmachine'
 require 'yaml'
 require 'active_support/core_ext/hash'
 
-options = {
-  config_file:''
-  }
+options = {}
 
 
 OptionParser.new do |opts|
@@ -75,7 +73,7 @@ OptionParser.new do |opts|
 
   opts.parse!
 
-  if File.exists? options[:config_file]
+  if options[:config_file] and File.exists? options[:config_file]
     config_file_contents = YAML::load(File.open(options[:config_file]))
     options.reverse_merge! config_file_contents.deep_symbolize_keys!
   end
