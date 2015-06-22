@@ -84,8 +84,8 @@ end
 
 if options[:tls_options]
   [:cert_chain_file, :private_key_file].each do |param|
-    raise RuntimeError.new "--#{param} does not exist at `#{options[:tls_options][param]}`" unless File.exists? options[:tls_options][param]
     raise RuntimeError.new "Both --cert_file and --private_key_file need to be specified" unless options[:tls_options][param]
+    raise RuntimeError.new "--#{param} does not exist at `#{options[:tls_options][param]}`" unless File.exists? options[:tls_options][param]
   end
 end
 
