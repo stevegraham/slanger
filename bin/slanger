@@ -16,15 +16,15 @@ OptionParser.new do |opts|
     exit
   end
 
-  opts.on '-k', '--app_key APP_KEY', "Pusher application key. This parameter is required." do |k|
+  opts.on '-k', '--app_key APP_KEY', "Pusher application key. This parameter is required on command line or in optional config file." do |k|
     options[:app_key] = k
   end
 
-  opts.on '-s', '--secret SECRET', "Pusher application secret. This parameter is required." do |k|
+  opts.on '-s', '--secret SECRET', "Pusher application secret. This parameter is required on command line or in optional config file." do |k|
     options[:secret] = k
   end
 
-  opts.on '-C', '--config_file FILE', "Path to Yaml file that contains any desired configuration options." do |k|
+  opts.on '-C', '--config_file FILE', "Path to Yaml file that can contain all configuration options, including required ones." do |k|
     options[:config_file] = k
   end
 
