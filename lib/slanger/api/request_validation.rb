@@ -7,7 +7,7 @@ module Slanger
         super(*args)
 
         validate!
-        authenticate!
+        authenticate! unless Slanger::Config.disable_validation
         parse_body!
       end
 
