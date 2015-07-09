@@ -20,8 +20,10 @@ module Slanger
       error(Signature::AuthenticationError) { |e| halt 401, "401 UNAUTHORIZED" }
       error(Slanger::Api::InvalidRequest)   { |c| halt 400, "400 Bad Request" }
 
-      before do
-        valid_request
+      if !(Slanger::Config.disable_validation) then
+        before do
+          valid_request
+        end
       end
 
       post '/apps/:app_id/events' do
