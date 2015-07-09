@@ -21,7 +21,7 @@ module Slanger
       error(Slanger::Api::InvalidRequest)   { |c| halt 400, "400 Bad Request" }
 
       before do
-        valid_request
+        valid_request unless Slanger::Config.disable_validation
       end
 
       post '/apps/:app_id/events' do
