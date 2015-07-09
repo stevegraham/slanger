@@ -8,6 +8,7 @@ require 'em-hiredis'
 require 'rack'
 require 'fiber'
 require 'rack/fiber_pool'
+require 'oj'
 
 module Slanger
   module Api
@@ -31,7 +32,7 @@ module Slanger
         EventPublisher.publish(valid_request.channels, event)
 
         status 202
-        return {}.to_json
+        return Oj.dump({}, mode: :compat)
       end
 
       post '/apps/:app_id/channels/:channel_id/events' do
@@ -41,7 +42,7 @@ module Slanger
         EventPublisher.publish(valid_request.channels, event)
 
         status 202
-        return {}.to_json
+        return Oj.dump({}, mode: :compat)
       end
 
       def valid_request
