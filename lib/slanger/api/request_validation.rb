@@ -1,3 +1,5 @@
+require 'oj'
+
 module Slanger
   module Api
     class RequestValidation < Struct.new :raw_body, :raw_params, :path_info
@@ -10,7 +12,7 @@ module Slanger
       end
 
       def data
-        @data ||= JSON.parse(body["data"] || params["data"])
+        @data ||= Oj.load(body["data"] || params["data"])
       end
 
       def body
@@ -85,8 +87,8 @@ module Slanger
       end
 
       def assert_valid_json!(string)
-        JSON.parse(string)
-      rescue JSON::ParserError
+        Oj.load(string)
+      rescue Oj::ParserError
         raise Slanger::InvalidRequest.new("Invalid request body: #{raw_body}")
       end
 

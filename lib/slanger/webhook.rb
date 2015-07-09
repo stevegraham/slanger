@@ -1,14 +1,17 @@
 require 'fiber'
 require 'em-http-request'
+require 'oj'
 
 module Slanger
   module Webhook
     def post payload
       return unless Slanger::Config.webhook_url
 
-      payload = {
+      payload ={
         time_ms: Time.now.strftime('%s%L'), events: [payload]
-      }.to_json
+      }
+
+      payload = Oj.dump(payload, mode: :compat)
 
       digest        = OpenSSL::Digest::SHA256.new
       hmac          = OpenSSL::HMAC.hexdigest(digest, Slanger::Config.secret, payload)

@@ -2,6 +2,7 @@
 # Interface with Redis.
 
 require 'forwardable'
+require 'oj'
 
 module Slanger
   module Redis
@@ -24,7 +25,7 @@ module Slanger
     def subscriber
       @subscriber ||= new_connection.pubsub.tap do |c|
         c.on(:message) do |channel, message|
-          message = JSON.parse message
+          message = Oj.load(message)
           c = Channel.from message['channel']
           c.dispatch message, channel
         end

@@ -6,6 +6,7 @@ require 'securerandom'
 require 'signature'
 require 'fiber'
 require 'rack'
+require 'oj'
 
 module Slanger
   class Handler
@@ -24,9 +25,9 @@ module Slanger
     # Dispatches message handling to method with same name as
     # the event name
     def onmessage(msg)
-      msg = JSON.parse(msg)
+      msg = Oj.load(msg)
 
-      msg['data'] = JSON.parse(msg['data']) if msg['data'].is_a? String
+      msg['data'] = Oj.load(msg['data']) if msg['data'].is_a? String
 
       event = msg['event'].gsub(/\Apusher:/, 'pusher_')
 
@@ -37,17 +38,21 @@ module Slanger
         send event, msg
       end
 
-    rescue JSON::ParserError
+    rescue Oj::ParserError
       error({ code: 5001, message: "Invalid JSON" })
     rescue Exception => e
       error({ code: 500, message: "#{e.message}\n #{e.backtrace.join "\n"}" })
     end
 
     def onclose
-      @subscriptions.select { |k,v| k && v }.
-        each do |channel_id, subscription_id|
-          Channel.unsubscribe channel_id, subscription_id
-        end
+
+      subscriptions = @subscriptions.select { |k,v| k && v }
+      
+      subscriptions.each_key do |channel_id|
+        subscription_id = subscriptions[channel_id]
+        Channel.unsubscribe channel_id, subscription_id
+      end
+
     end
 
     def authenticate
