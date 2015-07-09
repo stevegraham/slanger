@@ -8,6 +8,7 @@
 require 'eventmachine'
 require 'forwardable'
 require 'fiber'
+require 'oj'
 
 module Slanger
   class PresenceChannel < Channel
@@ -20,7 +21,7 @@ module Slanger
         # subscriptions. Update our subscribers accordingly.
         update_subscribers message
       else
-        push message.to_json
+        push Oj.dump(message, mode: :compat)
       end
     end
 
@@ -31,7 +32,7 @@ module Slanger
     end
 
     def subscribe(msg, callback, &blk)
-      channel_data = JSON.parse msg['data']['channel_data']
+      channel_data = Oj.load msg['data']['channel_data']
       public_subscription_id = SecureRandom.uuid
 
       # Send event about the new subscription to the Redis slanger:connection_notification Channel.
@@ -97,7 +98,7 @@ module Slanger
     def publish_connection_notification(payload, retry_count=0)
       # Send a subscription notification to the global slanger:connection_notification
       # channel.
-      Slanger::Redis.publish('slanger:connection_notification', payload.to_json).
+      Slanger::Redis.publish('slanger:connection_notification', Oj.dump(payload, mode: :compat)).
         tap { |r| r.errback { publish_connection_notification payload, retry_count.succ unless retry_count == 5 } }
     end
 
@@ -133,7 +134,7 @@ module Slanger
     end
 
     def payload(event_name, payload = {})
-      { channel: channel_id, event: event_name, data: payload }.to_json
+      Oj.dump({ channel: channel_id, event: event_name, data: payload }, mode: :compat)
     end
   end
 end

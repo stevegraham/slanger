@@ -7,7 +7,8 @@ require 'eventmachine'
 
 options = {
   api_host: '0.0.0.0', api_port: '4567', websocket_host: '0.0.0.0',
-  websocket_port: '8080', debug: false, redis_address: 'redis://0.0.0.0:6379/0'
+  websocket_port: '8080', debug: false, redis_address: 'redis://0.0.0.0:6379/0',
+  disable_validation: false
   }
 
 
@@ -68,6 +69,10 @@ OptionParser.new do |opts|
     options[:pid_file] = k
   end
 
+  opts.on '-d', '--disable-validation', "Disable validation for pushed messages." do |k|
+    options[:disable_validation] = true
+  end
+
   opts.parse!
 
   %w<app_key secret>.each do |parameter|
@@ -125,4 +130,5 @@ EM.run do
 
   puts "Slanger API server listening on port #{options[:api_port]}"
   puts "Slanger WebSocket server listening on port #{options[:websocket_port]}"
+  puts "Signature Validation: #{options[:disable_validation] ? 'Disabled' : 'Enabled'}"
 end

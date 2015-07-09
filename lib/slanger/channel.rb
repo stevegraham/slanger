@@ -7,6 +7,7 @@
 
 require 'eventmachine'
 require 'forwardable'
+require 'oj'
 
 module Slanger
   class Channel
@@ -75,13 +76,13 @@ module Slanger
     # Only events to channels requiring authentication (private or presence)
     # are accepted. Public channels only get events from the API.
     def send_client_message(message)
-      Slanger::Redis.publish(message['channel'], message.to_json) if authenticated?
+      Slanger::Redis.publish(message['channel'], Oj.dump(message, mode: :compat)) if authenticated?
     end
 
     # Send an event received from Redis to the EventMachine channel
     # which will send it to subscribed clients.
     def dispatch(message, channel)
-      push(message.to_json) unless channel =~ /\Aslanger:/
+      push(Oj.dump(message, mode: :compat)) unless channel =~ /\Aslanger:/
     end
 
     def authenticated?
