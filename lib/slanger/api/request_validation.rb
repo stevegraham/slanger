@@ -10,7 +10,7 @@ module Slanger
       end
 
       def data
-        @data ||= JSON.parse(body["data"] || params["data"])
+        @data ||= JSON.load(body["data"] || params["data"])
       end
 
       def body
@@ -85,7 +85,7 @@ module Slanger
       end
 
       def assert_valid_json!(string)
-        JSON.parse(string)
+        JSON.load(string)
       rescue JSON::ParserError
         raise Slanger::InvalidRequest.new("Invalid request body: #{raw_body}")
       end

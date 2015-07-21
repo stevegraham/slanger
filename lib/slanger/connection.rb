@@ -7,7 +7,7 @@ module Slanger
     end
 
     def send_message m
-      msg = JSON.parse m
+      msg = JSON.load m
       s = msg.delete 'socket_id'
       socket.send msg.to_json unless s == socket_id
     end

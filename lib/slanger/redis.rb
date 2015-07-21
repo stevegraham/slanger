@@ -24,7 +24,7 @@ module Slanger
     def subscriber
       @subscriber ||= new_connection.pubsub.tap do |c|
         c.on(:message) do |channel, message|
-          message = JSON.parse message
+          message = JSON.load message
           c = Channel.from message['channel']
           c.dispatch message, channel
         end
