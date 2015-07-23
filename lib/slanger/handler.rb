@@ -38,7 +38,7 @@ module Slanger
         send event, msg
       end
 
-    rescue Oj::ParserError
+    rescue JSON::ParserError
       error({ code: 5001, message: "Invalid JSON" })
     rescue Exception => e
       error({ code: 500, message: "#{e.message}\n #{e.backtrace.join "\n"}" })
