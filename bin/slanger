@@ -4,11 +4,10 @@
 require 'optparse'
 require 'bundler/setup'
 require 'eventmachine'
+require 'yaml'
+require 'active_support/core_ext/hash'
 
-options = {
-  api_host: '0.0.0.0', api_port: '4567', websocket_host: '0.0.0.0',
-  websocket_port: '8080', debug: false, redis_address: 'redis://0.0.0.0:6379/0'
-  }
+options = {}
 
 
 OptionParser.new do |opts|
@@ -17,12 +16,16 @@ OptionParser.new do |opts|
     exit
   end
 
-  opts.on '-k', '--app_key APP_KEY', "Pusher application key. This parameter is required." do |k|
+  opts.on '-k', '--app_key APP_KEY', "Pusher application key. This parameter is required on command line or in optional config file." do |k|
     options[:app_key] = k
   end
 
-  opts.on '-s', '--secret SECRET', "Pusher application secret. This parameter is required." do |k|
+  opts.on '-s', '--secret SECRET', "Pusher application secret. This parameter is required on command line or in optional config file." do |k|
     options[:secret] = k
+  end
+
+  opts.on '-C', '--config_file FILE', "Path to Yaml file that can contain all configuration options, including required ones." do |k|
+    options[:config_file] = k
   end
 
   opts.on '-r', '--redis_address URL', "Address to bind to (Default: redis://127.0.0.1:6379/0)" do |h|
@@ -69,6 +72,11 @@ OptionParser.new do |opts|
   end
 
   opts.parse!
+
+  if options[:config_file] and File.exists? options[:config_file]
+    config_file_contents = YAML::load(File.open(options[:config_file]))
+    options.reverse_merge! config_file_contents.deep_symbolize_keys!
+  end
 
   %w<app_key secret>.each do |parameter|
     unless options[parameter.to_sym]
@@ -123,6 +131,6 @@ EM.run do
   puts "Running Slanger v.#{Slanger::VERSION}"
   puts "\n"
 
-  puts "Slanger API server listening on port #{options[:api_port]}"
-  puts "Slanger WebSocket server listening on port #{options[:websocket_port]}"
+  puts "Slanger API server listening on port #{Slanger::Config.api_port}"
+  puts "Slanger WebSocket server listening on port #{Slanger::Config.websocket_port}"
 end
