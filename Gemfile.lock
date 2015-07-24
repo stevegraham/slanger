@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    slanger (0.4.3)
+    slanger (0.4.4)
       activesupport (~> 4.2.1)
       em-hiredis (~> 0.2.0)
       em-http-request (~> 0.3.0)
