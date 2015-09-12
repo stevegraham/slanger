@@ -9,8 +9,10 @@ require File.join(File.dirname(__FILE__), 'lib', 'slanger', 'version')
 
 module Slanger; end
 
-EM.epoll
-EM.kqueue
+case
+when EM.epoll?  then EM.epoll
+when EM.kqueue? then EM.kqueue
+end
 
 File.tap do |f|
   Dir[f.expand_path(f.join(f.dirname(__FILE__),'lib', 'slanger', '*.rb'))].each do |file|
