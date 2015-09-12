@@ -40,7 +40,7 @@ module Slanger
 
     rescue JSON::ParserError
       error({ code: 5001, message: "Invalid JSON" })
-    rescue Exception => e
+    rescue => e
       error({ code: 500, message: "#{e.message}\n #{e.backtrace.join "\n"}" })
     end
 
