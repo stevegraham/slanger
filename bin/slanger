@@ -99,8 +99,10 @@ end
 
 STDOUT.sync = true
 
-EM.epoll
-EM.kqueue
+case
+when EM.epoll?  then EM.epoll
+when EM.kqueue? then EM.kqueue
+end
 
 EM.run do
   File.tap { |f| require f.expand_path(f.join(f.dirname(__FILE__),'..', 'slanger.rb')) }
