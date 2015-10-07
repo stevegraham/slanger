@@ -6,6 +6,7 @@ require 'securerandom'
 require 'signature'
 require 'fiber'
 require 'rack'
+require 'oj'
 
 module Slanger
   class Handler
@@ -24,9 +25,9 @@ module Slanger
     # Dispatches message handling to method with same name as
     # the event name
     def onmessage(msg)
-      msg = JSON.load(msg)
+      msg = Oj.load(msg)
 
-      msg['data'] = JSON.load(msg['data']) if msg['data'].is_a? String
+      msg['data'] = Oj.load(msg['data']) if msg['data'].is_a? String
 
       event = msg['event'].gsub(/\Apusher:/, 'pusher_')
 
@@ -44,10 +45,14 @@ module Slanger
     end
 
     def onclose
-      @subscriptions.select { |k,v| k && v }.
-        each do |channel_id, subscription_id|
-          Channel.unsubscribe channel_id, subscription_id
-        end
+
+      subscriptions = @subscriptions.select { |k,v| k && v }
+
+      subscriptions.each_key do |channel_id|
+        subscription_id = subscriptions[channel_id]
+        Channel.unsubscribe channel_id, subscription_id
+      end
+
     end
 
     def authenticate

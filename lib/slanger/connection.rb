@@ -1,3 +1,5 @@
+require 'oj'
+
 module Slanger
   class Connection
     attr_accessor :socket, :socket_id
@@ -7,9 +9,9 @@ module Slanger
     end
 
     def send_message m
-      msg = JSON.load m
+      msg = Oj.load m
       s = msg.delete 'socket_id'
-      socket.send msg.to_json unless s == socket_id
+      socket.send Oj.dump(msg, mode: :compat) unless s == socket_id
     end
 
     def send_payload *args
@@ -36,9 +38,9 @@ module Slanger
     private
 
     def format(channel_id, event_name, payload = {})
-      body = { event: event_name, data: payload.to_json }
+      body = { event: event_name, data: Oj.dump(payload, mode: :compat) }
       body[:channel] = channel_id if channel_id
-      body.to_json
+      Oj.dump(body, mode: :compat)
     end
   end
 end
