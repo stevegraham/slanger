@@ -131,6 +131,7 @@ module Slanger
           push payload('pusher_internal:member_removed', { user_id: subscriber['user_id'] })
         end
       end
+      puts subscriptions
     end
 
     def payload(event_name, payload = {})

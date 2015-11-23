@@ -1,0 +1,8 @@
+%{"cowboy": {:hex, :cowboy, "1.0.0"},
+  "cowlib": {:hex, :cowlib, "1.0.0"},
+  "jsex": {:hex, :jsex, "2.0.0"},
+  "jsx": {:hex, :jsx, "2.0.4"},
+  "plug": {:hex, :plug, "0.9.0"},
+  "ranch": {:hex, :ranch, "1.0.0"},
+  "timex": {:hex, :timex, "0.13.2"},
+  "uuid": {:hex, :uuid, "0.1.5"}}
