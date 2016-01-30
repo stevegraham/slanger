@@ -83,6 +83,14 @@ module Slanger
     # which will send it to subscribed clients.
     def dispatch(message, channel)
       push(Oj.dump(message, mode: :compat)) unless channel =~ /\Aslanger:/
+
+      if (message['event'].start_with?('client-')) then
+
+        event = message.merge({'name' => 'client_event'})
+        event['data'] = Oj.dump(event['data'])
+
+        Slanger::Webhook.post(event)
+      end
     end
 
     def authenticated?
