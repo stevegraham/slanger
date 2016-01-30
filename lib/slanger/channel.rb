@@ -91,6 +91,8 @@ module Slanger
       channel_id =~ /\Aprivate-/ || channel_id =~ /\Apresence-/
     end
 
+    private
+
     def perform_client_webhook!(message)
       if (message['event'].start_with?('client-')) then
 
