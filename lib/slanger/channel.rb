@@ -84,6 +84,14 @@ module Slanger
     def dispatch(message, channel)
       push(Oj.dump(message, mode: :compat)) unless channel =~ /\Aslanger:/
 
+      perform_client_webhook!(message)
+    end
+
+    def authenticated?
+      channel_id =~ /\Aprivate-/ || channel_id =~ /\Apresence-/
+    end
+
+    def perform_client_webhook!(message)
       if (message['event'].start_with?('client-')) then
 
         event = message.merge({'name' => 'client_event'})
@@ -91,10 +99,6 @@ module Slanger
 
         Slanger::Webhook.post(event)
       end
-    end
-
-    def authenticated?
-      channel_id =~ /\Aprivate-/ || channel_id =~ /\Apresence-/
     end
   end
 end
