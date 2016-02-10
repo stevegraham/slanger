@@ -1,6 +1,4 @@
 # encoding: utf-8
-require 'bundler/setup'
-
 require 'eventmachine'
 require 'em-hiredis'
 require 'rack'
