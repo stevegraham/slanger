@@ -31,7 +31,7 @@ module Slanger
         event = Slanger::Api::Event.new(body["name"], body["data"], socket_id)
         EventPublisher.publish(valid_request.channels, event)
 
-        status 202
+        status 200
         return Oj.dump({}, mode: :compat)
       end
 
@@ -41,7 +41,7 @@ module Slanger
         event = Event.new(params["name"], valid_request.body, valid_request.socket_id)
         EventPublisher.publish(valid_request.channels, event)
 
-        status 202
+        status 200
         return Oj.dump({}, mode: :compat)
       end
 
