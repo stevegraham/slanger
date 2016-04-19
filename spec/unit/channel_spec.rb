@@ -1,5 +1,6 @@
 require 'spec_helper'
 require 'slanger'
+require 'oj'
 
 def clear_redis_connections
   Slanger::Redis.instance_variables.each do |ivar|
@@ -64,6 +65,41 @@ describe 'Slanger::Channel' do
         }
 
       3.times { channel.subscribe { |m| nil } }
+    end
+  end
+
+  describe '#dispatch' do
+    it 'activates a webhook when client events are received' do
+      message = {
+        'event'     => 'client-test_event',
+        'channel'   => 'private-test_channel',
+        'socket_id' => '8.422225',
+        'data'      => { 'key' => 'value' }
+      }
+
+      expected_params = message.merge({
+        'name' => 'client_event',
+        'data' => Oj.dump(message['data'])
+      })
+
+      Slanger::Webhook.expects(:post).
+        with(expected_params).
+      once
+
+      channel.dispatch(message, 'private-test_channel')
+    end
+
+    it 'does not activate a webhook when non-client event messages are received' do
+      message = {
+        'event'     => 'non_client_event',
+        'channel'   => 'private-test_channel',
+        'socket_id' => '8.422225',
+        'data'      => { 'key' => 'value' }
+      }
+
+      Slanger::Webhook.expects(:post).never
+
+      channel.dispatch(message, 'private-test_channel')
     end
   end
 end

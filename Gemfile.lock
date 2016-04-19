@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    slanger (0.4.4)
+    slanger (0.6.0)
       activesupport (~> 4.2.1)
       em-hiredis (~> 0.2.0)
       em-http-request (~> 0.3.0)
@@ -17,7 +17,7 @@ PATH
 GEM
   remote: https://rubygems.org/
   specs:
-    activesupport (4.2.3)
+    activesupport (4.2.5)
       i18n (~> 0.7)
       json (~> 1.7, >= 1.7.7)
       minitest (~> 5.1)
@@ -45,7 +45,7 @@ GEM
       eventmachine (>= 0.12.9)
       http_parser.rb (~> 0.6.0)
     escape_utils (1.1.0)
-    eventmachine (1.0.7)
+    eventmachine (1.0.8)
     haml (3.1.8)
     hiredis (0.4.5)
     http_parser.rb (0.6.0)
@@ -54,11 +54,11 @@ GEM
     json (1.8.3)
     metaclass (0.0.4)
     method_source (0.8.2)
-    minitest (5.7.0)
+    minitest (5.8.4)
     mocha (0.13.3)
       metaclass (~> 0.0.1)
     multi_json (1.11.0)
-    oj (2.12.9)
+    oj (2.12.12)
     pry (0.10.1)
       coderay (~> 1.1.0)
       method_source (~> 0.8.1)
@@ -95,7 +95,7 @@ GEM
       eventmachine (~> 1.0)
       rack (~> 1.0)
     thread_safe (0.3.5)
-    tilt (2.0.1)
+    tilt (2.0.2)
     timecop (0.3.5)
     tzinfo (1.2.2)
       thread_safe (~> 0.1)
@@ -118,3 +118,6 @@ DEPENDENCIES
   slanger!
   timecop (~> 0.3.5)
   webmock (~> 1.8.7)
+
+BUNDLED WITH
+   1.10.6

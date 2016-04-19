@@ -2,7 +2,6 @@
 # encoding: utf-8
 
 require 'optparse'
-require 'bundler/setup'
 require 'eventmachine'
 require 'yaml'
 require 'active_support/core_ext/hash'
