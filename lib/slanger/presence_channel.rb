@@ -21,7 +21,7 @@ module Slanger
         # subscriptions. Update our subscribers accordingly.
         update_subscribers message
       else
-        push Oj.dump(message, mode: :compat)
+        super
       end
     end
 
