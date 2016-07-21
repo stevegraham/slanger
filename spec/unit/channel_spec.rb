@@ -69,37 +69,43 @@ describe 'Slanger::Channel' do
   end
 
   describe '#dispatch' do
-    it 'activates a webhook when client events are received' do
-      message = {
+    channel_types = ['private', 'presence']
+    channel_types.each do |channel_type|
+      channel_name = "#{channel_type}-test_channel"
+
+      it "activates a webhook when client events are received on a #{channel_type} channel" do
+        message = {
         'event'     => 'client-test_event',
-        'channel'   => 'private-test_channel',
+        'channel'   => channel_name,
         'socket_id' => '8.422225',
         'data'      => { 'key' => 'value' }
-      }
+        }
 
-      expected_params = message.merge({
+        expected_params = message.merge({
         'name' => 'client_event',
         'data' => Oj.dump(message['data'])
-      })
+        })
 
-      Slanger::Webhook.expects(:post).
+        Slanger::Webhook.expects(:post).
         with(expected_params).
-      once
+        once
 
-      channel.dispatch(message, 'private-test_channel')
+        channel.dispatch(message, channel_name)
+      end
+
+      it "does not activate a webhook when non-client event messages are received on a #{channel_type} channel" do
+        message = {
+          'event'     => 'non_client_event',
+          'channel'   => channel_name,
+          'socket_id' => '8.422225',
+          'data'      => { 'key' => 'value' }
+        }
+
+        Slanger::Webhook.expects(:post).never
+
+        channel.dispatch(message, channel_name)
+      end
     end
 
-    it 'does not activate a webhook when non-client event messages are received' do
-      message = {
-        'event'     => 'non_client_event',
-        'channel'   => 'private-test_channel',
-        'socket_id' => '8.422225',
-        'data'      => { 'key' => 'value' }
-      }
-
-      Slanger::Webhook.expects(:post).never
-
-      channel.dispatch(message, 'private-test_channel')
-    end
   end
 end
