@@ -47,7 +47,7 @@ module Slanger
     def onclose
 
       subscriptions = @subscriptions.select { |k,v| k && v }
-      
+
       subscriptions.each_key do |channel_id|
         subscription_id = subscriptions[channel_id]
         Channel.unsubscribe channel_id, subscription_id

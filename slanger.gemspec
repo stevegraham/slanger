@@ -21,7 +21,7 @@ Gem::Specification.new do |s|
   s.license                     = "MIT"
 
   s.add_dependency                "eventmachine",     "~> 1.0.0"
-  s.add_dependency                "em-hiredis",       "~> 0.2.0"
+  s.add_dependency                "em-hiredis",       "~> 0.3.1"
   s.add_dependency                "em-websocket",     "~> 0.5.1"
   s.add_dependency                "rack",             "~> 1.4.5"
   s.add_dependency                "rack-fiber_pool",  "~> 0.9.2"
