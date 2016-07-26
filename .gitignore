@@ -12,3 +12,7 @@
 coverage/
 tmp/
 pkg
+
+/.bundle/
+/vendor/bundle
+.ruby-version
