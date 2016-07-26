@@ -18,7 +18,7 @@ module Slanger
 
     class << self
       def from channel_id
-        klass = channel_id[/\Apresence-/] ? PresenceChannel : Channel
+        klass = channel_id =~ /\Apresence-/ ? PresenceChannel : Channel
 
         klass.lookup(channel_id) || klass.create(channel_id: channel_id)
       end
