@@ -26,11 +26,13 @@ module Slanger
 
       # TODO: Exponentially backed off retries for errors
       http.callback {
-        puts "Error: #{http.error} while posting to #{Slanger::Config.webhook_url}, Response: #{http.response}"
+        if (http.response_header.status < 200 && http.response_header.status > 299)
+          puts "Error: #{http.error} while posting to #{Slanger::Config.webhook_url}, Response: #{http.response}"
+        end
       }
 
       http.errback {
-        puts "Error: #{http.error} while posting to #{Slanger::Config.webhook_url}, Response: #{http.response}"
+        puts "Unable to post to #{Slanger::Config.webhook_url}"
       }
 
     end
