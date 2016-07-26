@@ -69,14 +69,18 @@ describe 'Slanger::Channel' do
   end
 
   describe '#dispatch' do
+
     channel_types = ['private', 'presence']
     channel_types.each do |channel_type|
-      channel_name = "#{channel_type}-test_channel"
+      channel_id = "#{channel_type}-test_channel"
+
 
       it "activates a webhook when client events are received on a #{channel_type} channel" do
+        dispatch_channel = Slanger::Channel.from channel_id
+
         message = {
         'event'     => 'client-test_event',
-        'channel'   => channel_name,
+        'channel'   => channel_id,
         'socket_id' => '8.422225',
         'data'      => { 'key' => 'value' }
         }
@@ -90,20 +94,22 @@ describe 'Slanger::Channel' do
         with(expected_params).
         once
 
-        channel.dispatch(message, channel_name)
+        dispatch_channel.dispatch(message, channel_id)
       end
 
       it "does not activate a webhook when non-client event messages are received on a #{channel_type} channel" do
+        dispatch_channel = Slanger::Channel.from channel_id
+
         message = {
           'event'     => 'non_client_event',
-          'channel'   => channel_name,
+          'channel'   => channel_id,
           'socket_id' => '8.422225',
           'data'      => { 'key' => 'value' }
         }
 
         Slanger::Webhook.expects(:post).never
 
-        channel.dispatch(message, channel_name)
+        dispatch_channel.dispatch(message, channel_id)
       end
     end
 
