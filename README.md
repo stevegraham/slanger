@@ -4,7 +4,7 @@
 
 **Important! Slanger is not supposed to be included in your Gemfile. RubyGems is used as a distribution mechanism. If you include it in your app, you will likely get dependency conflicts. PRs updating dependencies for compatibility with your app will be closed. Thank you for reading and enjoy Slanger!**
 
-##Typical usage
+## Typical usage
 
 ```
 gem install slanger
@@ -19,7 +19,8 @@ installed as a gem.
 
 Bundler has multiple purposes, one of which is useful for installation.
 
-##About
+## About
+
 Slanger is an open source server implementation of the Pusher protocol written
 in Ruby. It is designed to scale horizontally across N nodes and to be agnostic
 as to which Slanger node a subscriber is connected to, i.e subscribers to the
