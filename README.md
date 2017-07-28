@@ -50,7 +50,7 @@ eventual consistency, which in practise is instantaneous.
 
 ## Requirements
 
-- Ruby 2.1.2 or greater
+- Ruby 2.2.2 or greater
 - Redis
 
 ## Server setup
