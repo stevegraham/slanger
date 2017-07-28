@@ -10,7 +10,7 @@ describe 'Integration' do
       messages = em_stream(key: 'bogus_key') do |websocket, messages|
         websocket.callback { EM.stop }
       end
-      messages.should have_attributes count: 1, last_event: 'pusher:error',
+      expect(messages).to have_attributes count: 1, last_event: 'pusher:error',
         connection_established: false, id_present: false
       messages.first['data'] == 'Could not find app by key bogus_key'
     end
@@ -21,7 +21,7 @@ describe 'Integration' do
       messages = em_stream do |websocket, messages|
         websocket.callback { EM.stop }
       end
-      messages.should have_attributes activity_timeout: Slanger::Config.activity_timeout,
+      expect(messages).to have_attributes activity_timeout: Slanger::Config.activity_timeout,
         connection_established: true, id_present: true
     end
   end
@@ -31,7 +31,7 @@ describe 'Integration' do
       messages = em_stream do |websocket, messages|
         websocket.callback { EM.stop }
       end
-      messages.should have_attributes connection_established: true, id_present: true
+      expect(messages).to have_attributes connection_established: true, id_present: true
     end
   end
 
@@ -40,7 +40,7 @@ describe 'Integration' do
       messages = em_stream(protocol: "20") do |websocket, messages|
         websocket.callback { EM.stop }
       end
-      messages.should have_attributes connection_established: false, id_present: false,
+      expect(messages).to have_attributes connection_established: false, id_present: false,
         last_event: 'pusher:error'
     end
 
@@ -48,7 +48,7 @@ describe 'Integration' do
       messages = em_stream(protocol: nil) do |websocket, messages|
         websocket.callback { EM.stop }
       end
-      messages.should have_attributes connection_established: false, id_present: false,
+      expect(messages).to have_attributes connection_established: false, id_present: false,
         last_event: 'pusher:error'
     end
   end

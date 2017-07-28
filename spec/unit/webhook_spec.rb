@@ -32,7 +32,7 @@ describe 'Slanger::Webhook' do
 
       Slanger::Webhook.post name: 'channel_occupied', channel: 'test channel'
 
-      WebMock.should have_requested(:post, Slanger::Config.webhook_url).
+      expect(WebMock).to have_requested(:post, Slanger::Config.webhook_url).
         with(body: payload, headers: {
             "X-Pusher-Key"    => Slanger::Config.app_key,
             "X-Pusher-Signature" => hmac,

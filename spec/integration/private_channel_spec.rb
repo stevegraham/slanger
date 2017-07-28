@@ -17,7 +17,7 @@ describe 'Integration' do
           end
         end
 
-        messages.should have_attributes connection_established: true,
+        expect(messages).to have_attributes connection_established: true,
           count: 2,
           id_present: true,
           last_event: 'pusher_internal:subscription_succeeded'
@@ -37,7 +37,7 @@ describe 'Integration' do
           end
         end
 
-        messages.should have_attributes connection_established: true, count: 2, id_present: true, last_event:
+        expect(messages).to have_attributes connection_established: true, count: 2, id_present: true, last_event:
           'pusher:error'
 
         expect(JSON.parse(messages.last['data'])['message']).to match /^Invalid signature: Expected HMAC SHA256 hex digest of/
@@ -71,8 +71,8 @@ describe 'Integration' do
           end
         end
 
-        client1_messages.one? { |m| m['event'] == 'client-something' }.should be_true
-        client2_messages.none?  { |m| m['event'] == 'client-something' }.should be_true
+        expect(client1_messages.one?  { |m| m['event'] == 'client-something' }).to eq(true)
+        expect(client2_messages.none? { |m| m['event'] == 'client-something' }).to eq(true)
       end
     end
   end

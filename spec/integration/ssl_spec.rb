@@ -12,7 +12,7 @@ describe 'Integration' do
       expected_cert          = OpenSSL::X509::Certificate.new(File.open('spec/server.crt'))
       ssl_socket             = OpenSSL::SSL::SSLSocket.new(socket)
       ssl_socket.connect
-      ssl_socket.peer_cert.to_s.should == expected_cert.to_s
+      expect(ssl_socket.peer_cert.to_s).to eq(expected_cert.to_s)
     end
   end
 end
