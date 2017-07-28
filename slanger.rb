@@ -3,6 +3,7 @@ require 'eventmachine'
 require 'em-hiredis'
 require 'rack'
 require 'active_support/core_ext/string'
+require File.join(File.dirname(__FILE__), 'lib', 'core_ext', 'em-hiredis')
 require File.join(File.dirname(__FILE__), 'lib', 'slanger', 'version')
 
 module Slanger; end
