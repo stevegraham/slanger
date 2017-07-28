@@ -6,8 +6,8 @@ describe Slanger::Api::RequestValidation do
     it 'validation' do
       socket_id = "POST\n/apps/99759/events\nauth_key=840543d97de9803651b1&auth_timestamp=123&auth_version=1.0&body_md5=some_md5&dummy="
 
-      expect {validate(nil)            }.not_to     raise_error Slanger::Api::InvalidRequest
-      expect {validate("1234.123455")  }.not_to raise_error Slanger::Api::InvalidRequest
+      expect {validate(nil)            }.not_to raise_error
+      expect {validate("1234.123455")  }.not_to raise_error
 
       expect {validate(socket_id)      }.to     raise_error Slanger::Api::InvalidRequest
       expect {validate("something 123")}.to     raise_error Slanger::Api::InvalidRequest
