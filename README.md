@@ -1,5 +1,7 @@
 # Slanger
 
+## UNMAINTAINED - Slanger is deprecated and unmaintained by its authors. Use at your own risk.
+
 [![Gem Version](https://badge.fury.io/rb/slanger.svg)](http://badge.fury.io/rb/slanger) [![Build Status](https://travis-ci.org/stevegraham/slanger.svg?branch=master)](https://travis-ci.org/stevegraham/slanger)
 
 **Important! Slanger is not supposed to be included in your Gemfile. RubyGems is used as a distribution mechanism. If you include it in your app, you will likely get dependency conflicts. PRs updating dependencies for compatibility with your app will be closed. Thank you for reading and enjoy Slanger!**
