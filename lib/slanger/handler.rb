@@ -25,9 +25,9 @@ module Slanger
     # Dispatches message handling to method with same name as
     # the event name
     def onmessage(msg)
-      msg = Oj.load(msg)
+      msg = Oj.strict_load(msg)
 
-      msg['data'] = Oj.load(msg['data']) if msg['data'].is_a? String
+      msg['data'] = Oj.strict_load(msg['data']) if msg['data'].is_a? String
 
       event = msg['event'].gsub(/\Apusher:/, 'pusher_')
 

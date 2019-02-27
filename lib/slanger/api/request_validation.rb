@@ -12,7 +12,7 @@ module Slanger
       end
 
       def data
-        @data ||= Oj.load(body["data"] || params["data"])
+        @data ||= Oj.strict_load(body["data"] || params["data"])
       end
 
       def body
@@ -87,7 +87,7 @@ module Slanger
       end
 
       def assert_valid_json!(string)
-        Oj.load(string)
+        Oj.strict_load(string)
       rescue Oj::ParserError
         raise Slanger::InvalidRequest.new("Invalid request body: #{raw_body}")
       end

@@ -9,7 +9,7 @@ module Slanger
     end
 
     def send_message m
-      msg = Oj.load m
+      msg = Oj.strict_load m
       s = msg.delete 'socket_id'
       socket.send Oj.dump(msg, mode: :compat) unless s == socket_id
     end
