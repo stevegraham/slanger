@@ -74,7 +74,7 @@ GEM
     rack-fiber_pool (0.9.3)
     rack-protection (1.5.3)
       rack
-    rake (10.4.2)
+    rake (12.3.3)
     rspec (3.6.0)
       rspec-core (~> 3.6.0)
       rspec-expectations (~> 3.6.0)
@@ -118,7 +118,7 @@ DEPENDENCIES
   pry (~> 0.10.1)
   pry-byebug (~> 2.0.0)
   pusher (~> 0.14.2)
-  rake (~> 10.4.2)
+  rake (~> 12.3.3)
   rspec (~> 3.6.0)
   slanger!
   timecop (~> 0.3.5)
