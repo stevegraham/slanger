@@ -34,7 +34,7 @@ Gem::Specification.new do |s|
 
   s.add_development_dependency    "rspec",            "~> 3.6.0"
   s.add_development_dependency    "pusher",           "~> 0.14.2"
-  s.add_development_dependency    "haml",             "~> 3.1.2"
+  s.add_development_dependency    "haml",             "~> 5.1.2"
   s.add_development_dependency    "timecop",          "~> 0.3.5"
   s.add_development_dependency    "webmock",          "~> 1.8.7"
   s.add_development_dependency    "mocha",            "~> 0.13.2"
