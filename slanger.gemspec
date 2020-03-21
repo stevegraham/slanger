@@ -23,7 +23,7 @@ Gem::Specification.new do |s|
   s.add_dependency                "eventmachine",     "~> 1.0.0"
   s.add_dependency                "em-hiredis",       "~> 0.2.0"
   s.add_dependency                "em-websocket",     "~> 0.5.1"
-  s.add_dependency                "rack",             "~> 1.4.5"
+  s.add_dependency                "rack",             ">= 1.4.5", "< 2.3.0"
   s.add_dependency                "rack-fiber_pool",  "~> 0.9.2"
   s.add_dependency                "signature",        "~> 0.1.6"
   s.add_dependency                "activesupport",    "~> 4.2.1"
