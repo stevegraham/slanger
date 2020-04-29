@@ -3,6 +3,13 @@ require 'lib/slanger/webhook'
 
 describe 'Slanger::Webhook' do
 
+  def ensure_em
+    unless EventMachine.reactor_running? && EventMachine.reactor_thread.alive?
+      Thread.new { EventMachine.run }
+      sleep 1
+    end
+  end
+
   around do |example|
     Slanger::Config.load webhook_url: 'https://example.com/pusher',
       app_key: 'PUSHER_APP_KEY', secret: 'secret'
@@ -21,7 +28,7 @@ describe 'Slanger::Webhook' do
 
       digest   = OpenSSL::Digest::SHA256.new
       hmac     = OpenSSL::HMAC.hexdigest(digest, Slanger::Config.secret, payload)
-
+      ensure_em
       stub_request(:post, Slanger::Config.webhook_url).
         with(body: payload, headers: {
             "X-Pusher-Key"    => Slanger::Config.app_key,
