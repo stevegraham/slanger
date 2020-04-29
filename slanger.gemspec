@@ -32,7 +32,7 @@ Gem::Specification.new do |s|
   s.add_dependency                "em-http-request"
   s.add_dependency		  "oj"
 
-  s.add_development_dependency    "rspec"
+  s.add_development_dependency    "rspec",  "~> 3.6.0"
   s.add_development_dependency    "pusher"
   s.add_development_dependency    "haml"
   s.add_development_dependency    "timecop"
