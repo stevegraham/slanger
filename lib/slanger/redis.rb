@@ -19,7 +19,7 @@ module Slanger
     end
 
     def publisher
-      @publisher ||= new_connection
+      @publisher ||= new_connection.pubsub
     end
 
     def subscriber

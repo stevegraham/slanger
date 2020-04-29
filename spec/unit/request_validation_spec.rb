@@ -1,5 +1,6 @@
 #encoding: utf-8
 require 'spec_helper'
+require "signature"
 
 describe Slanger::Api::RequestValidation do
   describe '#socket_id' do
@@ -69,4 +70,3 @@ describe Slanger::Api::RequestValidation do
     {socket_id: socket_id}.to_json
   end
 end
-
