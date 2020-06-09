@@ -9,6 +9,7 @@ services:
 
 jobs:
   include:
+    - stage: "testing time"
     - stage: ":ship: it to Quay.io"
       language: minimal
       env:
