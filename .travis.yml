@@ -7,4 +7,17 @@ env:
 services:
   - redis-server
 
-sudo: false
+jobs:
+  include:
+    - stage: ":ship: it to Quay.io"
+      language: minimal
+      env:
+        - PATH=/snap/bin:$PATH
+      install: echo skip
+      before_script: echo skip
+      addons:
+        - snaps:
+          - name: docker
+            channel: latest/beta
+      script: make ship
+      if: (branch = master and type = push ) OR commit_message =~ /ship:docker/ OR env(SHIP_DOCKER) = true
